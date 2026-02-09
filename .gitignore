@@ -1,0 +1,14 @@
+# --- Global OS & IDE ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- Secrets & Local configs ---
+.env
+.env.local
+*.secret
+secret.yaml
+

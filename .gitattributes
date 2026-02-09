@@ -1,0 +1,12 @@
+# Автоматическая нормализация 
+* text=auto
+
+# Скрипты для Linux/Docker
+*.sh text eol=lf
+*.bash text eol=lf
+Dockerfile text eol=lf
+
+# Batch-файлы для Windows
+*.bat text eol=crlf
+*.cmd text eol=crlf
+

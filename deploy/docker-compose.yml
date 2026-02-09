@@ -1,0 +1,52 @@
+services:
+  # --- LiveKit Server (SFU) ---
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    ports:
+      - "7880:7880"   # API / WebSocket
+      - "7881:7881"   # TCP (RTC)
+      - "7882:7882"   # UDP (RTC)
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+    network_mode: "host" # Для локальной разработки LiveKit лучше использовать host networking (на Linux)
+    # Если ты на Windows/Mac, убери network_mode и раскомментируй порты UDP диапазона ниже:
+    # ports:
+    #   - "50000-50200:50000-50200/udp"
+    depends_on:
+      - redis
+
+  # --- Redis (Message Broker & Cache) ---
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # --- PostgreSQL (Database) ---
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: kitsu
+      POSTGRES_PASSWORD: kitsu_password
+      POSTGRES_DB: kitsulan
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # --- MinIO (S3 Compatible Storage - для файлов) ---
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: kitsu_minio
+      MINIO_ROOT_PASSWORD: kitsu_minio_password
+    ports:
+      - "9000:9000" # API
+      - "9001:9001" # Console UI
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  minio_data:

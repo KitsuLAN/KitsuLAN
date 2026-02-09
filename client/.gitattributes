@@ -1,0 +1,14 @@
+*.js text
+*.ts text
+*.tsx text
+*.json text
+*.html text
+*.css text
+wails.json text
+*.yaml text
+*.yml text
+wailsjs/* linguist-generated
+frontend/dist/* linguist-generated
+*.go text diff=go
+*.mod text
+*.sum text linguist-generated
