@@ -1,0 +1,22 @@
+### 1. Регистрация нового юзера
+POST http://localhost:8090/api/auth/register
+Content-Type: application/json
+
+{
+    "username": "kitsu_admin",
+    "password": "supersecretpassword"
+}
+
+### 2. Попытка входа (должен вернуть токен)
+# @name login
+POST http://localhost:8090/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "kitsu_admin",
+    "password": "supersecretpassword"
+}
+
+### 3. Проверка защищенного маршрута (Копируем токен из ответа выше)
+GET http://localhost:8090/api/me
+Authorization: Bearer <put_token_here>

@@ -1,0 +1,66 @@
+{
+    "folders": [
+      {
+        "name": "root",
+        "path": "."
+      },
+      {
+        "name": "backend (core)",
+        "path": "services/core"
+      },
+      {
+        "name": "client (wails)",
+        "path": "client"
+      },
+      {
+        "name": "deploy",
+        "path": "deploy"
+      }
+    ],
+    "settings": {
+      "go.useLanguageServer": true,
+      "go.lintTool": "golangci-lint",
+      "go.lintOnSave": "package",
+      "editor.formatOnSave": true,
+      "[go]": {
+        "editor.defaultFormatter": "golang.go"
+      },
+      "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true
+      },
+      "sqltools.connections": [
+        {
+          "ssh": "Disabled",
+          "previewLimit": 50,
+          "server": "localhost",
+          "port": 5432,
+          "driver": "PostgreSQL",
+          "name": "KitsuLAN dev db",
+          "username": "kitsu",
+          "password": "kitsu_password",
+          "database": "kitsulan"
+        }
+      ]
+    },
+    "extensions": {
+      "recommendations": [
+        "golang.go",              // Для Go
+        "dbaeumer.vscode-eslint", // Для React
+        "esbenp.prettier-vscode", // Форматирование
+        "ms-azuretools.vscode-docker", // Управление контейнерами
+        "mtxr.sqltools",          // Подключение к БД прямо из VS Code
+        "mtxr.sqltools-driver-pg", // Драйвер Postgres
+        "humao.rest-client" 
+      ]
+    }
+  }
