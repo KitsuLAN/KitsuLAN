@@ -15,6 +15,10 @@
       {
         "name": "deploy",
         "path": "deploy"
+      },
+      {
+        "name": "api proto",
+        "path": "proto"
       }
     ],
     "settings": {
@@ -60,7 +64,8 @@
         "ms-azuretools.vscode-docker", // Управление контейнерами
         "mtxr.sqltools",          // Подключение к БД прямо из VS Code
         "mtxr.sqltools-driver-pg", // Драйвер Postgres
-        "humao.rest-client" 
+        "humao.rest-client",
+        "zxh404.vscode-proto3"
       ]
     }
   }

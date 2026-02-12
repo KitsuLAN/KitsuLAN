@@ -1,6 +1,9 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import {
+  Login as GoLogin,
+  Register as GoRegister,
+} from "../../wailsjs/go/main/App";
 
 export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
@@ -9,37 +12,30 @@ export default function Login() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Адрес нашего Go API
-  // TODO: Вынести в конфигурацию
-  const API_URL = "http://localhost:8080/api/auth";
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      const endpoint = isRegister ? "/register" : "/login";
-      const res = await axios.post(`${API_URL}${endpoint}`, {
-        username,
-        password,
-      });
-
       if (isRegister) {
-        // Если зарегистрировались, сразу пробуем войти или просим войти
-        setIsRegister(false);
+        // Вызываем Go (gRPC Register)
+        await GoRegister(username, password);
         alert("Регистрация успешна! Теперь войдите.");
+        setIsRegister(false);
       } else {
-        // Если вошли - сохраняем токен
-        const token = res.data.token;
+        // Вызываем Go (gRPC Login)
+        const token = await GoLogin(username, password);
+
+        // Сохраняем токен (пока в localStorage, потом переделаем)
         localStorage.setItem("token", token);
         localStorage.setItem("username", username);
 
-        // Переходим в чат
         navigate("/chat");
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.error || "Произошла ошибка");
+      // Wails возвращает ошибки как строки
+      setError(typeof err === "string" ? err : "Ошибка соединения с сервером");
     }
   };
 
@@ -47,7 +43,7 @@ export default function Login() {
     <div className="flex h-full w-full items-center justify-center bg-gray-900">
       <div className="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6 text-white">
-          {isRegister ? "Создать аккаунт" : "Вход в KitsuLAN"}
+          {isRegister ? "Создать аккаунт (gRPC)" : "Вход в KitsuLAN"}
         </h2>
 
         {error && (
@@ -84,7 +80,7 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-accent hover:bg-indigo-600 text-white font-semibold rounded transition duration-200"
+            className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded transition duration-200 cursor-pointer"
           >
             {isRegister ? "Зарегистрироваться" : "Войти"}
           </button>
@@ -94,7 +90,7 @@ export default function Login() {
           {isRegister ? "Уже есть аккаунт? " : "Нет аккаунта? "}
           <button
             onClick={() => setIsRegister(!isRegister)}
-            className="text-accent hover:underline"
+            className="text-indigo-400 hover:underline cursor-pointer"
           >
             {isRegister ? "Войти" : "Создать"}
           </button>

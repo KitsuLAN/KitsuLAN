@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package kitsulan.v1;
+
+option go_package = "github.com/KitsuLAN/KitsuLAN/services/core/gen/go/kitsulan/v1;kitsulanv1";
+
+import "google/protobuf/timestamp.proto";
+
+// --- Сервисы ---
+
+service AuthService {
+  // Регистрация нового пользователя
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  // Вход по логину и паролю
+  rpc Login(LoginRequest) returns (LoginResponse);
+  // Обновление токена (Refresh)
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+}
+
+service UserService {
+  // Получить профиль (себя или другого юзера)
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+  // Поиск пользователей (для добавления в друзья/инвайтов)
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse);
+}
+
+// --- Сообщения (DTO) ---
+
+message User {
+  string id = 1;        // UUIDv7
+  string username = 2;
+  string avatar_url = 3;
+  bool is_online = 4;
+}
+
+// Auth Request/Response
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3; // Опционально
+}
+
+message RegisterResponse {
+  string user_id = 1;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  // Срок действия в секундах
+  int64 expires_in = 3; 
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+// User Request/Response
+message GetProfileRequest {
+  string user_id = 1; // Если пусто - вернуть "себя"
+}
+
+message GetProfileResponse {
+  User user = 1;
+}
+
+message SearchUsersRequest {
+  string query = 1;
+}
+
+message SearchUsersResponse {
+  repeated User users = 1;
+}

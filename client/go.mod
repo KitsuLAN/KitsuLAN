@@ -1,8 +1,12 @@
 module github.com/KitsuLAN/KitsuLAN/client
 
-go 1.23
+go 1.24.12
 
-require github.com/wailsapp/wails/v2 v2.11.0
+require (
+	github.com/KitsuLAN/KitsuLAN/services/core v0.0.0-20260212135638-be9da674f373
+	github.com/wailsapp/wails/v2 v2.11.0
+	google.golang.org/grpc v1.79.0
+)
 
 require (
 	github.com/bep/debounce v1.2.1 // indirect
@@ -28,8 +32,12 @@ require (
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/wailsapp/go-webview2 v1.0.22 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/net v0.49.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
+	google.golang.org/protobuf v1.36.10 // indirect
 )
+
+replace github.com/KitsuLAN/KitsuLAN/services/core => ../services/core
