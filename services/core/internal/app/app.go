@@ -15,6 +15,7 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/config"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/middleware"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/service"
 	grpctransport "github.com/KitsuLAN/KitsuLAN/services/core/internal/transport/grpc"
 	"google.golang.org/grpc"
@@ -25,7 +26,6 @@ import (
 )
 
 // App — корневая структура приложения.
-// Хранит все зависимости верхнего уровня и управляет их жизненным циклом.
 type App struct {
 	cfg        *config.Config
 	log        *slog.Logger
@@ -34,38 +34,43 @@ type App struct {
 	listener   net.Listener
 }
 
-// New создаёт и инициализирует приложение.
-// Все зависимости создаются здесь и «проводятся» в нужные компоненты.
+// New собирает граф зависимостей по слоям:
+//
+//	Database → Repository → Service → Transport → gRPC Server
 func New(cfg *config.Config, log *slog.Logger) (*App, error) {
-	// --- 1. Database ---
+	// 1. Database
 	db, err := database.Connect(cfg, log)
 	if err != nil {
 		return nil, fmt.Errorf("database init: %w", err)
 	}
 
-	// --- 2. Services (бизнес-логика) ---
-	authSvc := service.NewAuthService(db, cfg)
+	// 2. Repositories (адаптеры к БД)
+	repos := repository.NewRegistry(db)
 
-	// --- 3. gRPC Server с interceptors ---
+	// 3. Services (бизнес-логика)
+	authSvc := service.NewAuthService(repos.Users, cfg)
+	// TODO Phase 1: userSvc := service.NewUserService(repos.Users)
+
+	// 4. gRPC Server
 	grpcServer := buildGRPCServer(cfg, log)
 
-	// --- 4. Transport layer (регистрация gRPC handlers) ---
+	// 5. Transport handlers
 	pb.RegisterAuthServiceServer(grpcServer, grpctransport.NewAuthServer(authSvc))
+	// TODO Phase 1: pb.RegisterUserServiceServer(grpcServer, grpctransport.NewUserServer(userSvc))
 
-	// Health check — стандартный протокол для k8s/Docker liveness probes
+	// Health Check (стандартный протокол для Docker / k8s)
 	healthSrv := health.NewServer()
 	healthpb.RegisterHealthServer(grpcServer, healthSrv)
 	healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
 	healthSrv.SetServingStatus("kitsulan.v1.AuthService", healthpb.HealthCheckResponse_SERVING)
 
-	// Reflection — позволяет grpcurl и BloomRPC самостоятельно
-	// обнаружить методы сервера без .proto файлов (только в dev)
+	// gRPC Reflection — только в development (позволяет grpcurl без .proto)
 	if !cfg.IsProduction() {
 		reflection.Register(grpcServer)
 		log.Info("gRPC reflection enabled (development mode)")
 	}
 
-	// --- 5. TCP Listener ---
+	// 6. TCP Listener
 	lis, err := net.Listen("tcp", cfg.GRPCAddr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on %s: %w", cfg.GRPCAddr, err)
@@ -80,8 +85,7 @@ func New(cfg *config.Config, log *slog.Logger) (*App, error) {
 	}, nil
 }
 
-// Run запускает gRPC сервер. Блокирует горутину до вызова Shutdown.
-// Предназначен для запуска в отдельной горутине из main().
+// Run запускает gRPC сервер. Блокирует до вызова Shutdown.
 func (a *App) Run() error {
 	a.log.Info("gRPC server starting", "addr", a.listener.Addr().String())
 	if err := a.grpcServer.Serve(a.listener); err != nil {
@@ -90,14 +94,10 @@ func (a *App) Run() error {
 	return nil
 }
 
-// Shutdown выполняет graceful shutdown:
-//  1. Останавливает gRPC сервер (ждёт завершения активных RPC, max 5s)
-//  2. Закрывает соединение с БД
+// Shutdown выполняет graceful shutdown: ждёт завершения RPC, закрывает БД.
 func (a *App) Shutdown(ctx context.Context) error {
 	a.log.Info("shutting down gRPC server...")
 
-	// GracefulStop ждёт завершения текущих запросов.
-	// Используем канал чтобы уважать deadline из ctx.
 	stopped := make(chan struct{})
 	go func() {
 		a.grpcServer.GracefulStop()
@@ -106,13 +106,12 @@ func (a *App) Shutdown(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
-		a.log.Warn("graceful shutdown timeout exceeded, forcing stop")
+		a.log.Warn("graceful shutdown timeout, forcing stop")
 		a.grpcServer.Stop()
 	case <-stopped:
 		a.log.Info("gRPC server stopped gracefully")
 	}
 
-	// Закрываем БД
 	sqlDB, err := a.db.DB()
 	if err == nil {
 		if closeErr := sqlDB.Close(); closeErr != nil {
@@ -125,21 +124,14 @@ func (a *App) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-// buildGRPCServer создаёт gRPC сервер с цепочкой interceptors.
-// Порядок interceptors важен: Recovery → Auth → Logging
-// (Recovery должен быть самым внешним, чтобы поймать панику в других).
 func buildGRPCServer(cfg *config.Config, log *slog.Logger) *grpc.Server {
-	// Cепаратор для логгеров компонентов
 	mwLog := log.With("component", "middleware")
-
 	return grpc.NewServer(
-		// Unary interceptors (для обычных RPC)
 		grpc.ChainUnaryInterceptor(
 			middleware.UnaryRecovery(mwLog),
 			middleware.UnaryAuth(cfg.JWTSecret),
 			middleware.UnaryLogging(mwLog),
 		),
-		// Stream interceptors (для gRPC streams, Phase 2+)
 		grpc.ChainStreamInterceptor(
 			middleware.StreamRecovery(mwLog),
 		),
