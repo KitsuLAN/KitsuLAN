@@ -1,19 +1,11 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { LogIn, UserPlus, User, Lock } from "lucide-react";
 
-// Wails bindings
-import {
-  Login as GoLogin,
-  Register as GoRegister,
-} from "../../wailsjs/go/main/App";
-
-// UI Components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,101 +18,76 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-// --- 1. Схема валидации (Zod) ---
+import { useAuthActions, useIsAuthenticated } from "@/stores/authStore";
+import { useEffect, useState } from "react";
+
 const authSchema = z.object({
-  username: z
-    .string()
-    .min(1, "Введите никнейм")
-    .max(50, "Слишком длинный никнейм"),
-  password: z
-    .string()
-    .min(1, "Введите пароль")
-    .min(6, "Пароль должен быть не короче 6 символов"),
+  username: z.string().min(1, "Введите никнейм"),
+  password: z.string().min(1, "Введите пароль"),
 });
 
 type AuthForm = z.infer<typeof authSchema>;
 
-// --- 2. Утилита для ошибок (можно вынести в shared) ---
-function getErrorMessage(err: unknown): string {
-  if (typeof err === "string") return err;
-  if (err instanceof Error) return err.message;
-  return "Не удалось подключиться к серверу";
-}
-
-// --- 3. Кастомный хук для аутентификации ---
-function useAuth() {
+export default function Login() {
   const navigate = useNavigate();
-  const [isRegister, setIsRegister] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, register: registerAction } = useAuthActions();
+  const isAuthenticated = useIsAuthenticated();
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
 
-  const form = useForm<AuthForm>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<AuthForm>({
     resolver: zodResolver(authSchema),
     defaultValues: { username: "", password: "" },
   });
 
+  // Редирект, если уже залогинен
+  useEffect(() => {
+    if (isAuthenticated) navigate("/chat");
+  }, [isAuthenticated, navigate]);
+
   const onSubmit = async (data: AuthForm) => {
-    if (isLoading) return;
-    setIsLoading(true);
-
     try {
-      const action = isRegister ? GoRegister : GoLogin;
-      const result = await action(data.username, data.password);
-
-      if (isRegister) {
+      if (isRegisterMode) {
+        await registerAction(data.username, data.password);
         toast.success("Аккаунт создан", {
           description: "Теперь вы можете войти",
         });
-        setIsRegister(false);
-        form.reset();
+        setIsRegisterMode(false);
+        reset();
       } else {
-        // Хранилище лучше вынести в отдельный модуль
-        localStorage.setItem("token", result);
-        localStorage.setItem("username", data.username);
+        await login(data.username, data.password);
         toast.success("Вход выполнен");
-        navigate("/chat");
+        // useAuthStore обновился, useEffect сработает и перенаправит
       }
     } catch (err) {
-      toast.error("Ошибка", {
-        description: getErrorMessage(err),
-      });
-    } finally {
-      setIsLoading(false);
+      const message =
+        typeof err === "string"
+          ? err
+          : err instanceof Error
+          ? err.message
+          : "Неизвестная ошибка";
+      toast.error("Ошибка", { description: message });
     }
   };
 
-  return {
-    form,
-    isRegister,
-    setIsRegister,
-    isLoading,
-    onSubmit,
-  };
-}
-
-// --- 4. Компонент (только отрисовка) ---
-export default function Login() {
-  const { form, isRegister, setIsRegister, isLoading, onSubmit } = useAuth();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = form;
-
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-background via-background to-secondary/20 p-6">
+    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-background via-background to-secondary/20 p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
         className="w-full max-w-md"
       >
         <Card className="border-border/50 bg-card/95 backdrop-blur shadow-xl">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-3xl font-bold tracking-tight">
-              {isRegister ? "Регистрация" : "KitsuLAN"}
+              {isRegisterMode ? "Регистрация" : "KitsuLAN"}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              {isRegister
+              {isRegisterMode
                 ? "Придумайте никнейм и пароль"
                 : "Введите данные для входа"}
             </CardDescription>
@@ -128,7 +95,6 @@ export default function Login() {
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <CardContent className="grid gap-5">
-              {/* Поле Никнейм */}
               <div className="grid gap-2">
                 <Label htmlFor="username">Никнейм</Label>
                 <div className="relative">
@@ -136,9 +102,9 @@ export default function Login() {
                   <Input
                     id="username"
                     placeholder="Например: KitsuFan"
-                    className="pl-9 h-11 bg-background/50 transition-shadow focus-visible:ring-2"
-                    disabled={isLoading}
-                    autoFocus
+                    className="pl-9 h-11 bg-background/50"
+                    autoComplete="username"
+                    disabled={isSubmitting}
                     {...register("username")}
                   />
                 </div>
@@ -149,7 +115,6 @@ export default function Login() {
                 )}
               </div>
 
-              {/* Поле Пароль */}
               <div className="grid gap-2">
                 <Label htmlFor="password">Пароль</Label>
                 <div className="relative">
@@ -158,8 +123,11 @@ export default function Login() {
                     id="password"
                     type="password"
                     placeholder="••••••••"
-                    className="pl-9 h-11 bg-background/50 transition-shadow focus-visible:ring-2"
-                    disabled={isLoading}
+                    className="pl-9 h-11 bg-background/50"
+                    autoComplete={
+                      isRegisterMode ? "new-password" : "current-password"
+                    }
+                    disabled={isSubmitting}
                     {...register("password")}
                   />
                 </div>
@@ -176,11 +144,11 @@ export default function Login() {
                 type="submit"
                 size="lg"
                 className="w-full text-base font-semibold transition-transform hover:scale-[1.02]"
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
-                {isLoading ? (
+                {isSubmitting ? (
                   "Загрузка..."
-                ) : isRegister ? (
+                ) : isRegisterMode ? (
                   <>
                     <UserPlus className="mr-2 h-5 w-5" />
                     Создать аккаунт
@@ -194,16 +162,16 @@ export default function Login() {
               </Button>
 
               <div className="text-center text-sm text-muted-foreground">
-                {isRegister ? "Уже есть аккаунт? " : "Нет аккаунта? "}
+                {isRegisterMode ? "Уже есть аккаунт? " : "Нет аккаунта? "}
                 <button
                   type="button"
                   onClick={() => {
-                    setIsRegister(!isRegister);
-                    form.clearErrors();
+                    setIsRegisterMode(!isRegisterMode);
+                    reset();
                   }}
-                  className="font-medium text-primary underline underline-offset-4 transition hover:opacity-80"
+                  className="font-medium text-primary underline underline-offset-4 hover:opacity-80 transition"
                 >
-                  {isRegister ? "Войти" : "Создать"}
+                  {isRegisterMode ? "Войти" : "Создать"}
                 </button>
               </div>
             </CardFooter>

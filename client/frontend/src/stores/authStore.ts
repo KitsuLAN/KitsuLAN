@@ -1,15 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useShallow } from "zustand/react/shallow";
 import { Login, Register } from "../../wailsjs/go/main/App";
 
 interface AuthState {
   token: string | null;
   username: string | null;
   isAuthenticated: boolean;
-
-  // Actions
-  login: (user: string, pass: string) => Promise<void>;
-  register: (user: string, pass: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -21,25 +20,31 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
 
       login: async (username, password) => {
-        try {
-          // Вызов Go функции
-          const token = await Login(username, password);
-          set({ token, username, isAuthenticated: true });
-        } catch (err) {
-          throw err; // Пробрасываем ошибку в UI
-        }
+        const token = await Login(username, password);
+        set({ token, username, isAuthenticated: true });
       },
 
       register: async (username, password) => {
-        // Вызов Go функции (она возвращает ID, но нам он тут не особо нужен)
         await Register(username, password);
       },
 
       logout: () =>
         set({ token: null, username: null, isAuthenticated: false }),
     }),
-    {
-      name: "kitsu-auth-storage", // Имя ключа в localStorage
-    }
+    { name: "kitsu-auth-storage" }
   )
 );
+
+// Селекторы для производительности
+export const useAuthToken = () => useAuthStore((state) => state.token);
+export const useIsAuthenticated = () =>
+  useAuthStore((state) => state.isAuthenticated);
+export const useUsername = () => useAuthStore((state) => state.username);
+export const useAuthActions = () =>
+  useAuthStore(
+    useShallow((state) => ({
+      login: state.login,
+      register: state.register,
+      logout: state.logout,
+    }))
+  );

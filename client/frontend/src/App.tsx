@@ -1,90 +1,28 @@
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
-import { JSX, ReactNode, useEffect, useState } from "react"; // Добавили ReactNode
+import { HashRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
-import Login from "./pages/Login";
-import Chat from "./pages/Chat";
-import { CheckServerStatus } from "../wailsjs/go/main/App";
-import MainLayout from "./pages/MainLayout";
-import RootLayout from "./pages/RootLayout";
+import { ServerGuard } from "@/components/ServerGuard";
+import { PrivateRoute } from "@/components/PrivateRoute";
+import Login from "@/pages/Login";
+import MainLayout from "@/pages/MainLayout";
+import Chat from "@/pages/Chat";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
-// Меняем тип children: JSX.Element -> ReactNode
-function ServerGuard({ children }: { children: ReactNode }) {
-  const [isOnline, setIsOnline] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const check = async () => {
-      try {
-        const status = await CheckServerStatus();
-        setIsOnline(status);
-      } catch (e) {
-        setIsOnline(false);
-      }
-    };
-
-    check();
-    const interval = setInterval(check, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (isOnline === null)
-    return (
-      <div className="h-screen flex items-center justify-center text-white bg-background">
-        Загрузка...
-      </div>
-    );
-
-  if (isOnline === false) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-destructive/10 text-foreground gap-4">
-        <h1 className="text-2xl font-bold text-destructive">
-          Нет соединения с сервером 🔌
-        </h1>
-        <p>Убедитесь, что Core-сервис запущен (localhost:8090)</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-secondary rounded hover:bg-secondary/80 text-foreground cursor-pointer"
-        >
-          Попробовать снова
-        </button>
-      </div>
-    );
-  }
-
-  // ReactNode позволяет возвращать несколько элементов без Fragment,
-  // но лучше завернуть их, если ServerGuard это просто обертка
-  return <>{children}</>;
-}
-
-function PrivateRoute({ children }: { children: JSX.Element }) {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/" />;
-}
-
-function App() {
+export default function App() {
   return (
     <ServerGuard>
-      <RootLayout>
+      <ThemeProvider>
         <HashRouter>
           <Routes>
             <Route path="/" element={<Login />} />
-
-            <Route
-              element={
-                <PrivateRoute>
-                  <MainLayout />
-                </PrivateRoute>
-              }
-            >
-              <Route path="/chat" element={<Chat />} />
+            <Route element={<PrivateRoute />}>
+              <Route element={<MainLayout />}>
+                <Route path="/chat" element={<Chat />} />
+              </Route>
             </Route>
           </Routes>
         </HashRouter>
-      </RootLayout>
-
-      {/* Уведомления */}
-      <Toaster theme="dark" position="bottom-right" />
+        <Toaster theme="dark" position="bottom-right" />
+      </ThemeProvider>
     </ServerGuard>
   );
 }
-
-export default App;
