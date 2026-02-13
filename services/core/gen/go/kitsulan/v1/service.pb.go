@@ -9,7 +9,7 @@ package kitsulanv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -21,6 +21,55 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+type ChannelType int32
+
+const (
+	ChannelType_CHANNEL_TYPE_UNSPECIFIED ChannelType = 0
+	ChannelType_CHANNEL_TYPE_TEXT        ChannelType = 1
+	ChannelType_CHANNEL_TYPE_VOICE       ChannelType = 2
+)
+
+// Enum value maps for ChannelType.
+var (
+	ChannelType_name = map[int32]string{
+		0: "CHANNEL_TYPE_UNSPECIFIED",
+		1: "CHANNEL_TYPE_TEXT",
+		2: "CHANNEL_TYPE_VOICE",
+	}
+	ChannelType_value = map[string]int32{
+		"CHANNEL_TYPE_UNSPECIFIED": 0,
+		"CHANNEL_TYPE_TEXT":        1,
+		"CHANNEL_TYPE_VOICE":       2,
+	}
+)
+
+func (x ChannelType) Enum() *ChannelType {
+	p := new(ChannelType)
+	*p = x
+	return p
+}
+
+func (x ChannelType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ChannelType) Descriptor() protoreflect.EnumDescriptor {
+	return file_kitsulan_v1_service_proto_enumTypes[0].Descriptor()
+}
+
+func (ChannelType) Type() protoreflect.EnumType {
+	return &file_kitsulan_v1_service_proto_enumTypes[0]
+}
+
+func (x ChannelType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ChannelType.Descriptor instead.
+func (ChannelType) EnumDescriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{0}
+}
 
 type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -581,6 +630,1731 @@ func (x *SearchUsersResponse) GetUsers() []*User {
 	return nil
 }
 
+type Guild struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	IconUrl       string                 `protobuf:"bytes,4,opt,name=icon_url,json=iconUrl,proto3" json:"icon_url,omitempty"`
+	OwnerId       string                 `protobuf:"bytes,5,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	MemberCount   int32                  `protobuf:"varint,6,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Guild) Reset() {
+	*x = Guild{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Guild) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Guild) ProtoMessage() {}
+
+func (x *Guild) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Guild.ProtoReflect.Descriptor instead.
+func (*Guild) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *Guild) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Guild) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Guild) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *Guild) GetIconUrl() string {
+	if x != nil {
+		return x.IconUrl
+	}
+	return ""
+}
+
+func (x *Guild) GetOwnerId() string {
+	if x != nil {
+		return x.OwnerId
+	}
+	return ""
+}
+
+func (x *Guild) GetMemberCount() int32 {
+	if x != nil {
+		return x.MemberCount
+	}
+	return 0
+}
+
+func (x *Guild) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+type Channel struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	GuildId       string                 `protobuf:"bytes,2,opt,name=guild_id,json=guildId,proto3" json:"guild_id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Type          ChannelType            `protobuf:"varint,4,opt,name=type,proto3,enum=kitsulan.v1.ChannelType" json:"type,omitempty"`
+	Position      int32                  `protobuf:"varint,5,opt,name=position,proto3" json:"position,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Channel) Reset() {
+	*x = Channel{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Channel) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Channel) ProtoMessage() {}
+
+func (x *Channel) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Channel.ProtoReflect.Descriptor instead.
+func (*Channel) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *Channel) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Channel) GetGuildId() string {
+	if x != nil {
+		return x.GuildId
+	}
+	return ""
+}
+
+func (x *Channel) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Channel) GetType() ChannelType {
+	if x != nil {
+		return x.Type
+	}
+	return ChannelType_CHANNEL_TYPE_UNSPECIFIED
+}
+
+func (x *Channel) GetPosition() int32 {
+	if x != nil {
+		return x.Position
+	}
+	return 0
+}
+
+type Member struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	AvatarUrl     string                 `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Nickname      string                 `protobuf:"bytes,4,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	IsOnline      bool                   `protobuf:"varint,5,opt,name=is_online,json=isOnline,proto3" json:"is_online,omitempty"`
+	JoinedAt      *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=joined_at,json=joinedAt,proto3" json:"joined_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Member) Reset() {
+	*x = Member{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Member) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Member) ProtoMessage() {}
+
+func (x *Member) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Member.ProtoReflect.Descriptor instead.
+func (*Member) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *Member) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *Member) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *Member) GetAvatarUrl() string {
+	if x != nil {
+		return x.AvatarUrl
+	}
+	return ""
+}
+
+func (x *Member) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *Member) GetIsOnline() bool {
+	if x != nil {
+		return x.IsOnline
+	}
+	return false
+}
+
+func (x *Member) GetJoinedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.JoinedAt
+	}
+	return nil
+}
+
+type CreateGuildRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateGuildRequest) Reset() {
+	*x = CreateGuildRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateGuildRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateGuildRequest) ProtoMessage() {}
+
+func (x *CreateGuildRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateGuildRequest.ProtoReflect.Descriptor instead.
+func (*CreateGuildRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *CreateGuildRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateGuildRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+type CreateGuildResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Guild         *Guild                 `protobuf:"bytes,1,opt,name=guild,proto3" json:"guild,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateGuildResponse) Reset() {
+	*x = CreateGuildResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateGuildResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateGuildResponse) ProtoMessage() {}
+
+func (x *CreateGuildResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateGuildResponse.ProtoReflect.Descriptor instead.
+func (*CreateGuildResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *CreateGuildResponse) GetGuild() *Guild {
+	if x != nil {
+		return x.Guild
+	}
+	return nil
+}
+
+type GetGuildRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GuildId       string                 `protobuf:"bytes,1,opt,name=guild_id,json=guildId,proto3" json:"guild_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGuildRequest) Reset() {
+	*x = GetGuildRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGuildRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGuildRequest) ProtoMessage() {}
+
+func (x *GetGuildRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGuildRequest.ProtoReflect.Descriptor instead.
+func (*GetGuildRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetGuildRequest) GetGuildId() string {
+	if x != nil {
+		return x.GuildId
+	}
+	return ""
+}
+
+type GetGuildResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Guild         *Guild                 `protobuf:"bytes,1,opt,name=guild,proto3" json:"guild,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGuildResponse) Reset() {
+	*x = GetGuildResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGuildResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGuildResponse) ProtoMessage() {}
+
+func (x *GetGuildResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGuildResponse.ProtoReflect.Descriptor instead.
+func (*GetGuildResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetGuildResponse) GetGuild() *Guild {
+	if x != nil {
+		return x.Guild
+	}
+	return nil
+}
+
+type ListMyGuildsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyGuildsRequest) Reset() {
+	*x = ListMyGuildsRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyGuildsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyGuildsRequest) ProtoMessage() {}
+
+func (x *ListMyGuildsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyGuildsRequest.ProtoReflect.Descriptor instead.
+func (*ListMyGuildsRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{18}
+}
+
+type ListMyGuildsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Guilds        []*Guild               `protobuf:"bytes,1,rep,name=guilds,proto3" json:"guilds,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyGuildsResponse) Reset() {
+	*x = ListMyGuildsResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyGuildsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyGuildsResponse) ProtoMessage() {}
+
+func (x *ListMyGuildsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyGuildsResponse.ProtoReflect.Descriptor instead.
+func (*ListMyGuildsResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ListMyGuildsResponse) GetGuilds() []*Guild {
+	if x != nil {
+		return x.Guilds
+	}
+	return nil
+}
+
+type DeleteGuildRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GuildId       string                 `protobuf:"bytes,1,opt,name=guild_id,json=guildId,proto3" json:"guild_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteGuildRequest) Reset() {
+	*x = DeleteGuildRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteGuildRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteGuildRequest) ProtoMessage() {}
+
+func (x *DeleteGuildRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteGuildRequest.ProtoReflect.Descriptor instead.
+func (*DeleteGuildRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *DeleteGuildRequest) GetGuildId() string {
+	if x != nil {
+		return x.GuildId
+	}
+	return ""
+}
+
+type DeleteGuildResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteGuildResponse) Reset() {
+	*x = DeleteGuildResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteGuildResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteGuildResponse) ProtoMessage() {}
+
+func (x *DeleteGuildResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteGuildResponse.ProtoReflect.Descriptor instead.
+func (*DeleteGuildResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{21}
+}
+
+type CreateInviteRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	GuildId        string                 `protobuf:"bytes,1,opt,name=guild_id,json=guildId,proto3" json:"guild_id,omitempty"`
+	MaxUses        int32                  `protobuf:"varint,2,opt,name=max_uses,json=maxUses,proto3" json:"max_uses,omitempty"`
+	ExpiresInHours int32                  `protobuf:"varint,3,opt,name=expires_in_hours,json=expiresInHours,proto3" json:"expires_in_hours,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CreateInviteRequest) Reset() {
+	*x = CreateInviteRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateInviteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateInviteRequest) ProtoMessage() {}
+
+func (x *CreateInviteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateInviteRequest.ProtoReflect.Descriptor instead.
+func (*CreateInviteRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *CreateInviteRequest) GetGuildId() string {
+	if x != nil {
+		return x.GuildId
+	}
+	return ""
+}
+
+func (x *CreateInviteRequest) GetMaxUses() int32 {
+	if x != nil {
+		return x.MaxUses
+	}
+	return 0
+}
+
+func (x *CreateInviteRequest) GetExpiresInHours() int32 {
+	if x != nil {
+		return x.ExpiresInHours
+	}
+	return 0
+}
+
+type CreateInviteResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Url           string                 `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateInviteResponse) Reset() {
+	*x = CreateInviteResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateInviteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateInviteResponse) ProtoMessage() {}
+
+func (x *CreateInviteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateInviteResponse.ProtoReflect.Descriptor instead.
+func (*CreateInviteResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CreateInviteResponse) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *CreateInviteResponse) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+type JoinByInviteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JoinByInviteRequest) Reset() {
+	*x = JoinByInviteRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JoinByInviteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JoinByInviteRequest) ProtoMessage() {}
+
+func (x *JoinByInviteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JoinByInviteRequest.ProtoReflect.Descriptor instead.
+func (*JoinByInviteRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *JoinByInviteRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+type JoinByInviteResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Guild         *Guild                 `protobuf:"bytes,1,opt,name=guild,proto3" json:"guild,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JoinByInviteResponse) Reset() {
+	*x = JoinByInviteResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JoinByInviteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JoinByInviteResponse) ProtoMessage() {}
+
+func (x *JoinByInviteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JoinByInviteResponse.ProtoReflect.Descriptor instead.
+func (*JoinByInviteResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *JoinByInviteResponse) GetGuild() *Guild {
+	if x != nil {
+		return x.Guild
+	}
+	return nil
+}
+
+type LeaveGuildRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GuildId       string                 `protobuf:"bytes,1,opt,name=guild_id,json=guildId,proto3" json:"guild_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LeaveGuildRequest) Reset() {
+	*x = LeaveGuildRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LeaveGuildRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LeaveGuildRequest) ProtoMessage() {}
+
+func (x *LeaveGuildRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LeaveGuildRequest.ProtoReflect.Descriptor instead.
+func (*LeaveGuildRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *LeaveGuildRequest) GetGuildId() string {
+	if x != nil {
+		return x.GuildId
+	}
+	return ""
+}
+
+type LeaveGuildResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LeaveGuildResponse) Reset() {
+	*x = LeaveGuildResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LeaveGuildResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LeaveGuildResponse) ProtoMessage() {}
+
+func (x *LeaveGuildResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LeaveGuildResponse.ProtoReflect.Descriptor instead.
+func (*LeaveGuildResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{27}
+}
+
+type CreateChannelRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GuildId       string                 `protobuf:"bytes,1,opt,name=guild_id,json=guildId,proto3" json:"guild_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Type          ChannelType            `protobuf:"varint,3,opt,name=type,proto3,enum=kitsulan.v1.ChannelType" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateChannelRequest) Reset() {
+	*x = CreateChannelRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateChannelRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateChannelRequest) ProtoMessage() {}
+
+func (x *CreateChannelRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateChannelRequest.ProtoReflect.Descriptor instead.
+func (*CreateChannelRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *CreateChannelRequest) GetGuildId() string {
+	if x != nil {
+		return x.GuildId
+	}
+	return ""
+}
+
+func (x *CreateChannelRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateChannelRequest) GetType() ChannelType {
+	if x != nil {
+		return x.Type
+	}
+	return ChannelType_CHANNEL_TYPE_UNSPECIFIED
+}
+
+type CreateChannelResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Channel       *Channel               `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateChannelResponse) Reset() {
+	*x = CreateChannelResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateChannelResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateChannelResponse) ProtoMessage() {}
+
+func (x *CreateChannelResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateChannelResponse.ProtoReflect.Descriptor instead.
+func (*CreateChannelResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *CreateChannelResponse) GetChannel() *Channel {
+	if x != nil {
+		return x.Channel
+	}
+	return nil
+}
+
+type DeleteChannelRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ChannelId     string                 `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteChannelRequest) Reset() {
+	*x = DeleteChannelRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteChannelRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteChannelRequest) ProtoMessage() {}
+
+func (x *DeleteChannelRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteChannelRequest.ProtoReflect.Descriptor instead.
+func (*DeleteChannelRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *DeleteChannelRequest) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+type DeleteChannelResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteChannelResponse) Reset() {
+	*x = DeleteChannelResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteChannelResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteChannelResponse) ProtoMessage() {}
+
+func (x *DeleteChannelResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteChannelResponse.ProtoReflect.Descriptor instead.
+func (*DeleteChannelResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{31}
+}
+
+type ListChannelsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GuildId       string                 `protobuf:"bytes,1,opt,name=guild_id,json=guildId,proto3" json:"guild_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListChannelsRequest) Reset() {
+	*x = ListChannelsRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListChannelsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListChannelsRequest) ProtoMessage() {}
+
+func (x *ListChannelsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListChannelsRequest.ProtoReflect.Descriptor instead.
+func (*ListChannelsRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *ListChannelsRequest) GetGuildId() string {
+	if x != nil {
+		return x.GuildId
+	}
+	return ""
+}
+
+type ListChannelsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Channels      []*Channel             `protobuf:"bytes,1,rep,name=channels,proto3" json:"channels,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListChannelsResponse) Reset() {
+	*x = ListChannelsResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListChannelsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListChannelsResponse) ProtoMessage() {}
+
+func (x *ListChannelsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListChannelsResponse.ProtoReflect.Descriptor instead.
+func (*ListChannelsResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ListChannelsResponse) GetChannels() []*Channel {
+	if x != nil {
+		return x.Channels
+	}
+	return nil
+}
+
+type ListMembersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GuildId       string                 `protobuf:"bytes,1,opt,name=guild_id,json=guildId,proto3" json:"guild_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMembersRequest) Reset() {
+	*x = ListMembersRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMembersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMembersRequest) ProtoMessage() {}
+
+func (x *ListMembersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMembersRequest.ProtoReflect.Descriptor instead.
+func (*ListMembersRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ListMembersRequest) GetGuildId() string {
+	if x != nil {
+		return x.GuildId
+	}
+	return ""
+}
+
+type ListMembersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Members       []*Member              `protobuf:"bytes,1,rep,name=members,proto3" json:"members,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMembersResponse) Reset() {
+	*x = ListMembersResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMembersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMembersResponse) ProtoMessage() {}
+
+func (x *ListMembersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMembersResponse.ProtoReflect.Descriptor instead.
+func (*ListMembersResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *ListMembersResponse) GetMembers() []*Member {
+	if x != nil {
+		return x.Members
+	}
+	return nil
+}
+
+type ChatMessage struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ChannelId       string                 `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	AuthorId        string                 `protobuf:"bytes,3,opt,name=author_id,json=authorId,proto3" json:"author_id,omitempty"`
+	AuthorUsername  string                 `protobuf:"bytes,4,opt,name=author_username,json=authorUsername,proto3" json:"author_username,omitempty"`
+	AuthorAvatarUrl string                 `protobuf:"bytes,5,opt,name=author_avatar_url,json=authorAvatarUrl,proto3" json:"author_avatar_url,omitempty"`
+	Content         string                 `protobuf:"bytes,6,opt,name=content,proto3" json:"content,omitempty"`
+	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	EditedAt        *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=edited_at,json=editedAt,proto3" json:"edited_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ChatMessage) Reset() {
+	*x = ChatMessage{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatMessage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatMessage) ProtoMessage() {}
+
+func (x *ChatMessage) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
+func (*ChatMessage) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *ChatMessage) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetAuthorId() string {
+	if x != nil {
+		return x.AuthorId
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetAuthorUsername() string {
+	if x != nil {
+		return x.AuthorUsername
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetAuthorAvatarUrl() string {
+	if x != nil {
+		return x.AuthorAvatarUrl
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *ChatMessage) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *ChatMessage) GetEditedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.EditedAt
+	}
+	return nil
+}
+
+// ChatEvent — конверт для server-streaming событий.
+// Используем oneof чтобы в будущем добавить typing, delete, edit без breaking
+// change.
+type ChatEvent struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Payload:
+	//
+	//	*ChatEvent_MessageCreated
+	//	*ChatEvent_MessageDeleted
+	Payload       isChatEvent_Payload `protobuf_oneof:"payload"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChatEvent) Reset() {
+	*x = ChatEvent{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatEvent) ProtoMessage() {}
+
+func (x *ChatEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatEvent.ProtoReflect.Descriptor instead.
+func (*ChatEvent) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *ChatEvent) GetPayload() isChatEvent_Payload {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+func (x *ChatEvent) GetMessageCreated() *ChatMessage {
+	if x != nil {
+		if x, ok := x.Payload.(*ChatEvent_MessageCreated); ok {
+			return x.MessageCreated
+		}
+	}
+	return nil
+}
+
+func (x *ChatEvent) GetMessageDeleted() *MessageDeleted {
+	if x != nil {
+		if x, ok := x.Payload.(*ChatEvent_MessageDeleted); ok {
+			return x.MessageDeleted
+		}
+	}
+	return nil
+}
+
+type isChatEvent_Payload interface {
+	isChatEvent_Payload()
+}
+
+type ChatEvent_MessageCreated struct {
+	MessageCreated *ChatMessage `protobuf:"bytes,1,opt,name=message_created,json=messageCreated,proto3,oneof"`
+}
+
+type ChatEvent_MessageDeleted struct {
+	MessageDeleted *MessageDeleted `protobuf:"bytes,2,opt,name=message_deleted,json=messageDeleted,proto3,oneof"`
+}
+
+func (*ChatEvent_MessageCreated) isChatEvent_Payload() {}
+
+func (*ChatEvent_MessageDeleted) isChatEvent_Payload() {}
+
+type MessageDeleted struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MessageId     string                 `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	ChannelId     string                 `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MessageDeleted) Reset() {
+	*x = MessageDeleted{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MessageDeleted) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MessageDeleted) ProtoMessage() {}
+
+func (x *MessageDeleted) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MessageDeleted.ProtoReflect.Descriptor instead.
+func (*MessageDeleted) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *MessageDeleted) GetMessageId() string {
+	if x != nil {
+		return x.MessageId
+	}
+	return ""
+}
+
+func (x *MessageDeleted) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+type SendMessageRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ChannelId     string                 `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendMessageRequest) Reset() {
+	*x = SendMessageRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendMessageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendMessageRequest) ProtoMessage() {}
+
+func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendMessageRequest.ProtoReflect.Descriptor instead.
+func (*SendMessageRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *SendMessageRequest) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+func (x *SendMessageRequest) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+type SendMessageResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       *ChatMessage           `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendMessageResponse) Reset() {
+	*x = SendMessageResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendMessageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendMessageResponse) ProtoMessage() {}
+
+func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendMessageResponse.ProtoReflect.Descriptor instead.
+func (*SendMessageResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *SendMessageResponse) GetMessage() *ChatMessage {
+	if x != nil {
+		return x.Message
+	}
+	return nil
+}
+
+type GetHistoryRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ChannelId       string                 `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	Limit           int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`                                             // max 100, default 50
+	BeforeMessageId string                 `protobuf:"bytes,3,opt,name=before_message_id,json=beforeMessageId,proto3" json:"before_message_id,omitempty"` // курсор пагинации (пустой = с конца)
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *GetHistoryRequest) Reset() {
+	*x = GetHistoryRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHistoryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHistoryRequest) ProtoMessage() {}
+
+func (x *GetHistoryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHistoryRequest.ProtoReflect.Descriptor instead.
+func (*GetHistoryRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *GetHistoryRequest) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+func (x *GetHistoryRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *GetHistoryRequest) GetBeforeMessageId() string {
+	if x != nil {
+		return x.BeforeMessageId
+	}
+	return ""
+}
+
+type GetHistoryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Messages      []*ChatMessage         `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	HasMore       bool                   `protobuf:"varint,2,opt,name=has_more,json=hasMore,proto3" json:"has_more,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHistoryResponse) Reset() {
+	*x = GetHistoryResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHistoryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHistoryResponse) ProtoMessage() {}
+
+func (x *GetHistoryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHistoryResponse.ProtoReflect.Descriptor instead.
+func (*GetHistoryResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *GetHistoryResponse) GetMessages() []*ChatMessage {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+func (x *GetHistoryResponse) GetHasMore() bool {
+	if x != nil {
+		return x.HasMore
+	}
+	return false
+}
+
+type SubscribeChannelRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ChannelId     string                 `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubscribeChannelRequest) Reset() {
+	*x = SubscribeChannelRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubscribeChannelRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubscribeChannelRequest) ProtoMessage() {}
+
+func (x *SubscribeChannelRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubscribeChannelRequest.ProtoReflect.Descriptor instead.
+func (*SubscribeChannelRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *SubscribeChannelRequest) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
 var File_kitsulan_v1_service_proto protoreflect.FileDescriptor
 
 const file_kitsulan_v1_service_proto_rawDesc = "" +
@@ -618,7 +2392,118 @@ const file_kitsulan_v1_service_proto_rawDesc = "" +
 	"\x12SearchUsersRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\">\n" +
 	"\x13SearchUsersResponse\x12'\n" +
-	"\x05users\x18\x01 \x03(\v2\x11.kitsulan.v1.UserR\x05users2\xeb\x01\n" +
+	"\x05users\x18\x01 \x03(\v2\x11.kitsulan.v1.UserR\x05users\"\xe1\x01\n" +
+	"\x05Guild\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x19\n" +
+	"\bicon_url\x18\x04 \x01(\tR\aiconUrl\x12\x19\n" +
+	"\bowner_id\x18\x05 \x01(\tR\aownerId\x12!\n" +
+	"\fmember_count\x18\x06 \x01(\x05R\vmemberCount\x129\n" +
+	"\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x92\x01\n" +
+	"\aChannel\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bguild_id\x18\x02 \x01(\tR\aguildId\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12,\n" +
+	"\x04type\x18\x04 \x01(\x0e2\x18.kitsulan.v1.ChannelTypeR\x04type\x12\x1a\n" +
+	"\bposition\x18\x05 \x01(\x05R\bposition\"\xce\x01\n" +
+	"\x06Member\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x1d\n" +
+	"\n" +
+	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\x12\x1a\n" +
+	"\bnickname\x18\x04 \x01(\tR\bnickname\x12\x1b\n" +
+	"\tis_online\x18\x05 \x01(\bR\bisOnline\x127\n" +
+	"\tjoined_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\bjoinedAt\"J\n" +
+	"\x12CreateGuildRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\"?\n" +
+	"\x13CreateGuildResponse\x12(\n" +
+	"\x05guild\x18\x01 \x01(\v2\x12.kitsulan.v1.GuildR\x05guild\",\n" +
+	"\x0fGetGuildRequest\x12\x19\n" +
+	"\bguild_id\x18\x01 \x01(\tR\aguildId\"<\n" +
+	"\x10GetGuildResponse\x12(\n" +
+	"\x05guild\x18\x01 \x01(\v2\x12.kitsulan.v1.GuildR\x05guild\"\x15\n" +
+	"\x13ListMyGuildsRequest\"B\n" +
+	"\x14ListMyGuildsResponse\x12*\n" +
+	"\x06guilds\x18\x01 \x03(\v2\x12.kitsulan.v1.GuildR\x06guilds\"/\n" +
+	"\x12DeleteGuildRequest\x12\x19\n" +
+	"\bguild_id\x18\x01 \x01(\tR\aguildId\"\x15\n" +
+	"\x13DeleteGuildResponse\"u\n" +
+	"\x13CreateInviteRequest\x12\x19\n" +
+	"\bguild_id\x18\x01 \x01(\tR\aguildId\x12\x19\n" +
+	"\bmax_uses\x18\x02 \x01(\x05R\amaxUses\x12(\n" +
+	"\x10expires_in_hours\x18\x03 \x01(\x05R\x0eexpiresInHours\"<\n" +
+	"\x14CreateInviteResponse\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x10\n" +
+	"\x03url\x18\x02 \x01(\tR\x03url\")\n" +
+	"\x13JoinByInviteRequest\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\"@\n" +
+	"\x14JoinByInviteResponse\x12(\n" +
+	"\x05guild\x18\x01 \x01(\v2\x12.kitsulan.v1.GuildR\x05guild\".\n" +
+	"\x11LeaveGuildRequest\x12\x19\n" +
+	"\bguild_id\x18\x01 \x01(\tR\aguildId\"\x14\n" +
+	"\x12LeaveGuildResponse\"s\n" +
+	"\x14CreateChannelRequest\x12\x19\n" +
+	"\bguild_id\x18\x01 \x01(\tR\aguildId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12,\n" +
+	"\x04type\x18\x03 \x01(\x0e2\x18.kitsulan.v1.ChannelTypeR\x04type\"G\n" +
+	"\x15CreateChannelResponse\x12.\n" +
+	"\achannel\x18\x01 \x01(\v2\x14.kitsulan.v1.ChannelR\achannel\"5\n" +
+	"\x14DeleteChannelRequest\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\tR\tchannelId\"\x17\n" +
+	"\x15DeleteChannelResponse\"0\n" +
+	"\x13ListChannelsRequest\x12\x19\n" +
+	"\bguild_id\x18\x01 \x01(\tR\aguildId\"H\n" +
+	"\x14ListChannelsResponse\x120\n" +
+	"\bchannels\x18\x01 \x03(\v2\x14.kitsulan.v1.ChannelR\bchannels\"/\n" +
+	"\x12ListMembersRequest\x12\x19\n" +
+	"\bguild_id\x18\x01 \x01(\tR\aguildId\"D\n" +
+	"\x13ListMembersResponse\x12-\n" +
+	"\amembers\x18\x01 \x03(\v2\x13.kitsulan.v1.MemberR\amembers\"\xbc\x02\n" +
+	"\vChatMessage\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x02 \x01(\tR\tchannelId\x12\x1b\n" +
+	"\tauthor_id\x18\x03 \x01(\tR\bauthorId\x12'\n" +
+	"\x0fauthor_username\x18\x04 \x01(\tR\x0eauthorUsername\x12*\n" +
+	"\x11author_avatar_url\x18\x05 \x01(\tR\x0fauthorAvatarUrl\x12\x18\n" +
+	"\acontent\x18\x06 \x01(\tR\acontent\x129\n" +
+	"\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x127\n" +
+	"\tedited_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\beditedAt\"\xa3\x01\n" +
+	"\tChatEvent\x12C\n" +
+	"\x0fmessage_created\x18\x01 \x01(\v2\x18.kitsulan.v1.ChatMessageH\x00R\x0emessageCreated\x12F\n" +
+	"\x0fmessage_deleted\x18\x02 \x01(\v2\x1b.kitsulan.v1.MessageDeletedH\x00R\x0emessageDeletedB\t\n" +
+	"\apayload\"N\n" +
+	"\x0eMessageDeleted\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x01 \x01(\tR\tmessageId\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x02 \x01(\tR\tchannelId\"M\n" +
+	"\x12SendMessageRequest\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\tR\tchannelId\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\"I\n" +
+	"\x13SendMessageResponse\x122\n" +
+	"\amessage\x18\x01 \x01(\v2\x18.kitsulan.v1.ChatMessageR\amessage\"t\n" +
+	"\x11GetHistoryRequest\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\tR\tchannelId\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12*\n" +
+	"\x11before_message_id\x18\x03 \x01(\tR\x0fbeforeMessageId\"e\n" +
+	"\x12GetHistoryResponse\x124\n" +
+	"\bmessages\x18\x01 \x03(\v2\x18.kitsulan.v1.ChatMessageR\bmessages\x12\x19\n" +
+	"\bhas_more\x18\x02 \x01(\bR\ahasMore\"8\n" +
+	"\x17SubscribeChannelRequest\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\tR\tchannelId*Z\n" +
+	"\vChannelType\x12\x1c\n" +
+	"\x18CHANNEL_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11CHANNEL_TYPE_TEXT\x10\x01\x12\x16\n" +
+	"\x12CHANNEL_TYPE_VOICE\x10\x022\xeb\x01\n" +
 	"\vAuthService\x12G\n" +
 	"\bRegister\x12\x1c.kitsulan.v1.RegisterRequest\x1a\x1d.kitsulan.v1.RegisterResponse\x12>\n" +
 	"\x05Login\x12\x19.kitsulan.v1.LoginRequest\x1a\x1a.kitsulan.v1.LoginResponse\x12S\n" +
@@ -626,7 +2511,25 @@ const file_kitsulan_v1_service_proto_rawDesc = "" +
 	"\vUserService\x12M\n" +
 	"\n" +
 	"GetProfile\x12\x1e.kitsulan.v1.GetProfileRequest\x1a\x1f.kitsulan.v1.GetProfileResponse\x12P\n" +
-	"\vSearchUsers\x12\x1f.kitsulan.v1.SearchUsersRequest\x1a .kitsulan.v1.SearchUsersResponseB\xb6\x01\n" +
+	"\vSearchUsers\x12\x1f.kitsulan.v1.SearchUsersRequest\x1a .kitsulan.v1.SearchUsersResponse2\xa0\a\n" +
+	"\fGuildService\x12P\n" +
+	"\vCreateGuild\x12\x1f.kitsulan.v1.CreateGuildRequest\x1a .kitsulan.v1.CreateGuildResponse\x12G\n" +
+	"\bGetGuild\x12\x1c.kitsulan.v1.GetGuildRequest\x1a\x1d.kitsulan.v1.GetGuildResponse\x12S\n" +
+	"\fListMyGuilds\x12 .kitsulan.v1.ListMyGuildsRequest\x1a!.kitsulan.v1.ListMyGuildsResponse\x12P\n" +
+	"\vDeleteGuild\x12\x1f.kitsulan.v1.DeleteGuildRequest\x1a .kitsulan.v1.DeleteGuildResponse\x12S\n" +
+	"\fCreateInvite\x12 .kitsulan.v1.CreateInviteRequest\x1a!.kitsulan.v1.CreateInviteResponse\x12S\n" +
+	"\fJoinByInvite\x12 .kitsulan.v1.JoinByInviteRequest\x1a!.kitsulan.v1.JoinByInviteResponse\x12M\n" +
+	"\n" +
+	"LeaveGuild\x12\x1e.kitsulan.v1.LeaveGuildRequest\x1a\x1f.kitsulan.v1.LeaveGuildResponse\x12V\n" +
+	"\rCreateChannel\x12!.kitsulan.v1.CreateChannelRequest\x1a\".kitsulan.v1.CreateChannelResponse\x12V\n" +
+	"\rDeleteChannel\x12!.kitsulan.v1.DeleteChannelRequest\x1a\".kitsulan.v1.DeleteChannelResponse\x12S\n" +
+	"\fListChannels\x12 .kitsulan.v1.ListChannelsRequest\x1a!.kitsulan.v1.ListChannelsResponse\x12P\n" +
+	"\vListMembers\x12\x1f.kitsulan.v1.ListMembersRequest\x1a .kitsulan.v1.ListMembersResponse2\x82\x02\n" +
+	"\vChatService\x12P\n" +
+	"\vSendMessage\x12\x1f.kitsulan.v1.SendMessageRequest\x1a .kitsulan.v1.SendMessageResponse\x12M\n" +
+	"\n" +
+	"GetHistory\x12\x1e.kitsulan.v1.GetHistoryRequest\x1a\x1f.kitsulan.v1.GetHistoryResponse\x12R\n" +
+	"\x10SubscribeChannel\x12$.kitsulan.v1.SubscribeChannelRequest\x1a\x16.kitsulan.v1.ChatEvent0\x01B\xb6\x01\n" +
 	"\x0fcom.kitsulan.v1B\fServiceProtoP\x01ZHgithub.com/KitsuLAN/KitsuLAN/services/core/gen/go/kitsulan/v1;kitsulanv1\xa2\x02\x03KXX\xaa\x02\vKitsulan.V1\xca\x02\vKitsulan\\V1\xe2\x02\x17Kitsulan\\V1\\GPBMetadata\xea\x02\fKitsulan::V1b\x06proto3"
 
 var (
@@ -641,38 +2544,119 @@ func file_kitsulan_v1_service_proto_rawDescGZIP() []byte {
 	return file_kitsulan_v1_service_proto_rawDescData
 }
 
-var file_kitsulan_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_kitsulan_v1_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_kitsulan_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
 var file_kitsulan_v1_service_proto_goTypes = []any{
-	(*User)(nil),                 // 0: kitsulan.v1.User
-	(*RegisterRequest)(nil),      // 1: kitsulan.v1.RegisterRequest
-	(*RegisterResponse)(nil),     // 2: kitsulan.v1.RegisterResponse
-	(*LoginRequest)(nil),         // 3: kitsulan.v1.LoginRequest
-	(*LoginResponse)(nil),        // 4: kitsulan.v1.LoginResponse
-	(*RefreshTokenRequest)(nil),  // 5: kitsulan.v1.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil), // 6: kitsulan.v1.RefreshTokenResponse
-	(*GetProfileRequest)(nil),    // 7: kitsulan.v1.GetProfileRequest
-	(*GetProfileResponse)(nil),   // 8: kitsulan.v1.GetProfileResponse
-	(*SearchUsersRequest)(nil),   // 9: kitsulan.v1.SearchUsersRequest
-	(*SearchUsersResponse)(nil),  // 10: kitsulan.v1.SearchUsersResponse
+	(ChannelType)(0),                // 0: kitsulan.v1.ChannelType
+	(*User)(nil),                    // 1: kitsulan.v1.User
+	(*RegisterRequest)(nil),         // 2: kitsulan.v1.RegisterRequest
+	(*RegisterResponse)(nil),        // 3: kitsulan.v1.RegisterResponse
+	(*LoginRequest)(nil),            // 4: kitsulan.v1.LoginRequest
+	(*LoginResponse)(nil),           // 5: kitsulan.v1.LoginResponse
+	(*RefreshTokenRequest)(nil),     // 6: kitsulan.v1.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),    // 7: kitsulan.v1.RefreshTokenResponse
+	(*GetProfileRequest)(nil),       // 8: kitsulan.v1.GetProfileRequest
+	(*GetProfileResponse)(nil),      // 9: kitsulan.v1.GetProfileResponse
+	(*SearchUsersRequest)(nil),      // 10: kitsulan.v1.SearchUsersRequest
+	(*SearchUsersResponse)(nil),     // 11: kitsulan.v1.SearchUsersResponse
+	(*Guild)(nil),                   // 12: kitsulan.v1.Guild
+	(*Channel)(nil),                 // 13: kitsulan.v1.Channel
+	(*Member)(nil),                  // 14: kitsulan.v1.Member
+	(*CreateGuildRequest)(nil),      // 15: kitsulan.v1.CreateGuildRequest
+	(*CreateGuildResponse)(nil),     // 16: kitsulan.v1.CreateGuildResponse
+	(*GetGuildRequest)(nil),         // 17: kitsulan.v1.GetGuildRequest
+	(*GetGuildResponse)(nil),        // 18: kitsulan.v1.GetGuildResponse
+	(*ListMyGuildsRequest)(nil),     // 19: kitsulan.v1.ListMyGuildsRequest
+	(*ListMyGuildsResponse)(nil),    // 20: kitsulan.v1.ListMyGuildsResponse
+	(*DeleteGuildRequest)(nil),      // 21: kitsulan.v1.DeleteGuildRequest
+	(*DeleteGuildResponse)(nil),     // 22: kitsulan.v1.DeleteGuildResponse
+	(*CreateInviteRequest)(nil),     // 23: kitsulan.v1.CreateInviteRequest
+	(*CreateInviteResponse)(nil),    // 24: kitsulan.v1.CreateInviteResponse
+	(*JoinByInviteRequest)(nil),     // 25: kitsulan.v1.JoinByInviteRequest
+	(*JoinByInviteResponse)(nil),    // 26: kitsulan.v1.JoinByInviteResponse
+	(*LeaveGuildRequest)(nil),       // 27: kitsulan.v1.LeaveGuildRequest
+	(*LeaveGuildResponse)(nil),      // 28: kitsulan.v1.LeaveGuildResponse
+	(*CreateChannelRequest)(nil),    // 29: kitsulan.v1.CreateChannelRequest
+	(*CreateChannelResponse)(nil),   // 30: kitsulan.v1.CreateChannelResponse
+	(*DeleteChannelRequest)(nil),    // 31: kitsulan.v1.DeleteChannelRequest
+	(*DeleteChannelResponse)(nil),   // 32: kitsulan.v1.DeleteChannelResponse
+	(*ListChannelsRequest)(nil),     // 33: kitsulan.v1.ListChannelsRequest
+	(*ListChannelsResponse)(nil),    // 34: kitsulan.v1.ListChannelsResponse
+	(*ListMembersRequest)(nil),      // 35: kitsulan.v1.ListMembersRequest
+	(*ListMembersResponse)(nil),     // 36: kitsulan.v1.ListMembersResponse
+	(*ChatMessage)(nil),             // 37: kitsulan.v1.ChatMessage
+	(*ChatEvent)(nil),               // 38: kitsulan.v1.ChatEvent
+	(*MessageDeleted)(nil),          // 39: kitsulan.v1.MessageDeleted
+	(*SendMessageRequest)(nil),      // 40: kitsulan.v1.SendMessageRequest
+	(*SendMessageResponse)(nil),     // 41: kitsulan.v1.SendMessageResponse
+	(*GetHistoryRequest)(nil),       // 42: kitsulan.v1.GetHistoryRequest
+	(*GetHistoryResponse)(nil),      // 43: kitsulan.v1.GetHistoryResponse
+	(*SubscribeChannelRequest)(nil), // 44: kitsulan.v1.SubscribeChannelRequest
+	(*timestamppb.Timestamp)(nil),   // 45: google.protobuf.Timestamp
 }
 var file_kitsulan_v1_service_proto_depIdxs = []int32{
-	0,  // 0: kitsulan.v1.GetProfileResponse.user:type_name -> kitsulan.v1.User
-	0,  // 1: kitsulan.v1.SearchUsersResponse.users:type_name -> kitsulan.v1.User
-	1,  // 2: kitsulan.v1.AuthService.Register:input_type -> kitsulan.v1.RegisterRequest
-	3,  // 3: kitsulan.v1.AuthService.Login:input_type -> kitsulan.v1.LoginRequest
-	5,  // 4: kitsulan.v1.AuthService.RefreshToken:input_type -> kitsulan.v1.RefreshTokenRequest
-	7,  // 5: kitsulan.v1.UserService.GetProfile:input_type -> kitsulan.v1.GetProfileRequest
-	9,  // 6: kitsulan.v1.UserService.SearchUsers:input_type -> kitsulan.v1.SearchUsersRequest
-	2,  // 7: kitsulan.v1.AuthService.Register:output_type -> kitsulan.v1.RegisterResponse
-	4,  // 8: kitsulan.v1.AuthService.Login:output_type -> kitsulan.v1.LoginResponse
-	6,  // 9: kitsulan.v1.AuthService.RefreshToken:output_type -> kitsulan.v1.RefreshTokenResponse
-	8,  // 10: kitsulan.v1.UserService.GetProfile:output_type -> kitsulan.v1.GetProfileResponse
-	10, // 11: kitsulan.v1.UserService.SearchUsers:output_type -> kitsulan.v1.SearchUsersResponse
-	7,  // [7:12] is the sub-list for method output_type
-	2,  // [2:7] is the sub-list for method input_type
-	2,  // [2:2] is the sub-list for extension type_name
-	2,  // [2:2] is the sub-list for extension extendee
-	0,  // [0:2] is the sub-list for field type_name
+	1,  // 0: kitsulan.v1.GetProfileResponse.user:type_name -> kitsulan.v1.User
+	1,  // 1: kitsulan.v1.SearchUsersResponse.users:type_name -> kitsulan.v1.User
+	45, // 2: kitsulan.v1.Guild.created_at:type_name -> google.protobuf.Timestamp
+	0,  // 3: kitsulan.v1.Channel.type:type_name -> kitsulan.v1.ChannelType
+	45, // 4: kitsulan.v1.Member.joined_at:type_name -> google.protobuf.Timestamp
+	12, // 5: kitsulan.v1.CreateGuildResponse.guild:type_name -> kitsulan.v1.Guild
+	12, // 6: kitsulan.v1.GetGuildResponse.guild:type_name -> kitsulan.v1.Guild
+	12, // 7: kitsulan.v1.ListMyGuildsResponse.guilds:type_name -> kitsulan.v1.Guild
+	12, // 8: kitsulan.v1.JoinByInviteResponse.guild:type_name -> kitsulan.v1.Guild
+	0,  // 9: kitsulan.v1.CreateChannelRequest.type:type_name -> kitsulan.v1.ChannelType
+	13, // 10: kitsulan.v1.CreateChannelResponse.channel:type_name -> kitsulan.v1.Channel
+	13, // 11: kitsulan.v1.ListChannelsResponse.channels:type_name -> kitsulan.v1.Channel
+	14, // 12: kitsulan.v1.ListMembersResponse.members:type_name -> kitsulan.v1.Member
+	45, // 13: kitsulan.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	45, // 14: kitsulan.v1.ChatMessage.edited_at:type_name -> google.protobuf.Timestamp
+	37, // 15: kitsulan.v1.ChatEvent.message_created:type_name -> kitsulan.v1.ChatMessage
+	39, // 16: kitsulan.v1.ChatEvent.message_deleted:type_name -> kitsulan.v1.MessageDeleted
+	37, // 17: kitsulan.v1.SendMessageResponse.message:type_name -> kitsulan.v1.ChatMessage
+	37, // 18: kitsulan.v1.GetHistoryResponse.messages:type_name -> kitsulan.v1.ChatMessage
+	2,  // 19: kitsulan.v1.AuthService.Register:input_type -> kitsulan.v1.RegisterRequest
+	4,  // 20: kitsulan.v1.AuthService.Login:input_type -> kitsulan.v1.LoginRequest
+	6,  // 21: kitsulan.v1.AuthService.RefreshToken:input_type -> kitsulan.v1.RefreshTokenRequest
+	8,  // 22: kitsulan.v1.UserService.GetProfile:input_type -> kitsulan.v1.GetProfileRequest
+	10, // 23: kitsulan.v1.UserService.SearchUsers:input_type -> kitsulan.v1.SearchUsersRequest
+	15, // 24: kitsulan.v1.GuildService.CreateGuild:input_type -> kitsulan.v1.CreateGuildRequest
+	17, // 25: kitsulan.v1.GuildService.GetGuild:input_type -> kitsulan.v1.GetGuildRequest
+	19, // 26: kitsulan.v1.GuildService.ListMyGuilds:input_type -> kitsulan.v1.ListMyGuildsRequest
+	21, // 27: kitsulan.v1.GuildService.DeleteGuild:input_type -> kitsulan.v1.DeleteGuildRequest
+	23, // 28: kitsulan.v1.GuildService.CreateInvite:input_type -> kitsulan.v1.CreateInviteRequest
+	25, // 29: kitsulan.v1.GuildService.JoinByInvite:input_type -> kitsulan.v1.JoinByInviteRequest
+	27, // 30: kitsulan.v1.GuildService.LeaveGuild:input_type -> kitsulan.v1.LeaveGuildRequest
+	29, // 31: kitsulan.v1.GuildService.CreateChannel:input_type -> kitsulan.v1.CreateChannelRequest
+	31, // 32: kitsulan.v1.GuildService.DeleteChannel:input_type -> kitsulan.v1.DeleteChannelRequest
+	33, // 33: kitsulan.v1.GuildService.ListChannels:input_type -> kitsulan.v1.ListChannelsRequest
+	35, // 34: kitsulan.v1.GuildService.ListMembers:input_type -> kitsulan.v1.ListMembersRequest
+	40, // 35: kitsulan.v1.ChatService.SendMessage:input_type -> kitsulan.v1.SendMessageRequest
+	42, // 36: kitsulan.v1.ChatService.GetHistory:input_type -> kitsulan.v1.GetHistoryRequest
+	44, // 37: kitsulan.v1.ChatService.SubscribeChannel:input_type -> kitsulan.v1.SubscribeChannelRequest
+	3,  // 38: kitsulan.v1.AuthService.Register:output_type -> kitsulan.v1.RegisterResponse
+	5,  // 39: kitsulan.v1.AuthService.Login:output_type -> kitsulan.v1.LoginResponse
+	7,  // 40: kitsulan.v1.AuthService.RefreshToken:output_type -> kitsulan.v1.RefreshTokenResponse
+	9,  // 41: kitsulan.v1.UserService.GetProfile:output_type -> kitsulan.v1.GetProfileResponse
+	11, // 42: kitsulan.v1.UserService.SearchUsers:output_type -> kitsulan.v1.SearchUsersResponse
+	16, // 43: kitsulan.v1.GuildService.CreateGuild:output_type -> kitsulan.v1.CreateGuildResponse
+	18, // 44: kitsulan.v1.GuildService.GetGuild:output_type -> kitsulan.v1.GetGuildResponse
+	20, // 45: kitsulan.v1.GuildService.ListMyGuilds:output_type -> kitsulan.v1.ListMyGuildsResponse
+	22, // 46: kitsulan.v1.GuildService.DeleteGuild:output_type -> kitsulan.v1.DeleteGuildResponse
+	24, // 47: kitsulan.v1.GuildService.CreateInvite:output_type -> kitsulan.v1.CreateInviteResponse
+	26, // 48: kitsulan.v1.GuildService.JoinByInvite:output_type -> kitsulan.v1.JoinByInviteResponse
+	28, // 49: kitsulan.v1.GuildService.LeaveGuild:output_type -> kitsulan.v1.LeaveGuildResponse
+	30, // 50: kitsulan.v1.GuildService.CreateChannel:output_type -> kitsulan.v1.CreateChannelResponse
+	32, // 51: kitsulan.v1.GuildService.DeleteChannel:output_type -> kitsulan.v1.DeleteChannelResponse
+	34, // 52: kitsulan.v1.GuildService.ListChannels:output_type -> kitsulan.v1.ListChannelsResponse
+	36, // 53: kitsulan.v1.GuildService.ListMembers:output_type -> kitsulan.v1.ListMembersResponse
+	41, // 54: kitsulan.v1.ChatService.SendMessage:output_type -> kitsulan.v1.SendMessageResponse
+	43, // 55: kitsulan.v1.ChatService.GetHistory:output_type -> kitsulan.v1.GetHistoryResponse
+	38, // 56: kitsulan.v1.ChatService.SubscribeChannel:output_type -> kitsulan.v1.ChatEvent
+	38, // [38:57] is the sub-list for method output_type
+	19, // [19:38] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_kitsulan_v1_service_proto_init() }
@@ -680,18 +2664,23 @@ func file_kitsulan_v1_service_proto_init() {
 	if File_kitsulan_v1_service_proto != nil {
 		return
 	}
+	file_kitsulan_v1_service_proto_msgTypes[37].OneofWrappers = []any{
+		(*ChatEvent_MessageCreated)(nil),
+		(*ChatEvent_MessageDeleted)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kitsulan_v1_service_proto_rawDesc), len(file_kitsulan_v1_service_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   11,
+			NumEnums:      1,
+			NumMessages:   44,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   4,
 		},
 		GoTypes:           file_kitsulan_v1_service_proto_goTypes,
 		DependencyIndexes: file_kitsulan_v1_service_proto_depIdxs,
+		EnumInfos:         file_kitsulan_v1_service_proto_enumTypes,
 		MessageInfos:      file_kitsulan_v1_service_proto_msgTypes,
 	}.Build()
 	File_kitsulan_v1_service_proto = out.File

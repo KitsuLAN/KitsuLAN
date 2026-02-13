@@ -52,3 +52,40 @@ type UserRepository interface {
 // ChannelRepository interface { ... }
 // MessageRepository interface { ... }
 // MemberRepository interface { ... }
+
+// GuildRepository управляет гильдиями и их составом.
+type GuildRepository interface {
+	Create(ctx context.Context, guild *domain.Guild) error
+	FindByID(ctx context.Context, id string) (*domain.Guild, error)
+	ListByMember(ctx context.Context, userID string) ([]domain.Guild, error)
+	Delete(ctx context.Context, id string) error
+	MemberCount(ctx context.Context, guildID string) (int64, error)
+
+	// Члены
+	AddMember(ctx context.Context, m *domain.GuildMember) error
+	RemoveMember(ctx context.Context, guildID, userID string) error
+	IsMember(ctx context.Context, guildID, userID string) (bool, error)
+	ListMembers(ctx context.Context, guildID string) ([]domain.GuildMember, error)
+
+	// Инвайты
+	CreateInvite(ctx context.Context, inv *domain.GuildInvite) error
+	FindInvite(ctx context.Context, code string) (*domain.GuildInvite, error)
+	IncrementInviteUses(ctx context.Context, code string) error
+}
+
+// ChannelRepository управляет каналами.
+type ChannelRepository interface {
+	Create(ctx context.Context, ch *domain.Channel) error
+	FindByID(ctx context.Context, id string) (*domain.Channel, error)
+	ListByGuild(ctx context.Context, guildID string) ([]domain.Channel, error)
+	Delete(ctx context.Context, id string) error
+}
+
+// MessageRepository хранит историю сообщений.
+type MessageRepository interface {
+	Create(ctx context.Context, msg *domain.Message) error
+	// GetHistory возвращает limit сообщений из канала, старше beforeID.
+	// Если beforeID пусто — возвращает самые последние.
+	GetHistory(ctx context.Context, channelID string, limit int, beforeID string) ([]domain.Message, error)
+	Delete(ctx context.Context, id string) error
+}

@@ -148,6 +148,34 @@ func UnaryAuth(jwtSecret string) grpc.UnaryServerInterceptor {
 	}
 }
 
+// StreamAuth — interceptor авторизации для streaming RPC.
+func StreamAuth(jwtSecret string) grpc.StreamServerInterceptor {
+	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		publicMethods := map[string]bool{
+			"/kitsulan.v1.AuthService/Register": true,
+			"/kitsulan.v1.AuthService/Login":    true,
+		}
+		if publicMethods[info.FullMethod] {
+			return handler(srv, ss)
+		}
+
+		userID, err := extractAndValidateToken(ss.Context(), jwtSecret)
+		if err != nil {
+			return err // extractAndValidateToken уже возвращает gRPC status error
+		}
+
+		newCtx := context.WithValue(ss.Context(), ContextKeyUserID, userID)
+		return handler(srv, &wrappedStream{ServerStream: ss, ctx: newCtx})
+	}
+}
+
+type wrappedStream struct {
+	grpc.ServerStream
+	ctx context.Context
+}
+
+func (w *wrappedStream) Context() context.Context { return w.ctx }
+
 // UserIDFromContext извлекает UserID из контекста запроса.
 // Возвращает ("", false) если пользователь не авторизован.
 func UserIDFromContext(ctx context.Context) (string, bool) {

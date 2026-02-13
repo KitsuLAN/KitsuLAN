@@ -14,6 +14,7 @@ import (
 	pb "github.com/KitsuLAN/KitsuLAN/services/core/gen/go/kitsulan/v1"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/config"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/hub"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/middleware"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/service"
@@ -49,20 +50,25 @@ func New(cfg *config.Config, log *slog.Logger) (*App, error) {
 
 	// 3. Services (бизнес-логика)
 	authSvc := service.NewAuthService(repos.Users, cfg)
-	// TODO Phase 1: userSvc := service.NewUserService(repos.Users)
+	guildSvc := service.NewGuildService(repos.Guilds, repos.Channels)
+	chatHub := hub.New()
+	chatSvc := service.NewChatService(repos.Messages, repos.Channels, repos.Guilds, chatHub)
 
 	// 4. gRPC Server
 	grpcServer := buildGRPCServer(cfg, log)
 
 	// 5. Transport handlers
 	pb.RegisterAuthServiceServer(grpcServer, grpctransport.NewAuthServer(authSvc))
-	// TODO Phase 1: pb.RegisterUserServiceServer(grpcServer, grpctransport.NewUserServer(userSvc))
+	pb.RegisterGuildServiceServer(grpcServer, grpctransport.NewGuildServer(guildSvc))
+	pb.RegisterChatServiceServer(grpcServer, grpctransport.NewChatServer(chatSvc))
 
 	// Health Check (стандартный протокол для Docker / k8s)
 	healthSrv := health.NewServer()
 	healthpb.RegisterHealthServer(grpcServer, healthSrv)
 	healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
 	healthSrv.SetServingStatus("kitsulan.v1.AuthService", healthpb.HealthCheckResponse_SERVING)
+	healthSrv.SetServingStatus("kitsulan.v1.GuildService", healthpb.HealthCheckResponse_SERVING)
+	healthSrv.SetServingStatus("kitsulan.v1.ChatService", healthpb.HealthCheckResponse_SERVING)
 
 	// gRPC Reflection — только в development (позволяет grpcurl без .proto)
 	if !cfg.IsProduction() {
@@ -134,6 +140,7 @@ func buildGRPCServer(cfg *config.Config, log *slog.Logger) *grpc.Server {
 		),
 		grpc.ChainStreamInterceptor(
 			middleware.StreamRecovery(mwLog),
+			middleware.StreamAuth(cfg.JWTSecret),
 		),
 	)
 }

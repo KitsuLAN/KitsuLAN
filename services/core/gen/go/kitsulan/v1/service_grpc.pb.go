@@ -345,3 +345,673 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "kitsulan/v1/service.proto",
 }
+
+const (
+	GuildService_CreateGuild_FullMethodName   = "/kitsulan.v1.GuildService/CreateGuild"
+	GuildService_GetGuild_FullMethodName      = "/kitsulan.v1.GuildService/GetGuild"
+	GuildService_ListMyGuilds_FullMethodName  = "/kitsulan.v1.GuildService/ListMyGuilds"
+	GuildService_DeleteGuild_FullMethodName   = "/kitsulan.v1.GuildService/DeleteGuild"
+	GuildService_CreateInvite_FullMethodName  = "/kitsulan.v1.GuildService/CreateInvite"
+	GuildService_JoinByInvite_FullMethodName  = "/kitsulan.v1.GuildService/JoinByInvite"
+	GuildService_LeaveGuild_FullMethodName    = "/kitsulan.v1.GuildService/LeaveGuild"
+	GuildService_CreateChannel_FullMethodName = "/kitsulan.v1.GuildService/CreateChannel"
+	GuildService_DeleteChannel_FullMethodName = "/kitsulan.v1.GuildService/DeleteChannel"
+	GuildService_ListChannels_FullMethodName  = "/kitsulan.v1.GuildService/ListChannels"
+	GuildService_ListMembers_FullMethodName   = "/kitsulan.v1.GuildService/ListMembers"
+)
+
+// GuildServiceClient is the client API for GuildService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type GuildServiceClient interface {
+	CreateGuild(ctx context.Context, in *CreateGuildRequest, opts ...grpc.CallOption) (*CreateGuildResponse, error)
+	GetGuild(ctx context.Context, in *GetGuildRequest, opts ...grpc.CallOption) (*GetGuildResponse, error)
+	ListMyGuilds(ctx context.Context, in *ListMyGuildsRequest, opts ...grpc.CallOption) (*ListMyGuildsResponse, error)
+	DeleteGuild(ctx context.Context, in *DeleteGuildRequest, opts ...grpc.CallOption) (*DeleteGuildResponse, error)
+	CreateInvite(ctx context.Context, in *CreateInviteRequest, opts ...grpc.CallOption) (*CreateInviteResponse, error)
+	JoinByInvite(ctx context.Context, in *JoinByInviteRequest, opts ...grpc.CallOption) (*JoinByInviteResponse, error)
+	LeaveGuild(ctx context.Context, in *LeaveGuildRequest, opts ...grpc.CallOption) (*LeaveGuildResponse, error)
+	CreateChannel(ctx context.Context, in *CreateChannelRequest, opts ...grpc.CallOption) (*CreateChannelResponse, error)
+	DeleteChannel(ctx context.Context, in *DeleteChannelRequest, opts ...grpc.CallOption) (*DeleteChannelResponse, error)
+	ListChannels(ctx context.Context, in *ListChannelsRequest, opts ...grpc.CallOption) (*ListChannelsResponse, error)
+	ListMembers(ctx context.Context, in *ListMembersRequest, opts ...grpc.CallOption) (*ListMembersResponse, error)
+}
+
+type guildServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewGuildServiceClient(cc grpc.ClientConnInterface) GuildServiceClient {
+	return &guildServiceClient{cc}
+}
+
+func (c *guildServiceClient) CreateGuild(ctx context.Context, in *CreateGuildRequest, opts ...grpc.CallOption) (*CreateGuildResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateGuildResponse)
+	err := c.cc.Invoke(ctx, GuildService_CreateGuild_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *guildServiceClient) GetGuild(ctx context.Context, in *GetGuildRequest, opts ...grpc.CallOption) (*GetGuildResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetGuildResponse)
+	err := c.cc.Invoke(ctx, GuildService_GetGuild_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *guildServiceClient) ListMyGuilds(ctx context.Context, in *ListMyGuildsRequest, opts ...grpc.CallOption) (*ListMyGuildsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyGuildsResponse)
+	err := c.cc.Invoke(ctx, GuildService_ListMyGuilds_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *guildServiceClient) DeleteGuild(ctx context.Context, in *DeleteGuildRequest, opts ...grpc.CallOption) (*DeleteGuildResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteGuildResponse)
+	err := c.cc.Invoke(ctx, GuildService_DeleteGuild_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *guildServiceClient) CreateInvite(ctx context.Context, in *CreateInviteRequest, opts ...grpc.CallOption) (*CreateInviteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateInviteResponse)
+	err := c.cc.Invoke(ctx, GuildService_CreateInvite_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *guildServiceClient) JoinByInvite(ctx context.Context, in *JoinByInviteRequest, opts ...grpc.CallOption) (*JoinByInviteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(JoinByInviteResponse)
+	err := c.cc.Invoke(ctx, GuildService_JoinByInvite_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *guildServiceClient) LeaveGuild(ctx context.Context, in *LeaveGuildRequest, opts ...grpc.CallOption) (*LeaveGuildResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LeaveGuildResponse)
+	err := c.cc.Invoke(ctx, GuildService_LeaveGuild_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *guildServiceClient) CreateChannel(ctx context.Context, in *CreateChannelRequest, opts ...grpc.CallOption) (*CreateChannelResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateChannelResponse)
+	err := c.cc.Invoke(ctx, GuildService_CreateChannel_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *guildServiceClient) DeleteChannel(ctx context.Context, in *DeleteChannelRequest, opts ...grpc.CallOption) (*DeleteChannelResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteChannelResponse)
+	err := c.cc.Invoke(ctx, GuildService_DeleteChannel_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *guildServiceClient) ListChannels(ctx context.Context, in *ListChannelsRequest, opts ...grpc.CallOption) (*ListChannelsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListChannelsResponse)
+	err := c.cc.Invoke(ctx, GuildService_ListChannels_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *guildServiceClient) ListMembers(ctx context.Context, in *ListMembersRequest, opts ...grpc.CallOption) (*ListMembersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMembersResponse)
+	err := c.cc.Invoke(ctx, GuildService_ListMembers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// GuildServiceServer is the server API for GuildService service.
+// All implementations must embed UnimplementedGuildServiceServer
+// for forward compatibility.
+type GuildServiceServer interface {
+	CreateGuild(context.Context, *CreateGuildRequest) (*CreateGuildResponse, error)
+	GetGuild(context.Context, *GetGuildRequest) (*GetGuildResponse, error)
+	ListMyGuilds(context.Context, *ListMyGuildsRequest) (*ListMyGuildsResponse, error)
+	DeleteGuild(context.Context, *DeleteGuildRequest) (*DeleteGuildResponse, error)
+	CreateInvite(context.Context, *CreateInviteRequest) (*CreateInviteResponse, error)
+	JoinByInvite(context.Context, *JoinByInviteRequest) (*JoinByInviteResponse, error)
+	LeaveGuild(context.Context, *LeaveGuildRequest) (*LeaveGuildResponse, error)
+	CreateChannel(context.Context, *CreateChannelRequest) (*CreateChannelResponse, error)
+	DeleteChannel(context.Context, *DeleteChannelRequest) (*DeleteChannelResponse, error)
+	ListChannels(context.Context, *ListChannelsRequest) (*ListChannelsResponse, error)
+	ListMembers(context.Context, *ListMembersRequest) (*ListMembersResponse, error)
+	mustEmbedUnimplementedGuildServiceServer()
+}
+
+// UnimplementedGuildServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedGuildServiceServer struct{}
+
+func (UnimplementedGuildServiceServer) CreateGuild(context.Context, *CreateGuildRequest) (*CreateGuildResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateGuild not implemented")
+}
+func (UnimplementedGuildServiceServer) GetGuild(context.Context, *GetGuildRequest) (*GetGuildResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetGuild not implemented")
+}
+func (UnimplementedGuildServiceServer) ListMyGuilds(context.Context, *ListMyGuildsRequest) (*ListMyGuildsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyGuilds not implemented")
+}
+func (UnimplementedGuildServiceServer) DeleteGuild(context.Context, *DeleteGuildRequest) (*DeleteGuildResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteGuild not implemented")
+}
+func (UnimplementedGuildServiceServer) CreateInvite(context.Context, *CreateInviteRequest) (*CreateInviteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateInvite not implemented")
+}
+func (UnimplementedGuildServiceServer) JoinByInvite(context.Context, *JoinByInviteRequest) (*JoinByInviteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method JoinByInvite not implemented")
+}
+func (UnimplementedGuildServiceServer) LeaveGuild(context.Context, *LeaveGuildRequest) (*LeaveGuildResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method LeaveGuild not implemented")
+}
+func (UnimplementedGuildServiceServer) CreateChannel(context.Context, *CreateChannelRequest) (*CreateChannelResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateChannel not implemented")
+}
+func (UnimplementedGuildServiceServer) DeleteChannel(context.Context, *DeleteChannelRequest) (*DeleteChannelResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteChannel not implemented")
+}
+func (UnimplementedGuildServiceServer) ListChannels(context.Context, *ListChannelsRequest) (*ListChannelsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListChannels not implemented")
+}
+func (UnimplementedGuildServiceServer) ListMembers(context.Context, *ListMembersRequest) (*ListMembersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMembers not implemented")
+}
+func (UnimplementedGuildServiceServer) mustEmbedUnimplementedGuildServiceServer() {}
+func (UnimplementedGuildServiceServer) testEmbeddedByValue()                      {}
+
+// UnsafeGuildServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to GuildServiceServer will
+// result in compilation errors.
+type UnsafeGuildServiceServer interface {
+	mustEmbedUnimplementedGuildServiceServer()
+}
+
+func RegisterGuildServiceServer(s grpc.ServiceRegistrar, srv GuildServiceServer) {
+	// If the following call panics, it indicates UnimplementedGuildServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&GuildService_ServiceDesc, srv)
+}
+
+func _GuildService_CreateGuild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateGuildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).CreateGuild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_CreateGuild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).CreateGuild(ctx, req.(*CreateGuildRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GuildService_GetGuild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGuildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).GetGuild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_GetGuild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).GetGuild(ctx, req.(*GetGuildRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GuildService_ListMyGuilds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyGuildsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).ListMyGuilds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_ListMyGuilds_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).ListMyGuilds(ctx, req.(*ListMyGuildsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GuildService_DeleteGuild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteGuildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).DeleteGuild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_DeleteGuild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).DeleteGuild(ctx, req.(*DeleteGuildRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GuildService_CreateInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateInviteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).CreateInvite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_CreateInvite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).CreateInvite(ctx, req.(*CreateInviteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GuildService_JoinByInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JoinByInviteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).JoinByInvite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_JoinByInvite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).JoinByInvite(ctx, req.(*JoinByInviteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GuildService_LeaveGuild_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LeaveGuildRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).LeaveGuild(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_LeaveGuild_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).LeaveGuild(ctx, req.(*LeaveGuildRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GuildService_CreateChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateChannelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).CreateChannel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_CreateChannel_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).CreateChannel(ctx, req.(*CreateChannelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GuildService_DeleteChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteChannelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).DeleteChannel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_DeleteChannel_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).DeleteChannel(ctx, req.(*DeleteChannelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GuildService_ListChannels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListChannelsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).ListChannels(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_ListChannels_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).ListChannels(ctx, req.(*ListChannelsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GuildService_ListMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMembersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuildServiceServer).ListMembers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuildService_ListMembers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuildServiceServer).ListMembers(ctx, req.(*ListMembersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// GuildService_ServiceDesc is the grpc.ServiceDesc for GuildService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var GuildService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "kitsulan.v1.GuildService",
+	HandlerType: (*GuildServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateGuild",
+			Handler:    _GuildService_CreateGuild_Handler,
+		},
+		{
+			MethodName: "GetGuild",
+			Handler:    _GuildService_GetGuild_Handler,
+		},
+		{
+			MethodName: "ListMyGuilds",
+			Handler:    _GuildService_ListMyGuilds_Handler,
+		},
+		{
+			MethodName: "DeleteGuild",
+			Handler:    _GuildService_DeleteGuild_Handler,
+		},
+		{
+			MethodName: "CreateInvite",
+			Handler:    _GuildService_CreateInvite_Handler,
+		},
+		{
+			MethodName: "JoinByInvite",
+			Handler:    _GuildService_JoinByInvite_Handler,
+		},
+		{
+			MethodName: "LeaveGuild",
+			Handler:    _GuildService_LeaveGuild_Handler,
+		},
+		{
+			MethodName: "CreateChannel",
+			Handler:    _GuildService_CreateChannel_Handler,
+		},
+		{
+			MethodName: "DeleteChannel",
+			Handler:    _GuildService_DeleteChannel_Handler,
+		},
+		{
+			MethodName: "ListChannels",
+			Handler:    _GuildService_ListChannels_Handler,
+		},
+		{
+			MethodName: "ListMembers",
+			Handler:    _GuildService_ListMembers_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "kitsulan/v1/service.proto",
+}
+
+const (
+	ChatService_SendMessage_FullMethodName      = "/kitsulan.v1.ChatService/SendMessage"
+	ChatService_GetHistory_FullMethodName       = "/kitsulan.v1.ChatService/GetHistory"
+	ChatService_SubscribeChannel_FullMethodName = "/kitsulan.v1.ChatService/SubscribeChannel"
+)
+
+// ChatServiceClient is the client API for ChatService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ChatServiceClient interface {
+	// Отправить сообщение в канал
+	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
+	// Получить историю сообщений (пагинация курсором)
+	GetHistory(ctx context.Context, in *GetHistoryRequest, opts ...grpc.CallOption) (*GetHistoryResponse, error)
+	// Подписаться на real-time события канала (server-streaming)
+	SubscribeChannel(ctx context.Context, in *SubscribeChannelRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChatEvent], error)
+}
+
+type chatServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewChatServiceClient(cc grpc.ClientConnInterface) ChatServiceClient {
+	return &chatServiceClient{cc}
+}
+
+func (c *chatServiceClient) SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendMessageResponse)
+	err := c.cc.Invoke(ctx, ChatService_SendMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatServiceClient) GetHistory(ctx context.Context, in *GetHistoryRequest, opts ...grpc.CallOption) (*GetHistoryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetHistoryResponse)
+	err := c.cc.Invoke(ctx, ChatService_GetHistory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatServiceClient) SubscribeChannel(ctx context.Context, in *SubscribeChannelRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChatEvent], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &ChatService_ServiceDesc.Streams[0], ChatService_SubscribeChannel_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[SubscribeChannelRequest, ChatEvent]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ChatService_SubscribeChannelClient = grpc.ServerStreamingClient[ChatEvent]
+
+// ChatServiceServer is the server API for ChatService service.
+// All implementations must embed UnimplementedChatServiceServer
+// for forward compatibility.
+type ChatServiceServer interface {
+	// Отправить сообщение в канал
+	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
+	// Получить историю сообщений (пагинация курсором)
+	GetHistory(context.Context, *GetHistoryRequest) (*GetHistoryResponse, error)
+	// Подписаться на real-time события канала (server-streaming)
+	SubscribeChannel(*SubscribeChannelRequest, grpc.ServerStreamingServer[ChatEvent]) error
+	mustEmbedUnimplementedChatServiceServer()
+}
+
+// UnimplementedChatServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedChatServiceServer struct{}
+
+func (UnimplementedChatServiceServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendMessage not implemented")
+}
+func (UnimplementedChatServiceServer) GetHistory(context.Context, *GetHistoryRequest) (*GetHistoryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetHistory not implemented")
+}
+func (UnimplementedChatServiceServer) SubscribeChannel(*SubscribeChannelRequest, grpc.ServerStreamingServer[ChatEvent]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeChannel not implemented")
+}
+func (UnimplementedChatServiceServer) mustEmbedUnimplementedChatServiceServer() {}
+func (UnimplementedChatServiceServer) testEmbeddedByValue()                     {}
+
+// UnsafeChatServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ChatServiceServer will
+// result in compilation errors.
+type UnsafeChatServiceServer interface {
+	mustEmbedUnimplementedChatServiceServer()
+}
+
+func RegisterChatServiceServer(s grpc.ServiceRegistrar, srv ChatServiceServer) {
+	// If the following call panics, it indicates UnimplementedChatServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&ChatService_ServiceDesc, srv)
+}
+
+func _ChatService_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).SendMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_SendMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).SendMessage(ctx, req.(*SendMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatService_GetHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHistoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).GetHistory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_GetHistory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).GetHistory(ctx, req.(*GetHistoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatService_SubscribeChannel_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SubscribeChannelRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChatServiceServer).SubscribeChannel(m, &grpc.GenericServerStream[SubscribeChannelRequest, ChatEvent]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ChatService_SubscribeChannelServer = grpc.ServerStreamingServer[ChatEvent]
+
+// ChatService_ServiceDesc is the grpc.ServiceDesc for ChatService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ChatService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "kitsulan.v1.ChatService",
+	HandlerType: (*ChatServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SendMessage",
+			Handler:    _ChatService_SendMessage_Handler,
+		},
+		{
+			MethodName: "GetHistory",
+			Handler:    _ChatService_GetHistory_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SubscribeChannel",
+			Handler:       _ChatService_SubscribeChannel_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "kitsulan/v1/service.proto",
+}

@@ -27,7 +27,7 @@ service UserService {
 // --- Сообщения (DTO) ---
 
 message User {
-  string id = 1;        // UUIDv7
+  string id = 1; // UUIDv7
   string username = 2;
   string avatar_url = 3;
   bool is_online = 4;
@@ -40,9 +40,7 @@ message RegisterRequest {
   string email = 3; // Опционально
 }
 
-message RegisterResponse {
-  string user_id = 1;
-}
+message RegisterResponse { string user_id = 1; }
 
 message LoginRequest {
   string username = 1;
@@ -53,12 +51,10 @@ message LoginResponse {
   string access_token = 1;
   string refresh_token = 2;
   // Срок действия в секундах
-  int64 expires_in = 3; 
+  int64 expires_in = 3;
 }
 
-message RefreshTokenRequest {
-  string refresh_token = 1;
-}
+message RefreshTokenRequest { string refresh_token = 1; }
 
 message RefreshTokenResponse {
   string access_token = 1;
@@ -70,14 +66,168 @@ message GetProfileRequest {
   string user_id = 1; // Если пусто - вернуть "себя"
 }
 
-message GetProfileResponse {
-  User user = 1;
+message GetProfileResponse { User user = 1; }
+
+message SearchUsersRequest { string query = 1; }
+
+message SearchUsersResponse { repeated User users = 1; }
+
+// ---- PHASE 2 ----
+
+service GuildService {
+  rpc CreateGuild(CreateGuildRequest) returns (CreateGuildResponse);
+  rpc GetGuild(GetGuildRequest) returns (GetGuildResponse);
+  rpc ListMyGuilds(ListMyGuildsRequest) returns (ListMyGuildsResponse);
+  rpc DeleteGuild(DeleteGuildRequest) returns (DeleteGuildResponse);
+
+  rpc CreateInvite(CreateInviteRequest) returns (CreateInviteResponse);
+  rpc JoinByInvite(JoinByInviteRequest) returns (JoinByInviteResponse);
+  rpc LeaveGuild(LeaveGuildRequest) returns (LeaveGuildResponse);
+
+  rpc CreateChannel(CreateChannelRequest) returns (CreateChannelResponse);
+  rpc DeleteChannel(DeleteChannelRequest) returns (DeleteChannelResponse);
+  rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse);
+
+  rpc ListMembers(ListMembersRequest) returns (ListMembersResponse);
 }
 
-message SearchUsersRequest {
-  string query = 1;
+service ChatService {
+  // Отправить сообщение в канал
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  // Получить историю сообщений (пагинация курсором)
+  rpc GetHistory(GetHistoryRequest) returns (GetHistoryResponse);
+  // Подписаться на real-time события канала (server-streaming)
+  rpc SubscribeChannel(SubscribeChannelRequest) returns (stream ChatEvent);
 }
 
-message SearchUsersResponse {
-  repeated User users = 1;
+// ---- Guild DTO ----
+
+message Guild {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string icon_url = 4;
+  string owner_id = 5;
+  int32 member_count = 6;
+  google.protobuf.Timestamp created_at = 7;
 }
+
+message Channel {
+  string id = 1;
+  string guild_id = 2;
+  string name = 3;
+  ChannelType type = 4;
+  int32 position = 5;
+}
+
+enum ChannelType {
+  CHANNEL_TYPE_UNSPECIFIED = 0;
+  CHANNEL_TYPE_TEXT = 1;
+  CHANNEL_TYPE_VOICE = 2;
+}
+
+message Member {
+  string user_id = 1;
+  string username = 2;
+  string avatar_url = 3;
+  string nickname = 4;
+  bool is_online = 5;
+  google.protobuf.Timestamp joined_at = 6;
+}
+
+// ---- Guild Requests ----
+
+message CreateGuildRequest {
+  string name = 1;
+  string description = 2;
+}
+message CreateGuildResponse { Guild guild = 1; }
+
+message GetGuildRequest { string guild_id = 1; }
+message GetGuildResponse { Guild guild = 1; }
+
+message ListMyGuildsRequest {}
+message ListMyGuildsResponse { repeated Guild guilds = 1; }
+
+message DeleteGuildRequest { string guild_id = 1; }
+message DeleteGuildResponse {}
+
+message CreateInviteRequest {
+  string guild_id = 1;
+  int32 max_uses = 2;
+  int32 expires_in_hours = 3;
+}
+message CreateInviteResponse {
+  string code = 1;
+  string url = 2;
+}
+
+message JoinByInviteRequest { string code = 1; }
+message JoinByInviteResponse { Guild guild = 1; }
+
+message LeaveGuildRequest { string guild_id = 1; }
+message LeaveGuildResponse {}
+
+message CreateChannelRequest {
+  string guild_id = 1;
+  string name = 2;
+  ChannelType type = 3;
+}
+message CreateChannelResponse { Channel channel = 1; }
+
+message DeleteChannelRequest { string channel_id = 1; }
+message DeleteChannelResponse {}
+
+message ListChannelsRequest { string guild_id = 1; }
+message ListChannelsResponse { repeated Channel channels = 1; }
+
+message ListMembersRequest { string guild_id = 1; }
+message ListMembersResponse { repeated Member members = 1; }
+
+// ---- Chat DTO ----
+
+message ChatMessage {
+  string id = 1;
+  string channel_id = 2;
+  string author_id = 3;
+  string author_username = 4;
+  string author_avatar_url = 5;
+  string content = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp edited_at = 8;
+}
+
+// ChatEvent — конверт для server-streaming событий.
+// Используем oneof чтобы в будущем добавить typing, delete, edit без breaking
+// change.
+message ChatEvent {
+  oneof payload {
+    ChatMessage message_created = 1;
+    MessageDeleted message_deleted = 2;
+  }
+}
+
+message MessageDeleted {
+  string message_id = 1;
+  string channel_id = 2;
+}
+
+// ---- Chat Requests ----
+
+message SendMessageRequest {
+  string channel_id = 1;
+  string content = 2;
+}
+message SendMessageResponse { ChatMessage message = 1; }
+
+message GetHistoryRequest {
+  string channel_id = 1;
+  int32 limit = 2; // max 100, default 50
+  string before_message_id = 3; // курсор пагинации (пустой = с конца)
+}
+message GetHistoryResponse {
+  repeated ChatMessage messages = 1;
+  bool has_more = 2;
+}
+
+message SubscribeChannelRequest { string channel_id = 1; }

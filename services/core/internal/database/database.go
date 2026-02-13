@@ -78,7 +78,11 @@ func connectSQLite(cfg *config.Config, gormCfg *gorm.Config) (*gorm.DB, error) {
 func migrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&domain.User{},
-		// TODO Phase 2: &domain.Guild{}, &domain.Channel{}, &domain.Message{}
+		&domain.Guild{},
+		&domain.Channel{},
+		&domain.GuildMember{},
+		&domain.GuildInvite{},
+		&domain.Message{},
 	)
 }
 
