@@ -1,28 +1,48 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
+/**
+ * src/App.tsx
+ *
+ * Маршруты:
+ *   /        → ServerSelect (выбор сервера)
+ *   /auth    → Login/Register
+ *   /app     → PrivateRoute → MainLayout → Chat (и будущие страницы)
+ *   /app/:guildId/:channelId → конкретный канал
+ *
+ * ServerGuard убран отсюда — каждая страница сама проверяет
+ * нужные условия и редиректит (serverAddress, isAuthenticated).
+ * Это проще и прозрачнее, чем один "умный" guard.
+ */
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
-import { ServerGuard } from "@/components/ServerGuard";
-import { PrivateRoute } from "@/components/PrivateRoute";
+
+import ServerSelect from "@/pages/ServerSelect";
 import Login from "@/pages/Login";
 import MainLayout from "@/pages/MainLayout";
 import Chat from "@/pages/Chat";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { PrivateRoute } from "@/components/PrivateRoute";
 
 export default function App() {
   return (
-    <ServerGuard>
-      <ThemeProvider>
-        <HashRouter>
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route element={<PrivateRoute />}>
-              <Route element={<MainLayout />}>
-                <Route path="/chat" element={<Chat />} />
-              </Route>
-            </Route>
-          </Routes>
-        </HashRouter>
-        <Toaster theme="dark" position="bottom-right" />
-      </ThemeProvider>
-    </ServerGuard>
+    <HashRouter>
+      <Routes>
+        {/* 1. Выбор сервера */}
+        <Route path="/" element={<ServerSelect />} />
+
+        {/* 2. Авторизация (только если сервер выбран — проверяется внутри Login) */}
+        <Route path="/auth" element={<Login />} />
+
+        {/* 3. Основное приложение (только если залогинен) */}
+        <Route element={<PrivateRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/app" element={<Chat />} />
+            {/* Будущий роут: /app/:guildId/:channelId */}
+          </Route>
+        </Route>
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
+      <Toaster theme="dark" position="bottom-right" />
+    </HashRouter>
   );
 }

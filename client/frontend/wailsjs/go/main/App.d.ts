@@ -3,6 +3,8 @@
 
 export function CheckServerStatus():Promise<boolean>;
 
+export function ConnectToServer(arg1:string):Promise<boolean>;
+
 export function Login(arg1:string,arg2:string):Promise<string>;
 
 export function Register(arg1:string,arg2:string):Promise<string>;

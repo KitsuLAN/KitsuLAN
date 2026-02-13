@@ -6,6 +6,10 @@ export function CheckServerStatus() {
   return window['go']['main']['App']['CheckServerStatus']();
 }
 
+export function ConnectToServer(arg1) {
+  return window['go']['main']['App']['ConnectToServer'](arg1);
+}
+
 export function Login(arg1, arg2) {
   return window['go']['main']['App']['Login'](arg1, arg2);
 }

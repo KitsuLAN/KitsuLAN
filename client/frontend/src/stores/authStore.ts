@@ -1,7 +1,11 @@
+/**
+ * src/stores/authStore.ts
+ * Изменения: импорт через WailsAPI shim вместо прямого wailsjs
+ */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
-import { Login, Register } from "../../wailsjs/go/main/App";
+import { WailsAPI } from "@/lib/wails";
 
 interface AuthState {
   token: string | null;
@@ -20,31 +24,30 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
 
       login: async (username, password) => {
-        const token = await Login(username, password);
+        const token = await WailsAPI.Login(username, password);
         set({ token, username, isAuthenticated: true });
       },
 
       register: async (username, password) => {
-        await Register(username, password);
+        await WailsAPI.Register(username, password);
+        // Регистрация НЕ логинит автоматически — пользователь явно входит
       },
 
       logout: () =>
         set({ token: null, username: null, isAuthenticated: false }),
     }),
-    { name: "kitsu-auth-storage" }
+    { name: "kitsu-auth" }
   )
 );
 
-// Селекторы для производительности
-export const useAuthToken = () => useAuthStore((state) => state.token);
-export const useIsAuthenticated = () =>
-  useAuthStore((state) => state.isAuthenticated);
-export const useUsername = () => useAuthStore((state) => state.username);
+export const useAuthToken = () => useAuthStore((s) => s.token);
+export const useIsAuthenticated = () => useAuthStore((s) => s.isAuthenticated);
+export const useUsername = () => useAuthStore((s) => s.username);
 export const useAuthActions = () =>
   useAuthStore(
-    useShallow((state) => ({
-      login: state.login,
-      register: state.register,
-      logout: state.logout,
+    useShallow((s) => ({
+      login: s.login,
+      register: s.register,
+      logout: s.logout,
     }))
   );

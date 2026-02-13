@@ -45,6 +45,17 @@ func (a *App) CheckServerStatus() bool {
 	return a.client.IsReady()
 }
 
+func (a *App) ConnectToServer(addr string) (bool, error) {
+	newClient := rpc.NewClient(addr)
+	if err := newClient.Connect(); err != nil {
+		return false, err
+	}
+	// Закрываем старое соединение
+	a.client.Close()
+	a.client = newClient
+	return true, nil
+}
+
 func (a *App) Register(username, password string) (string, error) {
 	if !a.client.IsReady() {
 		return "", errors.New("server unavailable")
