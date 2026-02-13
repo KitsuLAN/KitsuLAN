@@ -7,8 +7,6 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/middleware"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/service"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type ChatServer struct {
@@ -21,10 +19,7 @@ func NewChatServer(svc *service.ChatService) *ChatServer {
 }
 
 func (s *ChatServer) SendMessage(ctx context.Context, req *pb.SendMessageRequest) (*pb.SendMessageResponse, error) {
-	callerID, ok := middleware.UserIDFromContext(ctx)
-	if !ok {
-		return nil, domainerr.ToGRPC(domainerr.ErrUnauthorized)
-	}
+	callerID := middleware.MustUserID(ctx)
 	msg, err := s.svc.SendMessage(ctx, req.ChannelId, callerID, req.Content)
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
@@ -33,10 +28,7 @@ func (s *ChatServer) SendMessage(ctx context.Context, req *pb.SendMessageRequest
 }
 
 func (s *ChatServer) GetHistory(ctx context.Context, req *pb.GetHistoryRequest) (*pb.GetHistoryResponse, error) {
-	callerID, ok := middleware.UserIDFromContext(ctx)
-	if !ok {
-		return nil, domainerr.ToGRPC(domainerr.ErrUnauthorized)
-	}
+	callerID := middleware.MustUserID(ctx)
 	msgs, hasMore, err := s.svc.GetHistory(ctx, req.ChannelId, callerID, int(req.Limit), req.BeforeMessageId)
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
@@ -49,11 +41,7 @@ func (s *ChatServer) GetHistory(ctx context.Context, req *pb.GetHistoryRequest) 
 }
 
 func (s *ChatServer) SubscribeChannel(req *pb.SubscribeChannelRequest, stream pb.ChatService_SubscribeChannelServer) error {
-	callerID, ok := middleware.UserIDFromContext(stream.Context())
-	if !ok {
-		return status.Error(codes.Unauthenticated, "unauthorized")
-	}
-
+	callerID := middleware.MustUserID(stream.Context())
 	if err := s.svc.CanSubscribe(stream.Context(), req.ChannelId, callerID); err != nil {
 		return domainerr.ToGRPC(err)
 	}

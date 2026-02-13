@@ -151,11 +151,7 @@ func UnaryAuth(jwtSecret string) grpc.UnaryServerInterceptor {
 // StreamAuth — interceptor авторизации для streaming RPC.
 func StreamAuth(jwtSecret string) grpc.StreamServerInterceptor {
 	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		publicMethods := map[string]bool{
-			"/kitsulan.v1.AuthService/Register": true,
-			"/kitsulan.v1.AuthService/Login":    true,
-		}
-		if publicMethods[info.FullMethod] {
+		if _, ok := publicMethods[info.FullMethod]; ok {
 			return handler(srv, ss)
 		}
 
@@ -224,4 +220,18 @@ func extractAndValidateToken(ctx context.Context, secret string) (string, error)
 	}
 
 	return userID, nil
+}
+
+// MustUserID извлекает UserID из контекста.
+//
+// Предполагается, что функция вызывается только в gRPC-хендлерах,
+// защищённых Auth interceptor-ом.
+// Если UserID отсутствует в контексте, функция паникует — это
+// означает ошибку конфигурации (Auth interceptor не применён).
+func MustUserID(ctx context.Context) string {
+	uid, ok := UserIDFromContext(ctx)
+	if !ok {
+		panic("UserID missing in context: Auth interceptor is not applied")
+	}
+	return uid
 }

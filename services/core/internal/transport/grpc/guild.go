@@ -21,10 +21,7 @@ func NewGuildServer(svc *service.GuildService) *GuildServer {
 }
 
 func (s *GuildServer) CreateGuild(ctx context.Context, req *pb.CreateGuildRequest) (*pb.CreateGuildResponse, error) {
-	callerID, ok := middleware.UserIDFromContext(ctx)
-	if !ok {
-		return nil, domainerr.ToGRPC(domainerr.ErrUnauthorized)
-	}
+	callerID := middleware.MustUserID(ctx)
 	guild, err := s.svc.CreateGuild(ctx, callerID, req.Name, req.Description)
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
@@ -33,10 +30,7 @@ func (s *GuildServer) CreateGuild(ctx context.Context, req *pb.CreateGuildReques
 }
 
 func (s *GuildServer) GetGuild(ctx context.Context, req *pb.GetGuildRequest) (*pb.GetGuildResponse, error) {
-	callerID, ok := middleware.UserIDFromContext(ctx)
-	if !ok {
-		return nil, domainerr.ToGRPC(domainerr.ErrUnauthorized)
-	}
+	callerID := middleware.MustUserID(ctx)
 	guild, err := s.svc.GetGuild(ctx, req.GuildId, callerID)
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
@@ -45,10 +39,7 @@ func (s *GuildServer) GetGuild(ctx context.Context, req *pb.GetGuildRequest) (*p
 }
 
 func (s *GuildServer) ListMyGuilds(ctx context.Context, _ *pb.ListMyGuildsRequest) (*pb.ListMyGuildsResponse, error) {
-	callerID, ok := middleware.UserIDFromContext(ctx)
-	if !ok {
-		return nil, domainerr.ToGRPC(domainerr.ErrUnauthorized)
-	}
+	callerID := middleware.MustUserID(ctx)
 	guilds, err := s.svc.ListMyGuilds(ctx, callerID)
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
@@ -61,12 +52,12 @@ func (s *GuildServer) ListMyGuilds(ctx context.Context, _ *pb.ListMyGuildsReques
 }
 
 func (s *GuildServer) DeleteGuild(ctx context.Context, req *pb.DeleteGuildRequest) (*pb.DeleteGuildResponse, error) {
-	callerID, _ := middleware.UserIDFromContext(ctx)
+	callerID := middleware.MustUserID(ctx)
 	return &pb.DeleteGuildResponse{}, domainerr.ToGRPC(s.svc.DeleteGuild(ctx, req.GuildId, callerID))
 }
 
 func (s *GuildServer) CreateInvite(ctx context.Context, req *pb.CreateInviteRequest) (*pb.CreateInviteResponse, error) {
-	callerID, _ := middleware.UserIDFromContext(ctx)
+	callerID := middleware.MustUserID(ctx)
 	inv, err := s.svc.CreateInvite(ctx, req.GuildId, callerID, int(req.MaxUses), int(req.ExpiresInHours))
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
@@ -78,7 +69,7 @@ func (s *GuildServer) CreateInvite(ctx context.Context, req *pb.CreateInviteRequ
 }
 
 func (s *GuildServer) JoinByInvite(ctx context.Context, req *pb.JoinByInviteRequest) (*pb.JoinByInviteResponse, error) {
-	callerID, _ := middleware.UserIDFromContext(ctx)
+	callerID := middleware.MustUserID(ctx)
 	guild, err := s.svc.JoinByInvite(ctx, req.Code, callerID)
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
@@ -87,12 +78,12 @@ func (s *GuildServer) JoinByInvite(ctx context.Context, req *pb.JoinByInviteRequ
 }
 
 func (s *GuildServer) LeaveGuild(ctx context.Context, req *pb.LeaveGuildRequest) (*pb.LeaveGuildResponse, error) {
-	callerID, _ := middleware.UserIDFromContext(ctx)
+	callerID := middleware.MustUserID(ctx)
 	return &pb.LeaveGuildResponse{}, domainerr.ToGRPC(s.svc.LeaveGuild(ctx, req.GuildId, callerID))
 }
 
 func (s *GuildServer) CreateChannel(ctx context.Context, req *pb.CreateChannelRequest) (*pb.CreateChannelResponse, error) {
-	callerID, _ := middleware.UserIDFromContext(ctx)
+	callerID := middleware.MustUserID(ctx)
 	chType := protoToChannelType(req.Type)
 	ch, err := s.svc.CreateChannel(ctx, req.GuildId, callerID, req.Name, chType)
 	if err != nil {
@@ -102,12 +93,12 @@ func (s *GuildServer) CreateChannel(ctx context.Context, req *pb.CreateChannelRe
 }
 
 func (s *GuildServer) DeleteChannel(ctx context.Context, req *pb.DeleteChannelRequest) (*pb.DeleteChannelResponse, error) {
-	callerID, _ := middleware.UserIDFromContext(ctx)
+	callerID := middleware.MustUserID(ctx)
 	return &pb.DeleteChannelResponse{}, domainerr.ToGRPC(s.svc.DeleteChannel(ctx, req.ChannelId, callerID))
 }
 
 func (s *GuildServer) ListChannels(ctx context.Context, req *pb.ListChannelsRequest) (*pb.ListChannelsResponse, error) {
-	callerID, _ := middleware.UserIDFromContext(ctx)
+	callerID := middleware.MustUserID(ctx)
 	channels, err := s.svc.ListChannels(ctx, req.GuildId, callerID)
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
@@ -120,7 +111,7 @@ func (s *GuildServer) ListChannels(ctx context.Context, req *pb.ListChannelsRequ
 }
 
 func (s *GuildServer) ListMembers(ctx context.Context, req *pb.ListMembersRequest) (*pb.ListMembersResponse, error) {
-	callerID, _ := middleware.UserIDFromContext(ctx)
+	callerID := middleware.MustUserID(ctx)
 	members, err := s.svc.ListMembers(ctx, req.GuildId, callerID)
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
