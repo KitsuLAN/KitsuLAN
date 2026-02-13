@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -11,10 +11,190 @@ import {
   useActiveChannels,
   useActiveMembers,
   useGuildActions,
+  useGuildStore,
 } from "@/stores/guildStore";
-import { CHANNEL_TYPE_VOICE } from "@/lib/wails";
+import { CHANNEL_TYPE_TEXT, CHANNEL_TYPE_VOICE } from "@/lib/wails";
 import type { Guild, Channel, Member } from "@/lib/wails";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+// ── Inline Modal (переиспользуем ту же схему что в Home) ──────────────────
+
+function Modal({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-xl border border-kitsu-s4 bg-kitsu-s1 p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-bold text-base">{title}</h2>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ×
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── Диалог создания канала ────────────────────────────────────────────────
+
+function CreateChannelModal({
+  guildID,
+  onClose,
+}: {
+  guildID: string;
+  onClose: () => void;
+}) {
+  const [name, setName] = useState("");
+  const [type, setType] = useState<1 | 2>(CHANNEL_TYPE_TEXT);
+  const [loading, setLoading] = useState(false);
+  const { createChannel, selectChannel } = useGuildActions();
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    setLoading(true);
+    try {
+      const ch = await createChannel(
+        guildID,
+        name.trim().toLowerCase().replace(/\s+/g, "-"),
+        type
+      );
+      toast.success(`Канал #${ch.name} создан`);
+      if (type === CHANNEL_TYPE_TEXT) selectChannel(ch.id!);
+      onClose();
+    } catch (e) {
+      toast.error(String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal title="Создать канал" onClose={onClose}>
+      <div className="flex flex-col gap-4">
+        {/* Тип канала */}
+        <div className="flex gap-2">
+          {([CHANNEL_TYPE_TEXT, CHANNEL_TYPE_VOICE] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setType(t)}
+              className={cn(
+                "flex flex-1 flex-col items-center gap-1 rounded-lg border py-3 text-sm transition-colors",
+                type === t
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : "border-kitsu-s4 bg-kitsu-bg text-muted-foreground hover:bg-kitsu-s2"
+              )}
+            >
+              <span className="text-xl">
+                {t === CHANNEL_TYPE_TEXT ? "#" : "🔊"}
+              </span>
+              <span className="text-xs font-semibold">
+                {t === CHANNEL_TYPE_TEXT ? "Текстовый" : "Голосовой"}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Имя */}
+        <div>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Название
+          </label>
+          <div className="flex items-center rounded-md border border-kitsu-s4 bg-kitsu-bg px-3">
+            <span className="mr-1 text-muted-foreground">
+              {type === CHANNEL_TYPE_TEXT ? "#" : "🔊"}
+            </span>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+              placeholder="мой-канал"
+              className="flex-1 bg-transparent py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none"
+              autoFocus
+            />
+          </div>
+        </div>
+
+        <Button disabled={!name.trim() || loading} onClick={handleCreate}>
+          {loading ? "Создаём…" : "Создать канал"}
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Диалог инвайта ────────────────────────────────────────────────────────
+
+function InviteModal({
+  guildID,
+  onClose,
+}: {
+  guildID: string;
+  onClose: () => void;
+}) {
+  const [code, setCode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { createInvite } = useGuildActions();
+
+  useEffect(() => {
+    createInvite(guildID, 0, 0)
+      .then(setCode)
+      .catch((e) => {
+        toast.error(String(e));
+        onClose();
+      })
+      .finally(() => setLoading(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const copyCode = () => {
+    if (!code) return;
+    navigator.clipboard.writeText(code);
+    toast.success("Код скопирован!");
+  };
+
+  return (
+    <Modal title="Пригласить участников" onClose={onClose}>
+      {loading ? (
+        <p className="text-center text-sm text-muted-foreground py-4">
+          Генерируем код…
+        </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-muted-foreground">
+            Поделитесь этим кодом. Он действует бессрочно.
+          </p>
+          <button
+            onClick={copyCode}
+            className="flex items-center justify-between rounded-lg border border-kitsu-s4 bg-kitsu-bg px-4 py-3 font-mono text-lg font-bold tracking-widest text-foreground hover:bg-kitsu-s2 transition-colors"
+          >
+            {code}
+            <span className="text-xs font-sans font-normal text-muted-foreground">
+              нажмите чтобы скопировать
+            </span>
+          </button>
+        </div>
+      )}
+    </Modal>
+  );
+}
 
 type Status = "online" | "away" | "dnd" | "offline";
 
@@ -182,6 +362,9 @@ export default function MainLayout() {
   const onlineMembers = members.filter((m) => m.is_online);
   const offlineMembers = members.filter((m) => !m.is_online);
 
+  const [channelModal, setChannelModal] = useState(false);
+  const [inviteModal, setInviteModal] = useState(false);
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-kitsu-bg text-foreground">
       {/* ── 1. Server Rail (64px) ── */}
@@ -203,7 +386,8 @@ export default function MainLayout() {
 
         <Separator className="w-8 bg-kitsu-s4" />
         <button
-          title="Добавить сервер"
+          title="Создать или вступить в гильдию"
+          onClick={() => selectChannel("")}
           className="flex h-11 w-11 items-center justify-center rounded-full bg-kitsu-s2 text-xl text-muted-foreground transition-all hover:rounded-xl hover:bg-primary hover:text-white"
         >
           +
@@ -214,7 +398,7 @@ export default function MainLayout() {
       <aside className="flex w-60 shrink-0 flex-col border-r border-kitsu-s4 bg-kitsu-s1">
         <button className="flex h-12 shrink-0 items-center gap-2 border-b border-kitsu-s4 px-4 font-bold hover:bg-kitsu-s2 transition-colors">
           <span className="flex-1 truncate text-sm">
-            {activeGuild?.name ?? "Выберите сервер"}
+            {activeGuild?.name ?? "Выберите гильдию"}
           </span>
           <span className="text-muted-foreground">⌄</span>
         </button>
@@ -227,6 +411,12 @@ export default function MainLayout() {
                 <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50">
                   Текстовые
                 </span>
+                <button
+                  onClick={() => activeGuildID && setChannelModal(true)}
+                  className="text-muted-foreground/50 hover:text-muted-foreground"
+                >
+                  +
+                </button>
               </div>
               {textChannels.map((ch) => (
                 <ChannelItem
@@ -246,6 +436,12 @@ export default function MainLayout() {
                 <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50">
                   Голосовые
                 </span>
+                <button
+                  onClick={() => activeGuildID && setChannelModal(true)}
+                  className="text-muted-foreground/50 hover:text-muted-foreground"
+                >
+                  +
+                </button>
               </div>
               {voiceChannels.map((ch) => (
                 <ChannelItem
@@ -348,6 +544,18 @@ export default function MainLayout() {
           )}
         </ScrollArea>
       </aside>
+      {channelModal && activeGuildID && (
+        <CreateChannelModal
+          guildID={activeGuildID}
+          onClose={() => setChannelModal(false)}
+        />
+      )}
+      {inviteModal && activeGuildID && (
+        <InviteModal
+          guildID={activeGuildID}
+          onClose={() => setInviteModal(false)}
+        />
+      )}
     </div>
   );
 }
