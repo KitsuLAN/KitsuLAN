@@ -36,7 +36,14 @@ export const useAuthStore = create<AuthState>()(
       logout: () =>
         set({ token: null, username: null, isAuthenticated: false }),
     }),
-    { name: "kitsu-auth" }
+    {
+      name: "kitsu-auth",
+      onRehydrateStorage: () => (state) => {
+        if (state?.token) {
+          WailsAPI.SetToken(state.token);
+        }
+      },
+    }
   )
 );
 

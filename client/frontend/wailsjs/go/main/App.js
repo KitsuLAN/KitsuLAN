@@ -10,10 +10,66 @@ export function ConnectToServer(arg1) {
   return window['go']['main']['App']['ConnectToServer'](arg1);
 }
 
+export function CreateChannel(arg1, arg2, arg3) {
+  return window['go']['main']['App']['CreateChannel'](arg1, arg2, arg3);
+}
+
+export function CreateGuild(arg1, arg2) {
+  return window['go']['main']['App']['CreateGuild'](arg1, arg2);
+}
+
+export function CreateInvite(arg1, arg2, arg3) {
+  return window['go']['main']['App']['CreateInvite'](arg1, arg2, arg3);
+}
+
+export function DeleteGuild(arg1) {
+  return window['go']['main']['App']['DeleteGuild'](arg1);
+}
+
+export function GetHistory(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GetHistory'](arg1, arg2, arg3);
+}
+
+export function JoinByInvite(arg1) {
+  return window['go']['main']['App']['JoinByInvite'](arg1);
+}
+
+export function LeaveGuild(arg1) {
+  return window['go']['main']['App']['LeaveGuild'](arg1);
+}
+
+export function ListChannels(arg1) {
+  return window['go']['main']['App']['ListChannels'](arg1);
+}
+
+export function ListMembers(arg1) {
+  return window['go']['main']['App']['ListMembers'](arg1);
+}
+
+export function ListMyGuilds() {
+  return window['go']['main']['App']['ListMyGuilds']();
+}
+
 export function Login(arg1, arg2) {
   return window['go']['main']['App']['Login'](arg1, arg2);
 }
 
 export function Register(arg1, arg2) {
   return window['go']['main']['App']['Register'](arg1, arg2);
+}
+
+export function SendMessage(arg1, arg2) {
+  return window['go']['main']['App']['SendMessage'](arg1, arg2);
+}
+
+export function SetToken(arg1) {
+  return window['go']['main']['App']['SetToken'](arg1);
+}
+
+export function SubscribeChannel(arg1) {
+  return window['go']['main']['App']['SubscribeChannel'](arg1);
+}
+
+export function UnsubscribeChannel() {
+  return window['go']['main']['App']['UnsubscribeChannel']();
 }
