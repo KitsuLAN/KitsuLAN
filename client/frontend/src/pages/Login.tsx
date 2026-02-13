@@ -1,101 +1,215 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { LogIn, UserPlus, User, Lock } from "lucide-react";
+
+// Wails bindings
 import {
   Login as GoLogin,
   Register as GoRegister,
 } from "../../wailsjs/go/main/App";
 
-export default function Login() {
-  const [isRegister, setIsRegister] = useState(false);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+// --- 1. Схема валидации (Zod) ---
+const authSchema = z.object({
+  username: z
+    .string()
+    .min(1, "Введите никнейм")
+    .max(50, "Слишком длинный никнейм"),
+  password: z
+    .string()
+    .min(1, "Введите пароль")
+    .min(6, "Пароль должен быть не короче 6 символов"),
+});
+
+type AuthForm = z.infer<typeof authSchema>;
+
+// --- 2. Утилита для ошибок (можно вынести в shared) ---
+function getErrorMessage(err: unknown): string {
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message;
+  return "Не удалось подключиться к серверу";
+}
+
+// --- 3. Кастомный хук для аутентификации ---
+function useAuth() {
+  const navigate = useNavigate();
+  const [isRegister, setIsRegister] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<AuthForm>({
+    resolver: zodResolver(authSchema),
+    defaultValues: { username: "", password: "" },
+  });
+
+  const onSubmit = async (data: AuthForm) => {
+    if (isLoading) return;
+    setIsLoading(true);
 
     try {
+      const action = isRegister ? GoRegister : GoLogin;
+      const result = await action(data.username, data.password);
+
       if (isRegister) {
-        // Вызываем Go (gRPC Register)
-        await GoRegister(username, password);
-        alert("Регистрация успешна! Теперь войдите.");
+        toast.success("Аккаунт создан", {
+          description: "Теперь вы можете войти",
+        });
         setIsRegister(false);
+        form.reset();
       } else {
-        // Вызываем Go (gRPC Login)
-        const token = await GoLogin(username, password);
-
-        // Сохраняем токен (пока в localStorage, потом переделаем)
-        localStorage.setItem("token", token);
-        localStorage.setItem("username", username);
-
+        // Хранилище лучше вынести в отдельный модуль
+        localStorage.setItem("token", result);
+        localStorage.setItem("username", data.username);
+        toast.success("Вход выполнен");
         navigate("/chat");
       }
-    } catch (err: any) {
-      console.error(err);
-      // Wails возвращает ошибки как строки
-      setError(typeof err === "string" ? err : "Ошибка соединения с сервером");
+    } catch (err) {
+      toast.error("Ошибка", {
+        description: getErrorMessage(err),
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  return {
+    form,
+    isRegister,
+    setIsRegister,
+    isLoading,
+    onSubmit,
+  };
+}
+
+// --- 4. Компонент (только отрисовка) ---
+export default function Login() {
+  const { form, isRegister, setIsRegister, isLoading, onSubmit } = useAuth();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = form;
+
   return (
-    <div className="flex h-full w-full items-center justify-center bg-gray-900">
-      <div className="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold text-center mb-6 text-white">
-          {isRegister ? "Создать аккаунт (gRPC)" : "Вход в KitsuLAN"}
-        </h2>
+    <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-background via-background to-secondary/20 p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md"
+      >
+        <Card className="border-border/50 bg-card/95 backdrop-blur shadow-xl">
+          <CardHeader className="space-y-1 text-center">
+            <CardTitle className="text-3xl font-bold tracking-tight">
+              {isRegister ? "Регистрация" : "KitsuLAN"}
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              {isRegister
+                ? "Придумайте никнейм и пароль"
+                : "Введите данные для входа"}
+            </CardDescription>
+          </CardHeader>
 
-        {error && (
-          <div className="mb-4 p-2 bg-red-500/20 text-red-200 text-sm rounded border border-red-500/50">
-            {error}
-          </div>
-        )}
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <CardContent className="grid gap-5">
+              {/* Поле Никнейм */}
+              <div className="grid gap-2">
+                <Label htmlFor="username">Никнейм</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="username"
+                    placeholder="Например: KitsuFan"
+                    className="pl-9 h-11 bg-background/50 transition-shadow focus-visible:ring-2"
+                    disabled={isLoading}
+                    autoFocus
+                    {...register("username")}
+                  />
+                </div>
+                {errors.username && (
+                  <p className="text-xs text-destructive mt-1">
+                    {errors.username.message}
+                  </p>
+                )}
+              </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              Никнейм
-            </label>
-            <input
-              type="text"
-              className="w-full p-2 rounded bg-gray-900 border border-gray-700 focus:border-accent outline-none text-white transition"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-              Пароль
-            </label>
-            <input
-              type="password"
-              className="w-full p-2 rounded bg-gray-900 border border-gray-700 focus:border-accent outline-none text-white transition"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+              {/* Поле Пароль */}
+              <div className="grid gap-2">
+                <Label htmlFor="password">Пароль</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    className="pl-9 h-11 bg-background/50 transition-shadow focus-visible:ring-2"
+                    disabled={isLoading}
+                    {...register("password")}
+                  />
+                </div>
+                {errors.password && (
+                  <p className="text-xs text-destructive mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
+            </CardContent>
 
-          <button
-            type="submit"
-            className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded transition duration-200 cursor-pointer"
-          >
-            {isRegister ? "Зарегистрироваться" : "Войти"}
-          </button>
-        </form>
+            <CardFooter className="flex flex-col gap-4 pt-2">
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full text-base font-semibold transition-transform hover:scale-[1.02]"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  "Загрузка..."
+                ) : isRegister ? (
+                  <>
+                    <UserPlus className="mr-2 h-5 w-5" />
+                    Создать аккаунт
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Войти
+                  </>
+                )}
+              </Button>
 
-        <div className="mt-4 text-center text-sm text-gray-400">
-          {isRegister ? "Уже есть аккаунт? " : "Нет аккаунта? "}
-          <button
-            onClick={() => setIsRegister(!isRegister)}
-            className="text-indigo-400 hover:underline cursor-pointer"
-          >
-            {isRegister ? "Войти" : "Создать"}
-          </button>
-        </div>
-      </div>
+              <div className="text-center text-sm text-muted-foreground">
+                {isRegister ? "Уже есть аккаунт? " : "Нет аккаунта? "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegister(!isRegister);
+                    form.clearErrors();
+                  }}
+                  className="font-medium text-primary underline underline-offset-4 transition hover:opacity-80"
+                >
+                  {isRegister ? "Войти" : "Создать"}
+                </button>
+              </div>
+            </CardFooter>
+          </form>
+        </Card>
+      </motion.div>
     </div>
   );
 }

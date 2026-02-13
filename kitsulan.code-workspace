@@ -42,6 +42,12 @@
         "**/.git": true,
         "**/.DS_Store": true
       },
+      "files.associations": {
+        "*.css": "tailwindcss"
+      },
+      "editor.quickSuggestions": {
+        "strings": "on"
+      },
       "sqltools.connections": [
         {
           "ssh": "Disabled",
