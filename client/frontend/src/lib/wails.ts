@@ -28,6 +28,15 @@ const dateToTimestampPB = (): timestamppb.Timestamp => ({
   nanos: 0,
 });
 
+export function timestampPbToISO(
+  ts?: timestamppb.Timestamp
+): string | undefined {
+  if (!ts || typeof ts.seconds !== "number") return undefined;
+
+  const ms = ts.seconds * 1000 + Math.floor((ts.nanos ?? 0) / 1_000_000);
+  return new Date(ms).toISOString();
+}
+
 const MOCK_GUILD: Guild = {
   id: "mock-guild-1",
   name: "Mock Guild",

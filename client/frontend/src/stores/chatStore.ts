@@ -142,11 +142,15 @@ export const useChatStore = create<ChatState>()((set, get) => ({
 
 // Селекторы
 export const useChatMessages = (channelID: string | null) =>
-  useChatStore((s) => (channelID ? s.messagesByChannel[channelID] ?? [] : []));
+  useChatStore(
+    useShallow((s) => (channelID ? s.messagesByChannel[channelID] ?? [] : []))
+  );
 
 export const useChatHasMore = (channelID: string | null) =>
-  useChatStore((s) =>
-    channelID ? s.hasMoreByChannel[channelID] ?? false : false
+  useChatStore(
+    useShallow((s) =>
+      channelID ? s.hasMoreByChannel[channelID] ?? false : false
+    )
   );
 
 export const useChatActions = () =>

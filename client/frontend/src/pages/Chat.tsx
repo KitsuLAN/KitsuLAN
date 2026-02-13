@@ -1,60 +1,27 @@
-/**
- * src/pages/Chat.tsx
- * Реальный чат-интерфейс с отправкой сообщений.
- * В будущем: заменить MOCK_MESSAGES на gRPC-стрим.
- */
 import { useEffect, useRef, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUsername } from "@/stores/authStore";
+import { useActiveChannelID, useActiveChannels } from "@/stores/guildStore";
+import {
+  useChatMessages,
+  useChatHasMore,
+  useChatActions,
+  useChannelSubscription,
+} from "@/stores/chatStore";
+import { timestampPbToISO, type ChatMessage } from "@/lib/wails";
 import { cn } from "@/lib/utils";
 
-interface Message {
-  id: string;
-  author: string;
-  initials: string;
-  time: string;
-  text: string;
+function formatTime(iso?: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-const MOCK_MESSAGES: Message[] = [
-  {
-    id: "m1",
-    author: "Vyacheslav",
-    initials: "VY",
-    time: "19:01",
-    text: "Всем привет! Сервер поднят 🦊",
-  },
-  {
-    id: "m2",
-    author: "KitsuFan",
-    initials: "KF",
-    time: "19:03",
-    text: "Наконец-то свой Discord. Как там gRPC?",
-  },
-  {
-    id: "m3",
-    author: "Vyacheslav",
-    initials: "VY",
-    time: "19:04",
-    text: "Register/Login работают через Protobuf. Следующий шаг — channels API.",
-  },
-  {
-    id: "m4",
-    author: "LanPartyGo",
-    initials: "LP",
-    time: "19:08",
-    text: "Голосовые каналы когда? LiveKit смотрели?",
-  },
-  {
-    id: "m5",
-    author: "Vyacheslav",
-    initials: "VY",
-    time: "19:09",
-    text: "Phase 3 на Roadmap. Сначала текст стабилизируем 👍",
-  },
-];
+// ── Компонент сообщения ──
+function MessageItem({ msg, isOwn }: { msg: ChatMessage; isOwn: boolean }) {
+  const author = msg.author_username ?? "?";
+  const initials = author.slice(0, 2).toUpperCase();
 
-function ChatMessage({ msg, isOwn }: { msg: Message; isOwn: boolean }) {
   return (
     <div
       className={cn(
@@ -62,7 +29,6 @@ function ChatMessage({ msg, isOwn }: { msg: Message; isOwn: boolean }) {
         isOwn && "flex-row-reverse"
       )}
     >
-      {/* Avatar */}
       <div
         className={cn(
           "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold",
@@ -71,10 +37,8 @@ function ChatMessage({ msg, isOwn }: { msg: Message; isOwn: boolean }) {
             : "bg-kitsu-s3 text-muted-foreground"
         )}
       >
-        {msg.initials}
+        {initials}
       </div>
-
-      {/* Bubble */}
       <div className={cn("max-w-[70%]", isOwn && "items-end flex flex-col")}>
         <div
           className={cn(
@@ -88,81 +52,125 @@ function ChatMessage({ msg, isOwn }: { msg: Message; isOwn: boolean }) {
               isOwn ? "text-primary" : "text-foreground"
             )}
           >
-            {msg.author}
+            {author}
           </span>
           <span className="text-[11px] text-muted-foreground/50">
-            {msg.time}
+            {formatTime(timestampPbToISO(msg.created_at))}
           </span>
         </div>
-        <p className="text-sm leading-relaxed text-foreground/90">{msg.text}</p>
+        <p className="text-sm leading-relaxed text-foreground/90">
+          {msg.content}
+        </p>
       </div>
     </div>
   );
 }
 
+// ── Главный компонент ──
 export default function Chat() {
-  const username = useUsername() ?? "User";
-  const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES);
+  const username = useUsername() ?? "";
+  const channelID = useActiveChannelID();
+  const channels = useActiveChannels();
+  const activeChannel = channels.find((c) => c.id === channelID);
+
+  const messages = useChatMessages(channelID);
+  const hasMore = useChatHasMore(channelID);
+  const { loadHistory, sendMessage } = useChatActions();
+
   const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Подписка на real-time события канала
+  useChannelSubscription(channelID);
 
   // Скролл вниз при новых сообщениях
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = () => {
+  // Placeholder пока канал не выбран
+  if (!channelID) {
+    return (
+      <div className="flex h-full items-center justify-center text-muted-foreground">
+        <div className="text-center">
+          <div className="mb-3 text-4xl">👈</div>
+          <p className="text-sm">Выберите канал</p>
+        </div>
+      </div>
+    );
+  }
+
+  const handleSend = async () => {
     const text = draft.trim();
-    if (!text) return;
-    const now = new Date();
-    const time = `${now.getHours()}:${String(now.getMinutes()).padStart(
-      2,
-      "0"
-    )}`;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `m${Date.now()}`,
-        author: username,
-        initials: username.slice(0, 2).toUpperCase(),
-        time,
-        text,
-      },
-    ]);
+    if (!text || sending || !channelID) return;
+    setSending(true);
     setDraft("");
-    inputRef.current?.focus();
+    try {
+      await sendMessage(channelID, text);
+    } catch {
+      // Возвращаем текст обратно в инпут если не отправилось
+      setDraft(text);
+    } finally {
+      setSending(false);
+      inputRef.current?.focus();
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!hasMore || messages.length === 0) return;
+    loadHistory(channelID, messages[0].id);
   };
 
   return (
     <div className="flex h-full flex-col">
-      {/* Список сообщений */}
       <ScrollArea className="flex-1">
         <div className="py-4">
-          {/* Приветствие канала */}
-          <div className="px-4 pb-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-kitsu-s2 text-3xl">
-              #
+          {/* Кнопка загрузки истории */}
+          {hasMore && (
+            <div className="px-4 pb-2 text-center">
+              <button
+                onClick={handleLoadMore}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Загрузить предыдущие сообщения
+              </button>
             </div>
-            <h2 className="mt-3 text-xl font-bold">
-              Добро пожаловать в #general
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Это начало канала. Здесь начинается история KitsuLAN.
-            </p>
-          </div>
+          )}
+
+          {/* Приветствие — только если нет истории */}
+          {messages.length === 0 && (
+            <div className="px-4 pb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-kitsu-s2 text-3xl">
+                #
+              </div>
+              <h2 className="mt-3 text-xl font-bold">
+                Добро пожаловать в #{activeChannel?.name ?? "канал"}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Это начало канала. Напишите первое сообщение!
+              </p>
+            </div>
+          )}
 
           {/* Разделитель с датой */}
-          <div className="flex items-center gap-3 px-4 py-2">
-            <div className="h-px flex-1 bg-kitsu-s4" />
-            <span className="text-[11px] font-semibold text-muted-foreground/50">
-              Сегодня
-            </span>
-            <div className="h-px flex-1 bg-kitsu-s4" />
-          </div>
+          {messages.length > 0 && (
+            <div className="flex items-center gap-3 px-4 py-2">
+              <div className="h-px flex-1 bg-kitsu-s4" />
+              <span className="text-[11px] font-semibold text-muted-foreground/50">
+                Сегодня
+              </span>
+              <div className="h-px flex-1 bg-kitsu-s4" />
+            </div>
+          )}
 
           {messages.map((m) => (
-            <ChatMessage key={m.id} msg={m} isOwn={m.author === username} />
+            <MessageItem
+              key={m.id}
+              msg={m}
+              isOwn={m.author_username === username}
+            />
           ))}
           <div ref={bottomRef} />
         </div>
@@ -171,11 +179,9 @@ export default function Chat() {
       {/* Input bar */}
       <div className="shrink-0 px-4 pb-4">
         <div className="flex items-center gap-2 rounded-lg border border-kitsu-s4 bg-kitsu-s2 px-3 py-2">
-          {/* Attachment */}
           <button className="shrink-0 text-xl text-muted-foreground hover:text-foreground transition-colors">
             +
           </button>
-
           <input
             ref={inputRef}
             value={draft}
@@ -183,25 +189,22 @@ export default function Chat() {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                sendMessage();
+                handleSend();
               }
             }}
-            placeholder="Сообщение в #general"
+            placeholder={`Сообщение в #${activeChannel?.name ?? "канал"}`}
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+            disabled={sending}
           />
-
-          {/* Emoji */}
           <button className="shrink-0 text-lg text-muted-foreground hover:text-foreground transition-colors">
             😊
           </button>
-
-          {/* Send */}
           <button
-            onClick={sendMessage}
-            disabled={!draft.trim()}
+            onClick={handleSend}
+            disabled={!draft.trim() || sending}
             className={cn(
               "shrink-0 rounded px-2.5 py-1 text-sm font-bold transition-all",
-              draft.trim()
+              draft.trim() && !sending
                 ? "bg-primary text-white hover:bg-primary/90"
                 : "bg-kitsu-s3 text-muted-foreground/40 cursor-not-allowed"
             )}

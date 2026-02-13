@@ -138,18 +138,22 @@ export const useGuildStore = create<GuildState>()((set, get) => ({
 }));
 
 // Селекторы
-export const useGuilds = () => useGuildStore((s) => s.guilds);
+export const useGuilds = () => useGuildStore(useShallow((s) => s.guilds));
 export const useActiveGuildID = () => useGuildStore((s) => s.activeGuildID);
 export const useActiveChannelID = () => useGuildStore((s) => s.activeChannelID);
 
 export const useActiveChannels = () =>
-  useGuildStore((s) =>
-    s.activeGuildID ? s.channelsByGuild[s.activeGuildID] ?? [] : []
+  useGuildStore(
+    useShallow((s) =>
+      s.activeGuildID ? s.channelsByGuild[s.activeGuildID] ?? [] : []
+    )
   );
 
 export const useActiveMembers = () =>
-  useGuildStore((s) =>
-    s.activeGuildID ? s.membersByGuild[s.activeGuildID] ?? [] : []
+  useGuildStore(
+    useShallow((s) =>
+      s.activeGuildID ? s.membersByGuild[s.activeGuildID] ?? [] : []
+    )
   );
 
 export const useGuildActions = () =>
