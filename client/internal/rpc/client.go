@@ -9,12 +9,15 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 type Client struct {
 	conn       *grpc.ClientConn
 	Auth       pb.AuthServiceClient
 	User       pb.UserServiceClient
+	Guild      pb.GuildServiceClient
+	Chat       pb.ChatServiceClient
 	serverAddr string
 }
 
@@ -32,9 +35,8 @@ func (c *Client) Connect() error {
 
 	conn, err := grpc.DialContext(ctx, c.serverAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(), // Ждем соединения
+		grpc.WithBlock(),
 	)
-
 	if err != nil {
 		return err
 	}
@@ -42,6 +44,8 @@ func (c *Client) Connect() error {
 	c.conn = conn
 	c.Auth = pb.NewAuthServiceClient(conn)
 	c.User = pb.NewUserServiceClient(conn)
+	c.Guild = pb.NewGuildServiceClient(conn)
+	c.Chat = pb.NewChatServiceClient(conn)
 
 	log.Printf("✅ gRPC Connected to %s", c.serverAddr)
 	return nil
@@ -60,4 +64,10 @@ func (c *Client) IsReady() bool {
 	}
 	state := c.conn.GetState()
 	return state == connectivity.Ready || state == connectivity.Idle
+}
+
+// WithToken возвращает контекст с JWT-токеном в metadata.
+// Используется во всех авторизованных вызовах.
+func WithToken(ctx context.Context, token string) context.Context {
+	return metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
 }
