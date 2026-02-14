@@ -8,15 +8,6 @@ import {
 import type { Guild } from "@/lib/wails";
 import { cn } from "@/lib/utils";
 
-const GUILD_COLORS = [
-  "bg-primary",
-  "bg-violet-700",
-  "bg-cyan-700",
-  "bg-emerald-700",
-  "bg-rose-700",
-  "bg-amber-700",
-];
-
 function GuildIcon({
   guild,
   index,
@@ -28,7 +19,8 @@ function GuildIcon({
   active: boolean;
   onClick: () => void;
 }) {
-  const color = GUILD_COLORS[index % GUILD_COLORS.length];
+  // Если цвет не пришел с бэка (старая запись), используем дефолт
+  const bgStyle = { backgroundColor: guild.color || "#525252" };
   const short = (guild.name ?? "?").slice(0, 2).toUpperCase();
 
   return (
@@ -42,11 +34,17 @@ function GuildIcon({
       <button
         onClick={onClick}
         className={cn(
-          "flex h-11 w-11 items-center justify-center font-bold text-sm transition-all duration-200 text-foreground select-none",
-          active
-            ? cn("rounded-xl", color)
-            : cn("rounded-full bg-kitsu-s3 hover:rounded-xl", "hover:" + color)
+          "flex h-11 w-11 items-center justify-center font-bold text-sm transition-all duration-200 text-white select-none", // text-white т.к. цвета обычно яркие
+          active ? "rounded-xl" : "rounded-full bg-kitsu-s3 hover:rounded-xl"
         )}
+        style={active ? bgStyle : {}} // Применяем цвет только если активен
+        onMouseEnter={(e) => {
+          if (!active)
+            e.currentTarget.style.backgroundColor = guild.color || "#525252";
+        }}
+        onMouseLeave={(e) => {
+          if (!active) e.currentTarget.style.backgroundColor = ""; // Сброс к bg-kitsu-s3
+        }}
       >
         {short}
       </button>

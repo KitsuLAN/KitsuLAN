@@ -21,6 +21,9 @@ type User struct {
 
 	AvatarURL string `json:"avatar_url"`
 
+	// Поле "О себе"
+	Bio string `gorm:"size:255" json:"bio"`
+
 	// HomeServerID указывает на "домашний" сервер пользователя.
 	// Для локальных пользователей это значение "local".
 	// Для федеративных - ID/Domain удаленного сервера.

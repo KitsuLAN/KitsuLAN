@@ -12,6 +12,7 @@ type Guild struct {
 	Name        string    `gorm:"not null;size:100"`
 	Description string    `gorm:"size:500"`
 	IconURL     string
+	Color       string        `gorm:"size:9;default:'#525252'"`
 	OwnerID     uuid.UUID     `gorm:"type:uuid;not null;index"`
 	Owner       User          `gorm:"foreignKey:OwnerID"`
 	Members     []GuildMember `gorm:"foreignKey:GuildID"`

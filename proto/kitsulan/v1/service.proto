@@ -20,6 +20,8 @@ service AuthService {
 service UserService {
   // Получить профиль (себя или другого юзера)
   rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+  // Обновление профиля
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
   // Поиск пользователей (для добавления в друзья/инвайтов)
   rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse);
 }
@@ -30,7 +32,9 @@ message User {
   string id = 1; // UUIDv7
   string username = 2;
   string avatar_url = 3;
-  bool is_online = 4;
+  string bio = 4; // TODO: Поле ожидается тяжёллым рассмотреть вариант сделать
+                  // ленивую загрузку
+  bool is_online = 5;
 }
 
 // Auth Request/Response
@@ -67,6 +71,15 @@ message GetProfileRequest {
 }
 
 message GetProfileResponse { User user = 1; }
+
+message UpdateProfileRequest {
+  // optional позволяет понять, передали поле или нет
+  optional string nickname = 1;
+  optional string bio = 2;
+  optional string avatar_url = 3;
+}
+
+message UpdateProfileResponse { User user = 1; }
 
 message SearchUsersRequest { string query = 1; }
 
@@ -107,9 +120,10 @@ message Guild {
   string name = 2;
   string description = 3;
   string icon_url = 4;
-  string owner_id = 5;
-  int32 member_count = 6;
-  google.protobuf.Timestamp created_at = 7;
+  string color = 5; // HEX цвет (например #ff0000)
+  string owner_id = 6;
+  int32 member_count = 7;
+  google.protobuf.Timestamp created_at = 8;
 }
 
 message Channel {

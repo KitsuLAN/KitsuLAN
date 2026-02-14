@@ -37,3 +37,5 @@ export function SetToken(arg1:string):Promise<void>;
 export function SubscribeChannel(arg1:string):Promise<void>;
 
 export function UnsubscribeChannel():Promise<void>;
+
+export function UpdateProfile(arg1:any,arg2:any,arg3:any):Promise<kitsulanv1.User>;

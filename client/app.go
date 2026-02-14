@@ -387,3 +387,21 @@ func (a *App) SubscribeChannel(channelID string) error {
 func (a *App) UnsubscribeChannel() {
 	a.cancelSubscription()
 }
+
+func (a *App) UpdateProfile(nickname, bio, avatarURL *string) (*pb.User, error) {
+	if err := a.requireReady(); err != nil {
+		return nil, err
+	}
+	ctx, cancel := a.authCtx()
+	defer cancel()
+
+	resp, err := a.client.User.UpdateProfile(ctx, &pb.UpdateProfileRequest{
+		Nickname:  nickname,
+		Bio:       bio,
+		AvatarUrl: avatarURL,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.User, nil
+}

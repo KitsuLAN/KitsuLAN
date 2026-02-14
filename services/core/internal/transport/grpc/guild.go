@@ -137,6 +137,7 @@ func guildToProto(g *domain.Guild, memberCount int32) *pb.Guild {
 		Name:        g.Name,
 		Description: g.Description,
 		IconUrl:     g.IconURL,
+		Color:       g.Color,
 		OwnerId:     g.OwnerID.String(),
 		MemberCount: memberCount,
 		CreatedAt:   timestamppb.New(g.CreatedAt),

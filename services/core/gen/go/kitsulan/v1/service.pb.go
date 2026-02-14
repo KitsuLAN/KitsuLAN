@@ -72,11 +72,13 @@ func (ChannelType) EnumDescriptor() ([]byte, []int) {
 }
 
 type User struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUIDv7
-	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	AvatarUrl     string                 `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	IsOnline      bool                   `protobuf:"varint,4,opt,name=is_online,json=isOnline,proto3" json:"is_online,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // UUIDv7
+	Username  string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	AvatarUrl string                 `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Bio       string                 `protobuf:"bytes,4,opt,name=bio,proto3" json:"bio,omitempty"` // TODO: Поле ожидается тяжёллым рассмотреть вариант сделать
+	// ленивую загрузку
+	IsOnline      bool `protobuf:"varint,5,opt,name=is_online,json=isOnline,proto3" json:"is_online,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -128,6 +130,13 @@ func (x *User) GetUsername() string {
 func (x *User) GetAvatarUrl() string {
 	if x != nil {
 		return x.AvatarUrl
+	}
+	return ""
+}
+
+func (x *User) GetBio() string {
+	if x != nil {
+		return x.Bio
 	}
 	return ""
 }
@@ -542,6 +551,111 @@ func (x *GetProfileResponse) GetUser() *User {
 	return nil
 }
 
+type UpdateProfileRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// optional позволяет понять, передали поле или нет
+	Nickname      *string `protobuf:"bytes,1,opt,name=nickname,proto3,oneof" json:"nickname,omitempty"`
+	Bio           *string `protobuf:"bytes,2,opt,name=bio,proto3,oneof" json:"bio,omitempty"`
+	AvatarUrl     *string `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateProfileRequest) Reset() {
+	*x = UpdateProfileRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateProfileRequest) ProtoMessage() {}
+
+func (x *UpdateProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateProfileRequest.ProtoReflect.Descriptor instead.
+func (*UpdateProfileRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *UpdateProfileRequest) GetNickname() string {
+	if x != nil && x.Nickname != nil {
+		return *x.Nickname
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetBio() string {
+	if x != nil && x.Bio != nil {
+		return *x.Bio
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetAvatarUrl() string {
+	if x != nil && x.AvatarUrl != nil {
+		return *x.AvatarUrl
+	}
+	return ""
+}
+
+type UpdateProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateProfileResponse) Reset() {
+	*x = UpdateProfileResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateProfileResponse) ProtoMessage() {}
+
+func (x *UpdateProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateProfileResponse.ProtoReflect.Descriptor instead.
+func (*UpdateProfileResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *UpdateProfileResponse) GetUser() *User {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 type SearchUsersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
@@ -551,7 +665,7 @@ type SearchUsersRequest struct {
 
 func (x *SearchUsersRequest) Reset() {
 	*x = SearchUsersRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[9]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -563,7 +677,7 @@ func (x *SearchUsersRequest) String() string {
 func (*SearchUsersRequest) ProtoMessage() {}
 
 func (x *SearchUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[9]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -576,7 +690,7 @@ func (x *SearchUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchUsersRequest.ProtoReflect.Descriptor instead.
 func (*SearchUsersRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{9}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SearchUsersRequest) GetQuery() string {
@@ -595,7 +709,7 @@ type SearchUsersResponse struct {
 
 func (x *SearchUsersResponse) Reset() {
 	*x = SearchUsersResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[10]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -607,7 +721,7 @@ func (x *SearchUsersResponse) String() string {
 func (*SearchUsersResponse) ProtoMessage() {}
 
 func (x *SearchUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[10]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -620,7 +734,7 @@ func (x *SearchUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchUsersResponse.ProtoReflect.Descriptor instead.
 func (*SearchUsersResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{10}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SearchUsersResponse) GetUsers() []*User {
@@ -636,16 +750,17 @@ type Guild struct {
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	IconUrl       string                 `protobuf:"bytes,4,opt,name=icon_url,json=iconUrl,proto3" json:"icon_url,omitempty"`
-	OwnerId       string                 `protobuf:"bytes,5,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
-	MemberCount   int32                  `protobuf:"varint,6,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Color         string                 `protobuf:"bytes,5,opt,name=color,proto3" json:"color,omitempty"` // HEX цвет (например #ff0000)
+	OwnerId       string                 `protobuf:"bytes,6,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	MemberCount   int32                  `protobuf:"varint,7,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Guild) Reset() {
 	*x = Guild{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[11]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -657,7 +772,7 @@ func (x *Guild) String() string {
 func (*Guild) ProtoMessage() {}
 
 func (x *Guild) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[11]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -670,7 +785,7 @@ func (x *Guild) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Guild.ProtoReflect.Descriptor instead.
 func (*Guild) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{11}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Guild) GetId() string {
@@ -697,6 +812,13 @@ func (x *Guild) GetDescription() string {
 func (x *Guild) GetIconUrl() string {
 	if x != nil {
 		return x.IconUrl
+	}
+	return ""
+}
+
+func (x *Guild) GetColor() string {
+	if x != nil {
+		return x.Color
 	}
 	return ""
 }
@@ -735,7 +857,7 @@ type Channel struct {
 
 func (x *Channel) Reset() {
 	*x = Channel{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[12]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -747,7 +869,7 @@ func (x *Channel) String() string {
 func (*Channel) ProtoMessage() {}
 
 func (x *Channel) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[12]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -760,7 +882,7 @@ func (x *Channel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Channel.ProtoReflect.Descriptor instead.
 func (*Channel) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{12}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *Channel) GetId() string {
@@ -812,7 +934,7 @@ type Member struct {
 
 func (x *Member) Reset() {
 	*x = Member{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[13]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -824,7 +946,7 @@ func (x *Member) String() string {
 func (*Member) ProtoMessage() {}
 
 func (x *Member) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[13]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -837,7 +959,7 @@ func (x *Member) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Member.ProtoReflect.Descriptor instead.
 func (*Member) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{13}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *Member) GetUserId() string {
@@ -892,7 +1014,7 @@ type CreateGuildRequest struct {
 
 func (x *CreateGuildRequest) Reset() {
 	*x = CreateGuildRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[14]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -904,7 +1026,7 @@ func (x *CreateGuildRequest) String() string {
 func (*CreateGuildRequest) ProtoMessage() {}
 
 func (x *CreateGuildRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[14]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -917,7 +1039,7 @@ func (x *CreateGuildRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGuildRequest.ProtoReflect.Descriptor instead.
 func (*CreateGuildRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{14}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateGuildRequest) GetName() string {
@@ -943,7 +1065,7 @@ type CreateGuildResponse struct {
 
 func (x *CreateGuildResponse) Reset() {
 	*x = CreateGuildResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[15]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -955,7 +1077,7 @@ func (x *CreateGuildResponse) String() string {
 func (*CreateGuildResponse) ProtoMessage() {}
 
 func (x *CreateGuildResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[15]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -968,7 +1090,7 @@ func (x *CreateGuildResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGuildResponse.ProtoReflect.Descriptor instead.
 func (*CreateGuildResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{15}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *CreateGuildResponse) GetGuild() *Guild {
@@ -987,7 +1109,7 @@ type GetGuildRequest struct {
 
 func (x *GetGuildRequest) Reset() {
 	*x = GetGuildRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[16]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -999,7 +1121,7 @@ func (x *GetGuildRequest) String() string {
 func (*GetGuildRequest) ProtoMessage() {}
 
 func (x *GetGuildRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[16]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1012,7 +1134,7 @@ func (x *GetGuildRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGuildRequest.ProtoReflect.Descriptor instead.
 func (*GetGuildRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{16}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetGuildRequest) GetGuildId() string {
@@ -1031,7 +1153,7 @@ type GetGuildResponse struct {
 
 func (x *GetGuildResponse) Reset() {
 	*x = GetGuildResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[17]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1043,7 +1165,7 @@ func (x *GetGuildResponse) String() string {
 func (*GetGuildResponse) ProtoMessage() {}
 
 func (x *GetGuildResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[17]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1056,7 +1178,7 @@ func (x *GetGuildResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGuildResponse.ProtoReflect.Descriptor instead.
 func (*GetGuildResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{17}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetGuildResponse) GetGuild() *Guild {
@@ -1074,7 +1196,7 @@ type ListMyGuildsRequest struct {
 
 func (x *ListMyGuildsRequest) Reset() {
 	*x = ListMyGuildsRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[18]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1086,7 +1208,7 @@ func (x *ListMyGuildsRequest) String() string {
 func (*ListMyGuildsRequest) ProtoMessage() {}
 
 func (x *ListMyGuildsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[18]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1099,7 +1221,7 @@ func (x *ListMyGuildsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyGuildsRequest.ProtoReflect.Descriptor instead.
 func (*ListMyGuildsRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{18}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{20}
 }
 
 type ListMyGuildsResponse struct {
@@ -1111,7 +1233,7 @@ type ListMyGuildsResponse struct {
 
 func (x *ListMyGuildsResponse) Reset() {
 	*x = ListMyGuildsResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[19]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1123,7 +1245,7 @@ func (x *ListMyGuildsResponse) String() string {
 func (*ListMyGuildsResponse) ProtoMessage() {}
 
 func (x *ListMyGuildsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[19]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1136,7 +1258,7 @@ func (x *ListMyGuildsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyGuildsResponse.ProtoReflect.Descriptor instead.
 func (*ListMyGuildsResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{19}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListMyGuildsResponse) GetGuilds() []*Guild {
@@ -1155,7 +1277,7 @@ type DeleteGuildRequest struct {
 
 func (x *DeleteGuildRequest) Reset() {
 	*x = DeleteGuildRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[20]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1167,7 +1289,7 @@ func (x *DeleteGuildRequest) String() string {
 func (*DeleteGuildRequest) ProtoMessage() {}
 
 func (x *DeleteGuildRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[20]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1180,7 +1302,7 @@ func (x *DeleteGuildRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGuildRequest.ProtoReflect.Descriptor instead.
 func (*DeleteGuildRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{20}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *DeleteGuildRequest) GetGuildId() string {
@@ -1198,7 +1320,7 @@ type DeleteGuildResponse struct {
 
 func (x *DeleteGuildResponse) Reset() {
 	*x = DeleteGuildResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[21]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1210,7 +1332,7 @@ func (x *DeleteGuildResponse) String() string {
 func (*DeleteGuildResponse) ProtoMessage() {}
 
 func (x *DeleteGuildResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[21]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1223,7 +1345,7 @@ func (x *DeleteGuildResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGuildResponse.ProtoReflect.Descriptor instead.
 func (*DeleteGuildResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{21}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{23}
 }
 
 type CreateInviteRequest struct {
@@ -1237,7 +1359,7 @@ type CreateInviteRequest struct {
 
 func (x *CreateInviteRequest) Reset() {
 	*x = CreateInviteRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[22]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1249,7 +1371,7 @@ func (x *CreateInviteRequest) String() string {
 func (*CreateInviteRequest) ProtoMessage() {}
 
 func (x *CreateInviteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[22]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1262,7 +1384,7 @@ func (x *CreateInviteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInviteRequest.ProtoReflect.Descriptor instead.
 func (*CreateInviteRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{22}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CreateInviteRequest) GetGuildId() string {
@@ -1296,7 +1418,7 @@ type CreateInviteResponse struct {
 
 func (x *CreateInviteResponse) Reset() {
 	*x = CreateInviteResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[23]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1308,7 +1430,7 @@ func (x *CreateInviteResponse) String() string {
 func (*CreateInviteResponse) ProtoMessage() {}
 
 func (x *CreateInviteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[23]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1321,7 +1443,7 @@ func (x *CreateInviteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInviteResponse.ProtoReflect.Descriptor instead.
 func (*CreateInviteResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{23}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CreateInviteResponse) GetCode() string {
@@ -1347,7 +1469,7 @@ type JoinByInviteRequest struct {
 
 func (x *JoinByInviteRequest) Reset() {
 	*x = JoinByInviteRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[24]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1359,7 +1481,7 @@ func (x *JoinByInviteRequest) String() string {
 func (*JoinByInviteRequest) ProtoMessage() {}
 
 func (x *JoinByInviteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[24]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1372,7 +1494,7 @@ func (x *JoinByInviteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinByInviteRequest.ProtoReflect.Descriptor instead.
 func (*JoinByInviteRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{24}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *JoinByInviteRequest) GetCode() string {
@@ -1391,7 +1513,7 @@ type JoinByInviteResponse struct {
 
 func (x *JoinByInviteResponse) Reset() {
 	*x = JoinByInviteResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[25]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1403,7 +1525,7 @@ func (x *JoinByInviteResponse) String() string {
 func (*JoinByInviteResponse) ProtoMessage() {}
 
 func (x *JoinByInviteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[25]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1416,7 +1538,7 @@ func (x *JoinByInviteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinByInviteResponse.ProtoReflect.Descriptor instead.
 func (*JoinByInviteResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{25}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *JoinByInviteResponse) GetGuild() *Guild {
@@ -1435,7 +1557,7 @@ type LeaveGuildRequest struct {
 
 func (x *LeaveGuildRequest) Reset() {
 	*x = LeaveGuildRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[26]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1447,7 +1569,7 @@ func (x *LeaveGuildRequest) String() string {
 func (*LeaveGuildRequest) ProtoMessage() {}
 
 func (x *LeaveGuildRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[26]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1460,7 +1582,7 @@ func (x *LeaveGuildRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeaveGuildRequest.ProtoReflect.Descriptor instead.
 func (*LeaveGuildRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{26}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *LeaveGuildRequest) GetGuildId() string {
@@ -1478,7 +1600,7 @@ type LeaveGuildResponse struct {
 
 func (x *LeaveGuildResponse) Reset() {
 	*x = LeaveGuildResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[27]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1490,7 +1612,7 @@ func (x *LeaveGuildResponse) String() string {
 func (*LeaveGuildResponse) ProtoMessage() {}
 
 func (x *LeaveGuildResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[27]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1503,7 +1625,7 @@ func (x *LeaveGuildResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeaveGuildResponse.ProtoReflect.Descriptor instead.
 func (*LeaveGuildResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{27}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{29}
 }
 
 type CreateChannelRequest struct {
@@ -1517,7 +1639,7 @@ type CreateChannelRequest struct {
 
 func (x *CreateChannelRequest) Reset() {
 	*x = CreateChannelRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[28]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1529,7 +1651,7 @@ func (x *CreateChannelRequest) String() string {
 func (*CreateChannelRequest) ProtoMessage() {}
 
 func (x *CreateChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[28]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1542,7 +1664,7 @@ func (x *CreateChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateChannelRequest.ProtoReflect.Descriptor instead.
 func (*CreateChannelRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{28}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CreateChannelRequest) GetGuildId() string {
@@ -1575,7 +1697,7 @@ type CreateChannelResponse struct {
 
 func (x *CreateChannelResponse) Reset() {
 	*x = CreateChannelResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[29]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1587,7 +1709,7 @@ func (x *CreateChannelResponse) String() string {
 func (*CreateChannelResponse) ProtoMessage() {}
 
 func (x *CreateChannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[29]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1600,7 +1722,7 @@ func (x *CreateChannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateChannelResponse.ProtoReflect.Descriptor instead.
 func (*CreateChannelResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{29}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *CreateChannelResponse) GetChannel() *Channel {
@@ -1619,7 +1741,7 @@ type DeleteChannelRequest struct {
 
 func (x *DeleteChannelRequest) Reset() {
 	*x = DeleteChannelRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[30]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1631,7 +1753,7 @@ func (x *DeleteChannelRequest) String() string {
 func (*DeleteChannelRequest) ProtoMessage() {}
 
 func (x *DeleteChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[30]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1644,7 +1766,7 @@ func (x *DeleteChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteChannelRequest.ProtoReflect.Descriptor instead.
 func (*DeleteChannelRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{30}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *DeleteChannelRequest) GetChannelId() string {
@@ -1662,7 +1784,7 @@ type DeleteChannelResponse struct {
 
 func (x *DeleteChannelResponse) Reset() {
 	*x = DeleteChannelResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[31]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1674,7 +1796,7 @@ func (x *DeleteChannelResponse) String() string {
 func (*DeleteChannelResponse) ProtoMessage() {}
 
 func (x *DeleteChannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[31]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1687,7 +1809,7 @@ func (x *DeleteChannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteChannelResponse.ProtoReflect.Descriptor instead.
 func (*DeleteChannelResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{31}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{33}
 }
 
 type ListChannelsRequest struct {
@@ -1699,7 +1821,7 @@ type ListChannelsRequest struct {
 
 func (x *ListChannelsRequest) Reset() {
 	*x = ListChannelsRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[32]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1711,7 +1833,7 @@ func (x *ListChannelsRequest) String() string {
 func (*ListChannelsRequest) ProtoMessage() {}
 
 func (x *ListChannelsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[32]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1724,7 +1846,7 @@ func (x *ListChannelsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelsRequest.ProtoReflect.Descriptor instead.
 func (*ListChannelsRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{32}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListChannelsRequest) GetGuildId() string {
@@ -1743,7 +1865,7 @@ type ListChannelsResponse struct {
 
 func (x *ListChannelsResponse) Reset() {
 	*x = ListChannelsResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[33]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1755,7 +1877,7 @@ func (x *ListChannelsResponse) String() string {
 func (*ListChannelsResponse) ProtoMessage() {}
 
 func (x *ListChannelsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[33]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1768,7 +1890,7 @@ func (x *ListChannelsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelsResponse.ProtoReflect.Descriptor instead.
 func (*ListChannelsResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{33}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ListChannelsResponse) GetChannels() []*Channel {
@@ -1787,7 +1909,7 @@ type ListMembersRequest struct {
 
 func (x *ListMembersRequest) Reset() {
 	*x = ListMembersRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[34]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1799,7 +1921,7 @@ func (x *ListMembersRequest) String() string {
 func (*ListMembersRequest) ProtoMessage() {}
 
 func (x *ListMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[34]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1812,7 +1934,7 @@ func (x *ListMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMembersRequest.ProtoReflect.Descriptor instead.
 func (*ListMembersRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{34}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListMembersRequest) GetGuildId() string {
@@ -1831,7 +1953,7 @@ type ListMembersResponse struct {
 
 func (x *ListMembersResponse) Reset() {
 	*x = ListMembersResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[35]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1843,7 +1965,7 @@ func (x *ListMembersResponse) String() string {
 func (*ListMembersResponse) ProtoMessage() {}
 
 func (x *ListMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[35]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1856,7 +1978,7 @@ func (x *ListMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMembersResponse.ProtoReflect.Descriptor instead.
 func (*ListMembersResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{35}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListMembersResponse) GetMembers() []*Member {
@@ -1882,7 +2004,7 @@ type ChatMessage struct {
 
 func (x *ChatMessage) Reset() {
 	*x = ChatMessage{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[36]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1894,7 +2016,7 @@ func (x *ChatMessage) String() string {
 func (*ChatMessage) ProtoMessage() {}
 
 func (x *ChatMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[36]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1907,7 +2029,7 @@ func (x *ChatMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatMessage.ProtoReflect.Descriptor instead.
 func (*ChatMessage) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{36}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ChatMessage) GetId() string {
@@ -1982,7 +2104,7 @@ type ChatEvent struct {
 
 func (x *ChatEvent) Reset() {
 	*x = ChatEvent{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[37]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1994,7 +2116,7 @@ func (x *ChatEvent) String() string {
 func (*ChatEvent) ProtoMessage() {}
 
 func (x *ChatEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[37]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2007,7 +2129,7 @@ func (x *ChatEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChatEvent.ProtoReflect.Descriptor instead.
 func (*ChatEvent) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{37}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ChatEvent) GetPayload() isChatEvent_Payload {
@@ -2061,7 +2183,7 @@ type MessageDeleted struct {
 
 func (x *MessageDeleted) Reset() {
 	*x = MessageDeleted{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[38]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2073,7 +2195,7 @@ func (x *MessageDeleted) String() string {
 func (*MessageDeleted) ProtoMessage() {}
 
 func (x *MessageDeleted) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[38]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2086,7 +2208,7 @@ func (x *MessageDeleted) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MessageDeleted.ProtoReflect.Descriptor instead.
 func (*MessageDeleted) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{38}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *MessageDeleted) GetMessageId() string {
@@ -2113,7 +2235,7 @@ type SendMessageRequest struct {
 
 func (x *SendMessageRequest) Reset() {
 	*x = SendMessageRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[39]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2125,7 +2247,7 @@ func (x *SendMessageRequest) String() string {
 func (*SendMessageRequest) ProtoMessage() {}
 
 func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[39]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2138,7 +2260,7 @@ func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMessageRequest.ProtoReflect.Descriptor instead.
 func (*SendMessageRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{39}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *SendMessageRequest) GetChannelId() string {
@@ -2164,7 +2286,7 @@ type SendMessageResponse struct {
 
 func (x *SendMessageResponse) Reset() {
 	*x = SendMessageResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[40]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2176,7 +2298,7 @@ func (x *SendMessageResponse) String() string {
 func (*SendMessageResponse) ProtoMessage() {}
 
 func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[40]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2189,7 +2311,7 @@ func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMessageResponse.ProtoReflect.Descriptor instead.
 func (*SendMessageResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{40}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *SendMessageResponse) GetMessage() *ChatMessage {
@@ -2210,7 +2332,7 @@ type GetHistoryRequest struct {
 
 func (x *GetHistoryRequest) Reset() {
 	*x = GetHistoryRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[41]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2222,7 +2344,7 @@ func (x *GetHistoryRequest) String() string {
 func (*GetHistoryRequest) ProtoMessage() {}
 
 func (x *GetHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[41]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2235,7 +2357,7 @@ func (x *GetHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHistoryRequest.ProtoReflect.Descriptor instead.
 func (*GetHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{41}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GetHistoryRequest) GetChannelId() string {
@@ -2269,7 +2391,7 @@ type GetHistoryResponse struct {
 
 func (x *GetHistoryResponse) Reset() {
 	*x = GetHistoryResponse{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[42]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2281,7 +2403,7 @@ func (x *GetHistoryResponse) String() string {
 func (*GetHistoryResponse) ProtoMessage() {}
 
 func (x *GetHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[42]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2294,7 +2416,7 @@ func (x *GetHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHistoryResponse.ProtoReflect.Descriptor instead.
 func (*GetHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{42}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GetHistoryResponse) GetMessages() []*ChatMessage {
@@ -2320,7 +2442,7 @@ type SubscribeChannelRequest struct {
 
 func (x *SubscribeChannelRequest) Reset() {
 	*x = SubscribeChannelRequest{}
-	mi := &file_kitsulan_v1_service_proto_msgTypes[43]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2332,7 +2454,7 @@ func (x *SubscribeChannelRequest) String() string {
 func (*SubscribeChannelRequest) ProtoMessage() {}
 
 func (x *SubscribeChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kitsulan_v1_service_proto_msgTypes[43]
+	mi := &file_kitsulan_v1_service_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2345,7 +2467,7 @@ func (x *SubscribeChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscribeChannelRequest.ProtoReflect.Descriptor instead.
 func (*SubscribeChannelRequest) Descriptor() ([]byte, []int) {
-	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{43}
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *SubscribeChannelRequest) GetChannelId() string {
@@ -2359,13 +2481,14 @@ var File_kitsulan_v1_service_proto protoreflect.FileDescriptor
 
 const file_kitsulan_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x19kitsulan/v1/service.proto\x12\vkitsulan.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"n\n" +
+	"\x19kitsulan/v1/service.proto\x12\vkitsulan.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x80\x01\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1d\n" +
 	"\n" +
-	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\x12\x1b\n" +
-	"\tis_online\x18\x04 \x01(\bR\bisOnline\"_\n" +
+	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\x12\x10\n" +
+	"\x03bio\x18\x04 \x01(\tR\x03bio\x12\x1b\n" +
+	"\tis_online\x18\x05 \x01(\bR\bisOnline\"_\n" +
 	"\x0fRegisterRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
@@ -2388,20 +2511,31 @@ const file_kitsulan_v1_service_proto_rawDesc = "" +
 	"\x11GetProfileRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\";\n" +
 	"\x12GetProfileResponse\x12%\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.kitsulan.v1.UserR\x04user\"\x96\x01\n" +
+	"\x14UpdateProfileRequest\x12\x1f\n" +
+	"\bnickname\x18\x01 \x01(\tH\x00R\bnickname\x88\x01\x01\x12\x15\n" +
+	"\x03bio\x18\x02 \x01(\tH\x01R\x03bio\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"avatar_url\x18\x03 \x01(\tH\x02R\tavatarUrl\x88\x01\x01B\v\n" +
+	"\t_nicknameB\x06\n" +
+	"\x04_bioB\r\n" +
+	"\v_avatar_url\">\n" +
+	"\x15UpdateProfileResponse\x12%\n" +
 	"\x04user\x18\x01 \x01(\v2\x11.kitsulan.v1.UserR\x04user\"*\n" +
 	"\x12SearchUsersRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\">\n" +
 	"\x13SearchUsersResponse\x12'\n" +
-	"\x05users\x18\x01 \x03(\v2\x11.kitsulan.v1.UserR\x05users\"\xe1\x01\n" +
+	"\x05users\x18\x01 \x03(\v2\x11.kitsulan.v1.UserR\x05users\"\xf7\x01\n" +
 	"\x05Guild\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x19\n" +
-	"\bicon_url\x18\x04 \x01(\tR\aiconUrl\x12\x19\n" +
-	"\bowner_id\x18\x05 \x01(\tR\aownerId\x12!\n" +
-	"\fmember_count\x18\x06 \x01(\x05R\vmemberCount\x129\n" +
+	"\bicon_url\x18\x04 \x01(\tR\aiconUrl\x12\x14\n" +
+	"\x05color\x18\x05 \x01(\tR\x05color\x12\x19\n" +
+	"\bowner_id\x18\x06 \x01(\tR\aownerId\x12!\n" +
+	"\fmember_count\x18\a \x01(\x05R\vmemberCount\x129\n" +
 	"\n" +
-	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x92\x01\n" +
+	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x92\x01\n" +
 	"\aChannel\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bguild_id\x18\x02 \x01(\tR\aguildId\x12\x12\n" +
@@ -2507,10 +2641,11 @@ const file_kitsulan_v1_service_proto_rawDesc = "" +
 	"\vAuthService\x12G\n" +
 	"\bRegister\x12\x1c.kitsulan.v1.RegisterRequest\x1a\x1d.kitsulan.v1.RegisterResponse\x12>\n" +
 	"\x05Login\x12\x19.kitsulan.v1.LoginRequest\x1a\x1a.kitsulan.v1.LoginResponse\x12S\n" +
-	"\fRefreshToken\x12 .kitsulan.v1.RefreshTokenRequest\x1a!.kitsulan.v1.RefreshTokenResponse2\xae\x01\n" +
+	"\fRefreshToken\x12 .kitsulan.v1.RefreshTokenRequest\x1a!.kitsulan.v1.RefreshTokenResponse2\x86\x02\n" +
 	"\vUserService\x12M\n" +
 	"\n" +
-	"GetProfile\x12\x1e.kitsulan.v1.GetProfileRequest\x1a\x1f.kitsulan.v1.GetProfileResponse\x12P\n" +
+	"GetProfile\x12\x1e.kitsulan.v1.GetProfileRequest\x1a\x1f.kitsulan.v1.GetProfileResponse\x12V\n" +
+	"\rUpdateProfile\x12!.kitsulan.v1.UpdateProfileRequest\x1a\".kitsulan.v1.UpdateProfileResponse\x12P\n" +
 	"\vSearchUsers\x12\x1f.kitsulan.v1.SearchUsersRequest\x1a .kitsulan.v1.SearchUsersResponse2\xa0\a\n" +
 	"\fGuildService\x12P\n" +
 	"\vCreateGuild\x12\x1f.kitsulan.v1.CreateGuildRequest\x1a .kitsulan.v1.CreateGuildResponse\x12G\n" +
@@ -2545,7 +2680,7 @@ func file_kitsulan_v1_service_proto_rawDescGZIP() []byte {
 }
 
 var file_kitsulan_v1_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_kitsulan_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
+var file_kitsulan_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
 var file_kitsulan_v1_service_proto_goTypes = []any{
 	(ChannelType)(0),                // 0: kitsulan.v1.ChannelType
 	(*User)(nil),                    // 1: kitsulan.v1.User
@@ -2557,106 +2692,111 @@ var file_kitsulan_v1_service_proto_goTypes = []any{
 	(*RefreshTokenResponse)(nil),    // 7: kitsulan.v1.RefreshTokenResponse
 	(*GetProfileRequest)(nil),       // 8: kitsulan.v1.GetProfileRequest
 	(*GetProfileResponse)(nil),      // 9: kitsulan.v1.GetProfileResponse
-	(*SearchUsersRequest)(nil),      // 10: kitsulan.v1.SearchUsersRequest
-	(*SearchUsersResponse)(nil),     // 11: kitsulan.v1.SearchUsersResponse
-	(*Guild)(nil),                   // 12: kitsulan.v1.Guild
-	(*Channel)(nil),                 // 13: kitsulan.v1.Channel
-	(*Member)(nil),                  // 14: kitsulan.v1.Member
-	(*CreateGuildRequest)(nil),      // 15: kitsulan.v1.CreateGuildRequest
-	(*CreateGuildResponse)(nil),     // 16: kitsulan.v1.CreateGuildResponse
-	(*GetGuildRequest)(nil),         // 17: kitsulan.v1.GetGuildRequest
-	(*GetGuildResponse)(nil),        // 18: kitsulan.v1.GetGuildResponse
-	(*ListMyGuildsRequest)(nil),     // 19: kitsulan.v1.ListMyGuildsRequest
-	(*ListMyGuildsResponse)(nil),    // 20: kitsulan.v1.ListMyGuildsResponse
-	(*DeleteGuildRequest)(nil),      // 21: kitsulan.v1.DeleteGuildRequest
-	(*DeleteGuildResponse)(nil),     // 22: kitsulan.v1.DeleteGuildResponse
-	(*CreateInviteRequest)(nil),     // 23: kitsulan.v1.CreateInviteRequest
-	(*CreateInviteResponse)(nil),    // 24: kitsulan.v1.CreateInviteResponse
-	(*JoinByInviteRequest)(nil),     // 25: kitsulan.v1.JoinByInviteRequest
-	(*JoinByInviteResponse)(nil),    // 26: kitsulan.v1.JoinByInviteResponse
-	(*LeaveGuildRequest)(nil),       // 27: kitsulan.v1.LeaveGuildRequest
-	(*LeaveGuildResponse)(nil),      // 28: kitsulan.v1.LeaveGuildResponse
-	(*CreateChannelRequest)(nil),    // 29: kitsulan.v1.CreateChannelRequest
-	(*CreateChannelResponse)(nil),   // 30: kitsulan.v1.CreateChannelResponse
-	(*DeleteChannelRequest)(nil),    // 31: kitsulan.v1.DeleteChannelRequest
-	(*DeleteChannelResponse)(nil),   // 32: kitsulan.v1.DeleteChannelResponse
-	(*ListChannelsRequest)(nil),     // 33: kitsulan.v1.ListChannelsRequest
-	(*ListChannelsResponse)(nil),    // 34: kitsulan.v1.ListChannelsResponse
-	(*ListMembersRequest)(nil),      // 35: kitsulan.v1.ListMembersRequest
-	(*ListMembersResponse)(nil),     // 36: kitsulan.v1.ListMembersResponse
-	(*ChatMessage)(nil),             // 37: kitsulan.v1.ChatMessage
-	(*ChatEvent)(nil),               // 38: kitsulan.v1.ChatEvent
-	(*MessageDeleted)(nil),          // 39: kitsulan.v1.MessageDeleted
-	(*SendMessageRequest)(nil),      // 40: kitsulan.v1.SendMessageRequest
-	(*SendMessageResponse)(nil),     // 41: kitsulan.v1.SendMessageResponse
-	(*GetHistoryRequest)(nil),       // 42: kitsulan.v1.GetHistoryRequest
-	(*GetHistoryResponse)(nil),      // 43: kitsulan.v1.GetHistoryResponse
-	(*SubscribeChannelRequest)(nil), // 44: kitsulan.v1.SubscribeChannelRequest
-	(*timestamppb.Timestamp)(nil),   // 45: google.protobuf.Timestamp
+	(*UpdateProfileRequest)(nil),    // 10: kitsulan.v1.UpdateProfileRequest
+	(*UpdateProfileResponse)(nil),   // 11: kitsulan.v1.UpdateProfileResponse
+	(*SearchUsersRequest)(nil),      // 12: kitsulan.v1.SearchUsersRequest
+	(*SearchUsersResponse)(nil),     // 13: kitsulan.v1.SearchUsersResponse
+	(*Guild)(nil),                   // 14: kitsulan.v1.Guild
+	(*Channel)(nil),                 // 15: kitsulan.v1.Channel
+	(*Member)(nil),                  // 16: kitsulan.v1.Member
+	(*CreateGuildRequest)(nil),      // 17: kitsulan.v1.CreateGuildRequest
+	(*CreateGuildResponse)(nil),     // 18: kitsulan.v1.CreateGuildResponse
+	(*GetGuildRequest)(nil),         // 19: kitsulan.v1.GetGuildRequest
+	(*GetGuildResponse)(nil),        // 20: kitsulan.v1.GetGuildResponse
+	(*ListMyGuildsRequest)(nil),     // 21: kitsulan.v1.ListMyGuildsRequest
+	(*ListMyGuildsResponse)(nil),    // 22: kitsulan.v1.ListMyGuildsResponse
+	(*DeleteGuildRequest)(nil),      // 23: kitsulan.v1.DeleteGuildRequest
+	(*DeleteGuildResponse)(nil),     // 24: kitsulan.v1.DeleteGuildResponse
+	(*CreateInviteRequest)(nil),     // 25: kitsulan.v1.CreateInviteRequest
+	(*CreateInviteResponse)(nil),    // 26: kitsulan.v1.CreateInviteResponse
+	(*JoinByInviteRequest)(nil),     // 27: kitsulan.v1.JoinByInviteRequest
+	(*JoinByInviteResponse)(nil),    // 28: kitsulan.v1.JoinByInviteResponse
+	(*LeaveGuildRequest)(nil),       // 29: kitsulan.v1.LeaveGuildRequest
+	(*LeaveGuildResponse)(nil),      // 30: kitsulan.v1.LeaveGuildResponse
+	(*CreateChannelRequest)(nil),    // 31: kitsulan.v1.CreateChannelRequest
+	(*CreateChannelResponse)(nil),   // 32: kitsulan.v1.CreateChannelResponse
+	(*DeleteChannelRequest)(nil),    // 33: kitsulan.v1.DeleteChannelRequest
+	(*DeleteChannelResponse)(nil),   // 34: kitsulan.v1.DeleteChannelResponse
+	(*ListChannelsRequest)(nil),     // 35: kitsulan.v1.ListChannelsRequest
+	(*ListChannelsResponse)(nil),    // 36: kitsulan.v1.ListChannelsResponse
+	(*ListMembersRequest)(nil),      // 37: kitsulan.v1.ListMembersRequest
+	(*ListMembersResponse)(nil),     // 38: kitsulan.v1.ListMembersResponse
+	(*ChatMessage)(nil),             // 39: kitsulan.v1.ChatMessage
+	(*ChatEvent)(nil),               // 40: kitsulan.v1.ChatEvent
+	(*MessageDeleted)(nil),          // 41: kitsulan.v1.MessageDeleted
+	(*SendMessageRequest)(nil),      // 42: kitsulan.v1.SendMessageRequest
+	(*SendMessageResponse)(nil),     // 43: kitsulan.v1.SendMessageResponse
+	(*GetHistoryRequest)(nil),       // 44: kitsulan.v1.GetHistoryRequest
+	(*GetHistoryResponse)(nil),      // 45: kitsulan.v1.GetHistoryResponse
+	(*SubscribeChannelRequest)(nil), // 46: kitsulan.v1.SubscribeChannelRequest
+	(*timestamppb.Timestamp)(nil),   // 47: google.protobuf.Timestamp
 }
 var file_kitsulan_v1_service_proto_depIdxs = []int32{
 	1,  // 0: kitsulan.v1.GetProfileResponse.user:type_name -> kitsulan.v1.User
-	1,  // 1: kitsulan.v1.SearchUsersResponse.users:type_name -> kitsulan.v1.User
-	45, // 2: kitsulan.v1.Guild.created_at:type_name -> google.protobuf.Timestamp
-	0,  // 3: kitsulan.v1.Channel.type:type_name -> kitsulan.v1.ChannelType
-	45, // 4: kitsulan.v1.Member.joined_at:type_name -> google.protobuf.Timestamp
-	12, // 5: kitsulan.v1.CreateGuildResponse.guild:type_name -> kitsulan.v1.Guild
-	12, // 6: kitsulan.v1.GetGuildResponse.guild:type_name -> kitsulan.v1.Guild
-	12, // 7: kitsulan.v1.ListMyGuildsResponse.guilds:type_name -> kitsulan.v1.Guild
-	12, // 8: kitsulan.v1.JoinByInviteResponse.guild:type_name -> kitsulan.v1.Guild
-	0,  // 9: kitsulan.v1.CreateChannelRequest.type:type_name -> kitsulan.v1.ChannelType
-	13, // 10: kitsulan.v1.CreateChannelResponse.channel:type_name -> kitsulan.v1.Channel
-	13, // 11: kitsulan.v1.ListChannelsResponse.channels:type_name -> kitsulan.v1.Channel
-	14, // 12: kitsulan.v1.ListMembersResponse.members:type_name -> kitsulan.v1.Member
-	45, // 13: kitsulan.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
-	45, // 14: kitsulan.v1.ChatMessage.edited_at:type_name -> google.protobuf.Timestamp
-	37, // 15: kitsulan.v1.ChatEvent.message_created:type_name -> kitsulan.v1.ChatMessage
-	39, // 16: kitsulan.v1.ChatEvent.message_deleted:type_name -> kitsulan.v1.MessageDeleted
-	37, // 17: kitsulan.v1.SendMessageResponse.message:type_name -> kitsulan.v1.ChatMessage
-	37, // 18: kitsulan.v1.GetHistoryResponse.messages:type_name -> kitsulan.v1.ChatMessage
-	2,  // 19: kitsulan.v1.AuthService.Register:input_type -> kitsulan.v1.RegisterRequest
-	4,  // 20: kitsulan.v1.AuthService.Login:input_type -> kitsulan.v1.LoginRequest
-	6,  // 21: kitsulan.v1.AuthService.RefreshToken:input_type -> kitsulan.v1.RefreshTokenRequest
-	8,  // 22: kitsulan.v1.UserService.GetProfile:input_type -> kitsulan.v1.GetProfileRequest
-	10, // 23: kitsulan.v1.UserService.SearchUsers:input_type -> kitsulan.v1.SearchUsersRequest
-	15, // 24: kitsulan.v1.GuildService.CreateGuild:input_type -> kitsulan.v1.CreateGuildRequest
-	17, // 25: kitsulan.v1.GuildService.GetGuild:input_type -> kitsulan.v1.GetGuildRequest
-	19, // 26: kitsulan.v1.GuildService.ListMyGuilds:input_type -> kitsulan.v1.ListMyGuildsRequest
-	21, // 27: kitsulan.v1.GuildService.DeleteGuild:input_type -> kitsulan.v1.DeleteGuildRequest
-	23, // 28: kitsulan.v1.GuildService.CreateInvite:input_type -> kitsulan.v1.CreateInviteRequest
-	25, // 29: kitsulan.v1.GuildService.JoinByInvite:input_type -> kitsulan.v1.JoinByInviteRequest
-	27, // 30: kitsulan.v1.GuildService.LeaveGuild:input_type -> kitsulan.v1.LeaveGuildRequest
-	29, // 31: kitsulan.v1.GuildService.CreateChannel:input_type -> kitsulan.v1.CreateChannelRequest
-	31, // 32: kitsulan.v1.GuildService.DeleteChannel:input_type -> kitsulan.v1.DeleteChannelRequest
-	33, // 33: kitsulan.v1.GuildService.ListChannels:input_type -> kitsulan.v1.ListChannelsRequest
-	35, // 34: kitsulan.v1.GuildService.ListMembers:input_type -> kitsulan.v1.ListMembersRequest
-	40, // 35: kitsulan.v1.ChatService.SendMessage:input_type -> kitsulan.v1.SendMessageRequest
-	42, // 36: kitsulan.v1.ChatService.GetHistory:input_type -> kitsulan.v1.GetHistoryRequest
-	44, // 37: kitsulan.v1.ChatService.SubscribeChannel:input_type -> kitsulan.v1.SubscribeChannelRequest
-	3,  // 38: kitsulan.v1.AuthService.Register:output_type -> kitsulan.v1.RegisterResponse
-	5,  // 39: kitsulan.v1.AuthService.Login:output_type -> kitsulan.v1.LoginResponse
-	7,  // 40: kitsulan.v1.AuthService.RefreshToken:output_type -> kitsulan.v1.RefreshTokenResponse
-	9,  // 41: kitsulan.v1.UserService.GetProfile:output_type -> kitsulan.v1.GetProfileResponse
-	11, // 42: kitsulan.v1.UserService.SearchUsers:output_type -> kitsulan.v1.SearchUsersResponse
-	16, // 43: kitsulan.v1.GuildService.CreateGuild:output_type -> kitsulan.v1.CreateGuildResponse
-	18, // 44: kitsulan.v1.GuildService.GetGuild:output_type -> kitsulan.v1.GetGuildResponse
-	20, // 45: kitsulan.v1.GuildService.ListMyGuilds:output_type -> kitsulan.v1.ListMyGuildsResponse
-	22, // 46: kitsulan.v1.GuildService.DeleteGuild:output_type -> kitsulan.v1.DeleteGuildResponse
-	24, // 47: kitsulan.v1.GuildService.CreateInvite:output_type -> kitsulan.v1.CreateInviteResponse
-	26, // 48: kitsulan.v1.GuildService.JoinByInvite:output_type -> kitsulan.v1.JoinByInviteResponse
-	28, // 49: kitsulan.v1.GuildService.LeaveGuild:output_type -> kitsulan.v1.LeaveGuildResponse
-	30, // 50: kitsulan.v1.GuildService.CreateChannel:output_type -> kitsulan.v1.CreateChannelResponse
-	32, // 51: kitsulan.v1.GuildService.DeleteChannel:output_type -> kitsulan.v1.DeleteChannelResponse
-	34, // 52: kitsulan.v1.GuildService.ListChannels:output_type -> kitsulan.v1.ListChannelsResponse
-	36, // 53: kitsulan.v1.GuildService.ListMembers:output_type -> kitsulan.v1.ListMembersResponse
-	41, // 54: kitsulan.v1.ChatService.SendMessage:output_type -> kitsulan.v1.SendMessageResponse
-	43, // 55: kitsulan.v1.ChatService.GetHistory:output_type -> kitsulan.v1.GetHistoryResponse
-	38, // 56: kitsulan.v1.ChatService.SubscribeChannel:output_type -> kitsulan.v1.ChatEvent
-	38, // [38:57] is the sub-list for method output_type
-	19, // [19:38] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	1,  // 1: kitsulan.v1.UpdateProfileResponse.user:type_name -> kitsulan.v1.User
+	1,  // 2: kitsulan.v1.SearchUsersResponse.users:type_name -> kitsulan.v1.User
+	47, // 3: kitsulan.v1.Guild.created_at:type_name -> google.protobuf.Timestamp
+	0,  // 4: kitsulan.v1.Channel.type:type_name -> kitsulan.v1.ChannelType
+	47, // 5: kitsulan.v1.Member.joined_at:type_name -> google.protobuf.Timestamp
+	14, // 6: kitsulan.v1.CreateGuildResponse.guild:type_name -> kitsulan.v1.Guild
+	14, // 7: kitsulan.v1.GetGuildResponse.guild:type_name -> kitsulan.v1.Guild
+	14, // 8: kitsulan.v1.ListMyGuildsResponse.guilds:type_name -> kitsulan.v1.Guild
+	14, // 9: kitsulan.v1.JoinByInviteResponse.guild:type_name -> kitsulan.v1.Guild
+	0,  // 10: kitsulan.v1.CreateChannelRequest.type:type_name -> kitsulan.v1.ChannelType
+	15, // 11: kitsulan.v1.CreateChannelResponse.channel:type_name -> kitsulan.v1.Channel
+	15, // 12: kitsulan.v1.ListChannelsResponse.channels:type_name -> kitsulan.v1.Channel
+	16, // 13: kitsulan.v1.ListMembersResponse.members:type_name -> kitsulan.v1.Member
+	47, // 14: kitsulan.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	47, // 15: kitsulan.v1.ChatMessage.edited_at:type_name -> google.protobuf.Timestamp
+	39, // 16: kitsulan.v1.ChatEvent.message_created:type_name -> kitsulan.v1.ChatMessage
+	41, // 17: kitsulan.v1.ChatEvent.message_deleted:type_name -> kitsulan.v1.MessageDeleted
+	39, // 18: kitsulan.v1.SendMessageResponse.message:type_name -> kitsulan.v1.ChatMessage
+	39, // 19: kitsulan.v1.GetHistoryResponse.messages:type_name -> kitsulan.v1.ChatMessage
+	2,  // 20: kitsulan.v1.AuthService.Register:input_type -> kitsulan.v1.RegisterRequest
+	4,  // 21: kitsulan.v1.AuthService.Login:input_type -> kitsulan.v1.LoginRequest
+	6,  // 22: kitsulan.v1.AuthService.RefreshToken:input_type -> kitsulan.v1.RefreshTokenRequest
+	8,  // 23: kitsulan.v1.UserService.GetProfile:input_type -> kitsulan.v1.GetProfileRequest
+	10, // 24: kitsulan.v1.UserService.UpdateProfile:input_type -> kitsulan.v1.UpdateProfileRequest
+	12, // 25: kitsulan.v1.UserService.SearchUsers:input_type -> kitsulan.v1.SearchUsersRequest
+	17, // 26: kitsulan.v1.GuildService.CreateGuild:input_type -> kitsulan.v1.CreateGuildRequest
+	19, // 27: kitsulan.v1.GuildService.GetGuild:input_type -> kitsulan.v1.GetGuildRequest
+	21, // 28: kitsulan.v1.GuildService.ListMyGuilds:input_type -> kitsulan.v1.ListMyGuildsRequest
+	23, // 29: kitsulan.v1.GuildService.DeleteGuild:input_type -> kitsulan.v1.DeleteGuildRequest
+	25, // 30: kitsulan.v1.GuildService.CreateInvite:input_type -> kitsulan.v1.CreateInviteRequest
+	27, // 31: kitsulan.v1.GuildService.JoinByInvite:input_type -> kitsulan.v1.JoinByInviteRequest
+	29, // 32: kitsulan.v1.GuildService.LeaveGuild:input_type -> kitsulan.v1.LeaveGuildRequest
+	31, // 33: kitsulan.v1.GuildService.CreateChannel:input_type -> kitsulan.v1.CreateChannelRequest
+	33, // 34: kitsulan.v1.GuildService.DeleteChannel:input_type -> kitsulan.v1.DeleteChannelRequest
+	35, // 35: kitsulan.v1.GuildService.ListChannels:input_type -> kitsulan.v1.ListChannelsRequest
+	37, // 36: kitsulan.v1.GuildService.ListMembers:input_type -> kitsulan.v1.ListMembersRequest
+	42, // 37: kitsulan.v1.ChatService.SendMessage:input_type -> kitsulan.v1.SendMessageRequest
+	44, // 38: kitsulan.v1.ChatService.GetHistory:input_type -> kitsulan.v1.GetHistoryRequest
+	46, // 39: kitsulan.v1.ChatService.SubscribeChannel:input_type -> kitsulan.v1.SubscribeChannelRequest
+	3,  // 40: kitsulan.v1.AuthService.Register:output_type -> kitsulan.v1.RegisterResponse
+	5,  // 41: kitsulan.v1.AuthService.Login:output_type -> kitsulan.v1.LoginResponse
+	7,  // 42: kitsulan.v1.AuthService.RefreshToken:output_type -> kitsulan.v1.RefreshTokenResponse
+	9,  // 43: kitsulan.v1.UserService.GetProfile:output_type -> kitsulan.v1.GetProfileResponse
+	11, // 44: kitsulan.v1.UserService.UpdateProfile:output_type -> kitsulan.v1.UpdateProfileResponse
+	13, // 45: kitsulan.v1.UserService.SearchUsers:output_type -> kitsulan.v1.SearchUsersResponse
+	18, // 46: kitsulan.v1.GuildService.CreateGuild:output_type -> kitsulan.v1.CreateGuildResponse
+	20, // 47: kitsulan.v1.GuildService.GetGuild:output_type -> kitsulan.v1.GetGuildResponse
+	22, // 48: kitsulan.v1.GuildService.ListMyGuilds:output_type -> kitsulan.v1.ListMyGuildsResponse
+	24, // 49: kitsulan.v1.GuildService.DeleteGuild:output_type -> kitsulan.v1.DeleteGuildResponse
+	26, // 50: kitsulan.v1.GuildService.CreateInvite:output_type -> kitsulan.v1.CreateInviteResponse
+	28, // 51: kitsulan.v1.GuildService.JoinByInvite:output_type -> kitsulan.v1.JoinByInviteResponse
+	30, // 52: kitsulan.v1.GuildService.LeaveGuild:output_type -> kitsulan.v1.LeaveGuildResponse
+	32, // 53: kitsulan.v1.GuildService.CreateChannel:output_type -> kitsulan.v1.CreateChannelResponse
+	34, // 54: kitsulan.v1.GuildService.DeleteChannel:output_type -> kitsulan.v1.DeleteChannelResponse
+	36, // 55: kitsulan.v1.GuildService.ListChannels:output_type -> kitsulan.v1.ListChannelsResponse
+	38, // 56: kitsulan.v1.GuildService.ListMembers:output_type -> kitsulan.v1.ListMembersResponse
+	43, // 57: kitsulan.v1.ChatService.SendMessage:output_type -> kitsulan.v1.SendMessageResponse
+	45, // 58: kitsulan.v1.ChatService.GetHistory:output_type -> kitsulan.v1.GetHistoryResponse
+	40, // 59: kitsulan.v1.ChatService.SubscribeChannel:output_type -> kitsulan.v1.ChatEvent
+	40, // [40:60] is the sub-list for method output_type
+	20, // [20:40] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_kitsulan_v1_service_proto_init() }
@@ -2664,7 +2804,8 @@ func file_kitsulan_v1_service_proto_init() {
 	if File_kitsulan_v1_service_proto != nil {
 		return
 	}
-	file_kitsulan_v1_service_proto_msgTypes[37].OneofWrappers = []any{
+	file_kitsulan_v1_service_proto_msgTypes[9].OneofWrappers = []any{}
+	file_kitsulan_v1_service_proto_msgTypes[39].OneofWrappers = []any{
 		(*ChatEvent_MessageCreated)(nil),
 		(*ChatEvent_MessageDeleted)(nil),
 	}
@@ -2674,7 +2815,7 @@ func file_kitsulan_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kitsulan_v1_service_proto_rawDesc), len(file_kitsulan_v1_service_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   44,
+			NumMessages:   46,
 			NumExtensions: 0,
 			NumServices:   4,
 		},

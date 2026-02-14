@@ -52,6 +52,7 @@ func New(cfg *config.Config, log *slog.Logger) (*App, error) {
 
 	// 3. Services (бизнес-логика)
 	authSvc := service.NewAuthService(repos.Users, cfg)
+	userSvc := service.NewUserService(repos.Users)
 	guildSvc := service.NewGuildService(repos.Guilds, repos.Channels, tm)
 	chatHub := hub.New()
 	chatSvc := service.NewChatService(repos.Messages, repos.Channels, repos.Guilds, chatHub)
@@ -61,6 +62,7 @@ func New(cfg *config.Config, log *slog.Logger) (*App, error) {
 
 	// 5. Transport handlers
 	pb.RegisterAuthServiceServer(grpcServer, grpctransport.NewAuthServer(authSvc))
+	pb.RegisterUserServiceServer(grpcServer, grpctransport.NewUserServer(userSvc))
 	pb.RegisterGuildServiceServer(grpcServer, grpctransport.NewGuildServer(guildSvc))
 	pb.RegisterChatServiceServer(grpcServer, grpctransport.NewChatServer(chatSvc))
 

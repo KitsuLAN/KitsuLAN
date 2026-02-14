@@ -68,16 +68,9 @@ export default function Home() {
               Ваши гильдии
             </p>
             <div className="flex flex-col gap-1.5">
-              {guilds.map((g, i) => {
-                const colors = [
-                  "bg-primary",
-                  "bg-violet-700",
-                  "bg-cyan-700",
-                  "bg-emerald-700",
-                  "bg-rose-700",
-                  "bg-amber-700",
-                ];
-                const color = colors[i % colors.length];
+              {guilds.map((g) => {
+                const bgColor = g.color ?? "#525252";
+
                 return (
                   <button
                     key={g.id}
@@ -88,15 +81,14 @@ export default function Home() {
                     )}
                   >
                     <div
-                      className={cn(
-                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold",
-                        color
-                      )}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold"
+                      style={{ backgroundColor: bgColor }}
                     >
                       {(g.name ?? "?").slice(0, 2).toUpperCase()}
                     </div>
+
                     <div className="min-w-0">
-                      <div className="truncate font-semibold text-sm">
+                      <div className="truncate text-sm font-semibold">
                         {g.name}
                       </div>
                       {g.description && (
@@ -105,7 +97,8 @@ export default function Home() {
                         </div>
                       )}
                     </div>
-                    <span className="ml-auto text-muted-foreground/40 text-sm">
+
+                    <span className="ml-auto text-sm text-muted-foreground/40">
                       →
                     </span>
                   </button>

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
@@ -22,6 +23,13 @@ func NewGuildService(guilds repository.GuildRepository, channels repository.Chan
 	return &GuildService{guilds: guilds, channels: channels, tm: tm}
 }
 
+// Палитра (Tailwind Colors 600)
+var guildColors = []string{
+	"#dc2626", "#ea580c", "#d97706", "#65a30d", "#16a34a",
+	"#0891b2", "#2563eb", "#4f46e5", "#7c3aed", "#c026d3",
+	"#db2777",
+}
+
 func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, description string) (*domain.Guild, error) {
 	if len(name) < 2 || len(name) > 100 {
 		return nil, domainerr.Wrap(domainerr.ErrInvalidArgument, "guild name must be 2–100 characters")
@@ -32,10 +40,14 @@ func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, descripti
 		return nil, domainerr.Wrap(domainerr.ErrInvalidArgument, "invalid owner id")
 	}
 
+	// Выбираем случайный цвет для отображения на клиенте
+	color := guildColors[rand.Intn(len(guildColors))]
+
 	guild := &domain.Guild{
 		Name:        name,
 		Description: description,
 		OwnerID:     ownerUUID,
+		Color:       color,
 	}
 
 	err = s.tm.Do(ctx, func(txCtx context.Context) error {
@@ -53,7 +65,7 @@ func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, descripti
 		}
 
 		// Создать дефолтный канал #general
-		if err := s.channels.Create(ctx, &domain.Channel{
+		if err := s.channels.Create(txCtx, &domain.Channel{
 			GuildID:  guild.ID,
 			Name:     "general",
 			Type:     domain.ChannelTypeText,

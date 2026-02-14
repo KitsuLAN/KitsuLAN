@@ -69,6 +69,7 @@ export namespace kitsulanv1 {
 	    name?: string;
 	    description?: string;
 	    icon_url?: string;
+	    color?: string;
 	    owner_id?: string;
 	    member_count?: number;
 	    created_at?: timestamppb.Timestamp;
@@ -83,6 +84,7 @@ export namespace kitsulanv1 {
 	        this.name = source["name"];
 	        this.description = source["description"];
 	        this.icon_url = source["icon_url"];
+	        this.color = source["color"];
 	        this.owner_id = source["owner_id"];
 	        this.member_count = source["member_count"];
 	        this.created_at = this.convertValues(source["created_at"], timestamppb.Timestamp);
@@ -145,6 +147,26 @@ export namespace kitsulanv1 {
 		    }
 		    return a;
 		}
+	}
+	export class User {
+	    id?: string;
+	    username?: string;
+	    avatar_url?: string;
+	    bio?: string;
+	    is_online?: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new User(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.username = source["username"];
+	        this.avatar_url = source["avatar_url"];
+	        this.bio = source["bio"];
+	        this.is_online = source["is_online"];
+	    }
 	}
 
 }
