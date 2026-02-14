@@ -184,54 +184,48 @@ export function useChannelSubscription(channelID: string | null) {
     }))
   );
 
-  // Ref для cleanup функций Wails EventsOff
-  const cleanupRef = useRef<(() => void) | null>(null);
+  const genRef = useRef(0);
 
   useEffect(() => {
     if (!channelID) return;
     const chID = channelID;
+    const gen = ++genRef.current;
 
-    let cancelled = false;
+    let runtime: any | null = null;
 
-    async function subscribe() {
-      // Загружаем историю
+    (async () => {
       await loadHistory(chID);
-      if (cancelled) return;
+      if (genRef.current !== gen) return;
 
-      // Запускаем gRPC-стрим
       await WailsAPI.SubscribeChannel(chID);
-      if (cancelled) {
+      if (genRef.current !== gen) {
         WailsAPI.UnsubscribeChannel();
         return;
       }
 
-      const runtime = await getWailsRuntime();
-      if (!runtime || cancelled) return;
+      runtime = await getWailsRuntime();
+      if (!runtime || genRef.current !== gen) return;
 
       runtime.EventsOn("chat:message", (msg: ChatMessage) => {
         const safe = normalizeChatMessage(msg);
         if (!safe) return;
-        appendMessage(safe);
+        if (safe.channel_id === chID) appendMessage(safe);
       });
 
       runtime.EventsOn("chat:message_deleted", (data: MessageDeleted) => {
         const safe = normalizeMessageDeleted(data);
         if (!safe) return;
-        removeMessage(safe.channel_id, safe.message_id);
+        if (safe.channel_id === chID)
+          removeMessage(safe.channel_id, safe.message_id);
       });
-
-      cleanupRef.current = () => {
-        runtime.EventsOff("chat:message");
-        runtime.EventsOff("chat:message_deleted");
-      };
-    }
-
-    subscribe();
+    })();
 
     return () => {
-      cancelled = true;
-      cleanupRef.current?.();
-      WailsAPI.UnsubscribeChannel();
+      if (genRef.current === gen) {
+        runtime?.EventsOff("chat:message");
+        runtime?.EventsOff("chat:message_deleted");
+        WailsAPI.UnsubscribeChannel();
+      }
     };
-  }, [channelID]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [channelID]);
 }
