@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"gorm.io/gorm"
@@ -16,6 +17,11 @@ type userGORMRepo struct {
 	db *gorm.DB
 }
 
+// Helper для получения правильного DB (транзакция или базовый)
+func (r *userGORMRepo) getDB(ctx context.Context) *gorm.DB {
+	return database.ExtractDB(ctx, r.db).WithContext(ctx)
+}
+
 // NewUserRepository создаёт GORM-реализацию UserRepository.
 func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userGORMRepo{db: db}
@@ -24,7 +30,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 // Create сохраняет нового пользователя.
 // UUIDv7 генерируется в domain.User.BeforeCreate.
 func (r *userGORMRepo) Create(ctx context.Context, user *domain.User) error {
-	result := r.db.WithContext(ctx).Create(user)
+	result := r.getDB(ctx).Create(user)
 	if result.Error != nil {
 		if isUniqueViolation(result.Error) {
 			return classifyUniqueViolation(result.Error)
@@ -37,7 +43,7 @@ func (r *userGORMRepo) Create(ctx context.Context, user *domain.User) error {
 // FindByID возвращает пользователя по строковому UUID.
 func (r *userGORMRepo) FindByID(ctx context.Context, id string) (*domain.User, error) {
 	var user domain.User
-	err := r.db.WithContext(ctx).
+	err := r.getDB(ctx).
 		Where("id = ?", id).
 		First(&user).Error
 	if err != nil {
@@ -50,7 +56,7 @@ func (r *userGORMRepo) FindByID(ctx context.Context, id string) (*domain.User, e
 // Username нечувствителен к регистру (LOWER).
 func (r *userGORMRepo) FindByUsername(ctx context.Context, username string) (*domain.User, error) {
 	var user domain.User
-	err := r.db.WithContext(ctx).
+	err := r.getDB(ctx).
 		Where("LOWER(username) = LOWER(?)", username).
 		First(&user).Error
 	if err != nil {
@@ -62,7 +68,7 @@ func (r *userGORMRepo) FindByUsername(ctx context.Context, username string) (*do
 // FindByEmail ищет пользователя по email (case-insensitive).
 func (r *userGORMRepo) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var user domain.User
-	err := r.db.WithContext(ctx).
+	err := r.getDB(ctx).
 		Where("LOWER(email) = LOWER(?)", email).
 		First(&user).Error
 	if err != nil {
@@ -83,7 +89,7 @@ func (r *userGORMRepo) Update(ctx context.Context, id string, fields map[string]
 	delete(fields, "password_hash")
 	delete(fields, "created_at")
 
-	result := r.db.WithContext(ctx).
+	result := r.getDB(ctx).
 		Model(&domain.User{}).
 		Where("id = ?", id).
 		Updates(fields)
@@ -106,7 +112,7 @@ func (r *userGORMRepo) Update(ctx context.Context, id string, fields map[string]
 // Delete выполняет soft-delete (заполняет DeletedAt, запись остаётся в БД).
 // Это позволяет сохранить историю сообщений от удалённых пользователей.
 func (r *userGORMRepo) Delete(ctx context.Context, id string) error {
-	result := r.db.WithContext(ctx).
+	result := r.getDB(ctx).
 		Where("id = ?", id).
 		Delete(&domain.User{})
 
@@ -128,7 +134,7 @@ func (r *userGORMRepo) Search(ctx context.Context, query string, limit int) ([]d
 	}
 
 	var users []domain.User
-	err := r.db.WithContext(ctx).
+	err := r.getDB(ctx).
 		Where("LOWER(username) LIKE LOWER(?)", "%"+escapeLike(query)+"%").
 		Order("username ASC").
 		Limit(limit).
@@ -144,7 +150,7 @@ func (r *userGORMRepo) Search(ctx context.Context, query string, limit int) ([]d
 // Используется при регистрации для раннего возврата ошибки.
 func (r *userGORMRepo) ExistsByUsername(ctx context.Context, username string) (bool, error) {
 	var count int64
-	err := r.db.WithContext(ctx).
+	err := r.getDB(ctx).
 		Model(&domain.User{}).
 		Where("LOWER(username) = LOWER(?)", username).
 		Count(&count).Error

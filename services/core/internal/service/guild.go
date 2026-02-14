@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
@@ -14,10 +15,11 @@ import (
 type GuildService struct {
 	guilds   repository.GuildRepository
 	channels repository.ChannelRepository
+	tm       database.TransactionManager
 }
 
-func NewGuildService(guilds repository.GuildRepository, channels repository.ChannelRepository) *GuildService {
-	return &GuildService{guilds: guilds, channels: channels}
+func NewGuildService(guilds repository.GuildRepository, channels repository.ChannelRepository, tm database.TransactionManager) *GuildService {
+	return &GuildService{guilds: guilds, channels: channels, tm: tm}
 }
 
 func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, description string) (*domain.Guild, error) {
@@ -35,30 +37,39 @@ func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, descripti
 		Description: description,
 		OwnerID:     ownerUUID,
 	}
-	if err := s.guilds.Create(ctx, guild); err != nil {
-		return nil, fmt.Errorf("create guild: %w", err)
-	}
 
-	// Автоматически добавить создателя в гильдию
-	if err := s.guilds.AddMember(ctx, &domain.GuildMember{
-		GuildID:  guild.ID,
-		UserID:   ownerUUID,
-		JoinedAt: time.Now(),
-	}); err != nil {
-		return nil, fmt.Errorf("add owner as member: %w", err)
-	}
+	err = s.tm.Do(ctx, func(txCtx context.Context) error {
+		if err := s.guilds.Create(txCtx, guild); err != nil {
+			return fmt.Errorf("create guild: %w", err)
+		}
 
-	// Создать дефолтный канал #general
-	if err := s.channels.Create(ctx, &domain.Channel{
-		GuildID:  guild.ID,
-		Name:     "general",
-		Type:     domain.ChannelTypeText,
-		Position: 0,
-	}); err != nil {
-		return nil, fmt.Errorf("create default channel: %w", err)
+		// Автоматически добавить создателя в гильдию
+		if err := s.guilds.AddMember(txCtx, &domain.GuildMember{
+			GuildID:  guild.ID,
+			UserID:   ownerUUID,
+			JoinedAt: time.Now(),
+		}); err != nil {
+			return fmt.Errorf("add owner as member: %w", err)
+		}
+
+		// Создать дефолтный канал #general
+		if err := s.channels.Create(ctx, &domain.Channel{
+			GuildID:  guild.ID,
+			Name:     "general",
+			Type:     domain.ChannelTypeText,
+			Position: 0,
+		}); err != nil {
+			return fmt.Errorf("create default channel: %w", err)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	return guild, nil
+
 }
 
 func (s *GuildService) GetGuild(ctx context.Context, guildID, callerID string) (*domain.Guild, error) {
@@ -127,13 +138,22 @@ func (s *GuildService) JoinByInvite(ctx context.Context, code, userID string) (*
 	}
 
 	userUUID, _ := uuid.Parse(userID)
-	if err := s.guilds.AddMember(ctx, &domain.GuildMember{
-		GuildID: inv.GuildID,
-		UserID:  userUUID,
-	}); err != nil {
+	err = s.tm.Do(ctx, func(txCtx context.Context) error {
+		if err := s.guilds.AddMember(ctx, &domain.GuildMember{
+			GuildID: inv.GuildID,
+			UserID:  userUUID,
+		}); err != nil {
+			return fmt.Errorf("add guild member: %w", err)
+		}
+		if err := s.guilds.IncrementInviteUses(ctx, code); err != nil {
+			return fmt.Errorf("increment invite uses: %w", err)
+		}
+		return nil
+	})
+
+	if err != nil {
 		return nil, err
 	}
-	_ = s.guilds.IncrementInviteUses(ctx, code)
 
 	return s.guilds.FindByID(ctx, inv.GuildID.String())
 }

@@ -47,10 +47,12 @@ func New(cfg *config.Config, log *slog.Logger) (*App, error) {
 
 	// 2. Repositories (адаптеры к БД)
 	repos := repository.NewRegistry(db)
+	// Инициализируем менеджер транзакций
+	tm := database.NewTransactionManager(db)
 
 	// 3. Services (бизнес-логика)
 	authSvc := service.NewAuthService(repos.Users, cfg)
-	guildSvc := service.NewGuildService(repos.Guilds, repos.Channels)
+	guildSvc := service.NewGuildService(repos.Guilds, repos.Channels, tm)
 	chatHub := hub.New()
 	chatSvc := service.NewChatService(repos.Messages, repos.Channels, repos.Guilds, chatHub)
 

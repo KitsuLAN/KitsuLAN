@@ -3,18 +3,24 @@ package repository
 import (
 	"context"
 
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
 	"gorm.io/gorm"
 )
 
 type messageGORMRepo struct{ db *gorm.DB }
 
+// Helper для получения правильного DB (транзакция или базовый)
+func (r *messageGORMRepo) getDB(ctx context.Context) *gorm.DB {
+	return database.ExtractDB(ctx, r.db).WithContext(ctx)
+}
+
 func NewMessageRepository(db *gorm.DB) MessageRepository {
 	return &messageGORMRepo{db: db}
 }
 
 func (r *messageGORMRepo) Create(ctx context.Context, msg *domain.Message) error {
-	return r.db.WithContext(ctx).Create(msg).Error
+	return r.getDB(ctx).Create(msg).Error
 }
 
 func (r *messageGORMRepo) GetHistory(ctx context.Context, channelID string, limit int, beforeID string) ([]domain.Message, error) {
@@ -22,7 +28,7 @@ func (r *messageGORMRepo) GetHistory(ctx context.Context, channelID string, limi
 		limit = 50
 	}
 
-	q := r.db.WithContext(ctx).
+	q := r.getDB(ctx).
 		Preload("Author").
 		Where("channel_id = ?", channelID).
 		Order("created_at DESC").
@@ -47,5 +53,5 @@ func (r *messageGORMRepo) GetHistory(ctx context.Context, channelID string, limi
 }
 
 func (r *messageGORMRepo) Delete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).Where("id = ?", id).Delete(&domain.Message{}).Error
+	return r.getDB(ctx).Where("id = ?", id).Delete(&domain.Message{}).Error
 }
