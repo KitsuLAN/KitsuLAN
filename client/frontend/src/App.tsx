@@ -29,6 +29,7 @@ export default function App() {
         <Route element={<PrivateRoute />}>
           <Route element={<MainLayout />}>
             <Route path="/app" element={<AppContent />} />
+            <Route path="/home" element={<Home />} />
           </Route>
         </Route>
 

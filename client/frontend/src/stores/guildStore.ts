@@ -23,6 +23,7 @@ interface GuildState {
   loadGuilds: () => Promise<void>;
   selectGuild: (guildID: string) => Promise<void>;
   selectChannel: (channelID: string) => void;
+  clearSelection: () => void;
   createGuild: (name: string, description: string) => Promise<Guild>;
   joinByInvite: (code: string) => Promise<Guild>;
   leaveGuild: (guildID: string) => Promise<void>;
@@ -87,6 +88,8 @@ export const useGuildStore = create<GuildState>()((set, get) => ({
   },
 
   selectChannel: (channelID) => set({ activeChannelID: channelID }),
+
+  clearSelection: () => set({ activeGuildID: null, activeChannelID: null }),
 
   createGuild: async (name, description) => {
     const guild = await WailsAPI.CreateGuild(name, description);
@@ -162,6 +165,7 @@ export const useGuildActions = () =>
       loadGuilds: s.loadGuilds,
       selectGuild: s.selectGuild,
       selectChannel: s.selectChannel,
+      clearSelection: s.clearSelection,
       createGuild: s.createGuild,
       joinByInvite: s.joinByInvite,
       leaveGuild: s.leaveGuild,
