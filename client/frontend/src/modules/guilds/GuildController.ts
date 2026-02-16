@@ -58,6 +58,7 @@ export const GuildController = {
         const state = useGuildStore.getState();
         if (state.activeChannelID === channelID) return;
 
+        // TODO: Сделать тут проверки на тип канала, если канал голосовой не менять URL
         useGuildStore.setState({ activeChannelID: channelID });
         // При смене канала просим чат-контроллер обновить историю
         await ChatController.loadHistory(channelID);
