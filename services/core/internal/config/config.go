@@ -47,6 +47,33 @@ type Config struct {
 	S3SecretKey string
 	S3Bucket    string
 	S3UseSSL    bool
+
+	// --- Cache ---
+	CacheEnabled   bool // Вкл/выкл кэш глобально
+	CacheNamespace string
+	CacheVersion   string
+
+	// TTL
+	CacheTTL       time.Duration // Базовый TTL
+	CacheTTLJitter float64
+
+	// Redis (L2)
+	RedisAddr          string
+	RedisPassword      string
+	RedisDB            int
+	RedisCacheFailover bool
+
+	RedisDialTimeout  time.Duration
+	RedisReadTimeout  time.Duration
+	RedisWriteTimeout time.Duration
+	RedisPoolSize     int
+
+	// Ristretto Config (L1 Memory)
+	CacheL1Enabled     bool
+	CacheL1MaxCost     int64 // Макс размер в байтах (напр. 100MB)
+	CacheL1NumCounters int64 // Ожидаемое кол-во ключей * 10 (для Bloom filter)
+	CacheL1TTL         time.Duration
+	CacheL1Metrics     bool
 }
 
 // Load загружает конфигурацию. Сначала пытается прочитать .env файл
@@ -84,6 +111,25 @@ func Load() (*Config, error) {
 		S3SecretKey: getEnv("S3_SECRET_KEY", ""),
 		S3Bucket:    getEnv("S3_BUCKET", "kitsulan"),
 		S3UseSSL:    getBoolEnv("S3_USE_SSL", false),
+
+		// Cache
+		CacheEnabled:       getBoolEnv("CACHE_ENABLED", true),
+		CacheNamespace:     getEnv("CACHE_NAMESPACE", "kitsulan-core"),
+		CacheVersion:       getEnv("CACHE_VERSION", "v1"),
+		CacheTTL:           getDurationEnv("CACHE_TTL", 10*time.Minute),
+		CacheTTLJitter:     getFloat64Env("CACHE_TTL_JITTER", 0.15),
+		RedisAddr:          getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisPassword:      getEnv("REDIS_PASSWORD", ""),
+		RedisDB:            getIntEnv("REDIS_DB", 0),
+		RedisCacheFailover: getBoolEnv("REDIS_CACHE_FAILOVER", false),
+		RedisDialTimeout:   getDurationEnv("REDIS_DIAL_TIMEOUT", 2*time.Second),
+		RedisReadTimeout:   getDurationEnv("REDIS_READ_TIMEOUT", 500*time.Millisecond),
+		RedisWriteTimeout:  getDurationEnv("REDIS_WRITE_TIMEOUT", 500*time.Millisecond),
+		CacheL1Enabled:     getBoolEnv("CACHE_L1_ENABLED", getBoolEnv("CACHE_ENABLED", true)),
+		CacheL1MaxCost:     getInt64Env("CACHE_L1_MAX_COST", 100*1024*1024), // 100MB
+		CacheL1NumCounters: getInt64Env("CACHE_L1_NUM_COUNTERS", 1_000_000),
+		CacheL1TTL:         getDurationEnv("CACHE_L1_TTL", 5*time.Minute),
+		CacheL1Metrics:     getBoolEnv("CACHE_L1_METRICS", false),
 	}
 
 	if err := cfg.validate(); err != nil {
@@ -106,6 +152,33 @@ func (c *Config) validate() error {
 
 	if c.DBDriver != "postgres" && c.DBDriver != "sqlite" {
 		return fmt.Errorf("DB_DRIVER must be 'postgres' or 'sqlite', got: %q", c.DBDriver)
+	}
+
+	if c.CacheEnabled {
+		if c.RedisAddr == "" {
+			return fmt.Errorf("redis addr required when cache enabled")
+		}
+
+		if c.CacheTTL <= 0 {
+			return fmt.Errorf("cache ttl must be > 0")
+		}
+	}
+
+	if c.CacheTTLJitter < 0 || c.CacheTTLJitter > 1 {
+		return fmt.Errorf("CACHE_TTL_JITTER must be 0..1")
+	}
+
+	if c.CacheEnabled && c.CacheNamespace == "" {
+		return fmt.Errorf("CACHE_NAMESPACE required when cache enabled")
+	}
+
+	if c.CacheL1Enabled {
+		if c.CacheL1MaxCost <= 0 {
+			return fmt.Errorf("CACHE_L1_MAX_COST must be > 0")
+		}
+		if c.CacheL1NumCounters <= 0 {
+			return fmt.Errorf("CACHE_L1_NUM_COUNTERS must be > 0")
+		}
 	}
 
 	return nil
@@ -155,4 +228,40 @@ func getDurationEnv(key string, fallback time.Duration) time.Duration {
 		return fallback
 	}
 	return d
+}
+
+func getIntEnv(key string, fallback int) int {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	i, err := strconv.Atoi(v)
+	if err != nil {
+		return fallback
+	}
+	return i
+}
+
+func getInt64Env(key string, fallback int64) int64 {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	i, err := strconv.ParseInt(v, 10, 64)
+	if err != nil {
+		return fallback
+	}
+	return i
+}
+
+func getFloat64Env(key string, fallback float64) float64 {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	f, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		return fallback
+	}
+	return f
 }

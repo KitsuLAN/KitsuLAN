@@ -15,6 +15,7 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/config"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/hub"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/infra/cache"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/middleware"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/service"
@@ -28,11 +29,12 @@ import (
 
 // App — корневая структура приложения.
 type App struct {
-	cfg        *config.Config
-	log        *slog.Logger
-	db         *gorm.DB
-	grpcServer *grpc.Server
-	listener   net.Listener
+	cfg           *config.Config
+	log           *slog.Logger
+	db            *gorm.DB
+	grpcServer    *grpc.Server
+	listener      net.Listener
+	cacheProvider *cache.Provider
 }
 
 // New собирает граф зависимостей по слоям:
@@ -45,6 +47,11 @@ func New(cfg *config.Config, log *slog.Logger) (*App, error) {
 		return nil, fmt.Errorf("database init: %w", err)
 	}
 
+	cacheProvider, err := cache.NewProvider(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("cache init: %w", err)
+	}
+
 	// 2. Repositories (адаптеры к БД)
 	repos := repository.NewRegistry(db)
 	// Инициализируем менеджер транзакций
@@ -52,7 +59,7 @@ func New(cfg *config.Config, log *slog.Logger) (*App, error) {
 
 	// 3. Services (бизнес-логика)
 	authSvc := service.NewAuthService(repos.Users, cfg)
-	userSvc := service.NewUserService(repos.Users)
+	userSvc := service.NewUserService(repos.Users, cacheProvider)
 	guildSvc := service.NewGuildService(repos.Guilds, repos.Channels, tm)
 	chatHub := hub.New()
 	chatSvc := service.NewChatService(repos.Messages, repos.Channels, repos.Guilds, chatHub)
@@ -87,11 +94,12 @@ func New(cfg *config.Config, log *slog.Logger) (*App, error) {
 	}
 
 	return &App{
-		cfg:        cfg,
-		log:        log,
-		db:         db,
-		grpcServer: grpcServer,
-		listener:   lis,
+		cfg:           cfg,
+		log:           log,
+		db:            db,
+		grpcServer:    grpcServer,
+		listener:      lis,
+		cacheProvider: cacheProvider,
 	}, nil
 }
 
@@ -120,6 +128,10 @@ func (a *App) Shutdown(ctx context.Context) error {
 		a.grpcServer.Stop()
 	case <-stopped:
 		a.log.Info("gRPC server stopped gracefully")
+	}
+
+	if err := a.cacheProvider.Close(); err != nil {
+		a.log.Error("failed to close cache provider", "error", err)
 	}
 
 	sqlDB, err := a.db.DB()
