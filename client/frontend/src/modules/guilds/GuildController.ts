@@ -28,27 +28,36 @@ export const GuildController = {
     },
 
 
-    async selectGuild(guildID: string) {
+    async selectGuild(guildID: string, autoSelectChannel = false) {
         const state = useGuildStore.getState();
-        useGuildStore.setState({ activeGuildID: guildID, activeChannelID: null });
+        if (state.activeGuildID === guildID) return;
 
-        // Кеширование: если данные уже есть, не идем в сеть
+        useGuildStore.setState({ activeGuildID: guildID });
+
         const [channels, members] = await Promise.all([
-            state.channelsByGuild[guildID] ? state.channelsByGuild[guildID] : WailsAPI.ListChannels(guildID),
-            state.membersByGuild[guildID] ? state.membersByGuild[guildID] : WailsAPI.ListMembers(guildID)
+            WailsAPI.ListChannels(guildID),
+            WailsAPI.ListMembers(guildID)
         ]);
 
         useGuildStore.setState(s => ({
-            channelsByGuild: { ...s.channelsByGuild, [guildID]: channels },
-            membersByGuild: { ...s.membersByGuild, [guildID]: members }
+            channelsByGuild: { ...s.channelsByGuild, [guildID]: channels ?? [] },
+            membersByGuild: { ...s.membersByGuild, [guildID]: members ?? [] }
         }));
 
-        // Авто-выбор первого текстового канала
-        const firstText = channels.find(c => c.type === 1);
-        if (firstText?.id) this.selectChannel(firstText.id);
+        // Автовыбор срабатывает только если мы явно попросили (например, при клике в сайдбаре)
+        if (autoSelectChannel) {
+            const firstText = channels.find(c => c.type === 1);
+            if (firstText?.id) {
+                // Здесь можно сделать navigate через контроллер или вернуть ID
+                return firstText.id;
+            }
+        }
     },
 
     async selectChannel(channelID: string) {
+        const state = useGuildStore.getState();
+        if (state.activeChannelID === channelID) return;
+
         useGuildStore.setState({ activeChannelID: channelID });
         // При смене канала просим чат-контроллер обновить историю
         await ChatController.loadHistory(channelID);

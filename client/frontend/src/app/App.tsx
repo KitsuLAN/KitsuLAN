@@ -27,9 +27,18 @@ export default function App() {
 
         {/* 3. Основное приложение (только если залогинен) */}
         <Route element={<PrivateRoute />}>
-          <Route element={<MainLayout />}>
-            <Route path="/app" element={<AppContent />} />
-            <Route path="/app/home" element={<Home />} />
+          <Route path="/app" element={<MainLayout />}>
+            {/* /app/home — когда ничего не выбрано */}
+            <Route path="home" element={<Home />} />
+
+            {/* /app/:guildId — зашли в гильдию, канал еще не выбран */}
+            <Route path=":guildId" element={<ChannelPage />} />
+
+            {/* /app/:guildId/:channelId — конкретный канал */}
+            <Route path=":guildId/:channelId" element={<ChannelPage />} />
+
+            {/* Редирект с голого /app на /app/home */}
+            <Route index element={<Navigate to="home" replace />} />
           </Route>
         </Route>
 

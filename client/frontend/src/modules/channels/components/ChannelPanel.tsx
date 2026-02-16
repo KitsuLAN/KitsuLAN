@@ -15,6 +15,7 @@ import type { Channel } from "@/api/wails";
 import { cn } from "@/uikit/lib/utils";
 import {GuildController} from "@/modules/guilds/GuildController";
 import {AuthController} from "@/modules/auth/AuthController";
+import {useNavigate, useParams} from "react-router-dom";
 
 function ChannelItem({
   channel,
@@ -47,6 +48,8 @@ function ChannelItem({
 export function ChannelPanel() {
   const username = useUsername();
   const guilds = useGuilds();
+  const { guildId } = useParams();
+  const navigate = useNavigate();
   const activeGuildID = useActiveGuildID();
   const activeChannelID = useActiveChannelID();
   const channels = useActiveChannels();
@@ -105,7 +108,7 @@ export function ChannelPanel() {
                   key={ch.id}
                   channel={ch}
                   active={activeChannelID === ch.id}
-                  onClick={() => GuildController.selectChannel(ch.id!)}
+                  onClick={() => navigate(`/app/${guildId}/${ch.id}`)}
                 />
               ))}
             </div>

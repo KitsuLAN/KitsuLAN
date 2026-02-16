@@ -61,10 +61,9 @@ export function GuildRail() {
         navigate("/app/home");
     };
 
-    const handleSelectGuild = async (id: string) => {
+    const handleSelectGuild = (id: string) => {
         // Вызываем контроллер для смены контекста
-        await GuildController.selectGuild(id);
-        navigate("/app");
+        navigate(`/app/${id}`);
     };
 
     return (

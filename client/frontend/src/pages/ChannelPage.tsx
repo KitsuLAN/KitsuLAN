@@ -10,6 +10,9 @@ import { cn } from "@/uikit/lib/utils";
 import {ChatController} from "@/modules/chat/ChatController";
 import {useUsername} from "@/modules/auth/authStore";
 import {useChannelSubscription} from "@/modules/chat/hooks/useChannelSubscription";
+import {useParams} from "react-router-dom";
+import {GuildController} from "@/modules/guilds/GuildController";
+import {GuildWelcome} from "@/modules/guilds/components/GuildWelcome";
 
 function formatTime(iso?: string): string {
   if (!iso) return "";
@@ -79,6 +82,25 @@ function MessageItem({ msg, isOwn }: { msg: ChatMessage; isOwn: boolean }) {
 
 // ── Главный компонент ──
 export default function ChannelPage() {
+  const { guildId, channelId } = useParams<{ guildId: string; channelId: string }>();
+
+  // 2. Эффект синхронизации (URL -> Store)
+  // Это гарантирует, что даже если мы откроем приложение по прямой ссылке,
+  // контроллеры подгрузят нужные данные.
+  useEffect(() => {
+    if (guildId) {
+      GuildController.selectGuild(guildId);
+    }
+    if (channelId) {
+      GuildController.selectChannel(channelId);
+    }
+  }, [guildId, channelId]);
+
+  // Если канала нет в URL, показываем заглушку или приветствие гильдии
+  if (!channelId) {
+    return <GuildWelcome guildId={guildId!} />;
+  }
+
   const username = useUsername() ?? "";
   const channelID = useActiveChannelID();
   const channels = useActiveChannels();
