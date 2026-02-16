@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/config"
 	"github.com/dgraph-io/ristretto"
@@ -50,6 +51,8 @@ func NewProvider(cfg *config.Config) (*Provider, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to init ristretto: %w", err)
 		}
+		// Запускаем горутину для экспорта метрик Ristretto в Prometheus
+		go syncRistrettoMetrics(l1)
 	}
 
 	return &Provider{Redis: rdb, Ristretto: l1, Cfg: cfg}, nil
@@ -66,4 +69,17 @@ func (p *Provider) Close() error {
 		}
 	}
 	return nil
+}
+
+func syncRistrettoMetrics(c *ristretto.Cache) {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		// "global" т.к. Ristretto у нас один на всех в провайдере
+		m.L1Cost.WithLabelValues("global").Set(float64(c.Metrics.CostAdded() - c.Metrics.CostEvicted()))
+		// Ristretto напрямую не дает точный Count элементов в рантайме без блокировок,
+		// но можно косвенно следить за KeysAdded - KeysEvicted, если очень нужно.
+		// Для простоты оставим Cost.
+	}
 }

@@ -46,6 +46,8 @@ func NewManager[T any](provider *Provider, prefix string) *Manager[T] {
 // 3. Если нет — вызывает fetchFunc (БД) (через singleflight, чтобы не пробить БД)
 // 4. Сохраняет обратно в L1 и L2
 func (m *Manager[T]) GetOrSet(ctx context.Context, id string, fetch FetchFunc[T]) (*T, error) {
+	start := time.Now()
+
 	if !m.provider.Cfg.CacheEnabled {
 		return fetch()
 	}
@@ -55,6 +57,8 @@ func (m *Manager[T]) GetOrSet(ctx context.Context, id string, fetch FetchFunc[T]
 	// 1. L1: Ristretto (Memory) - Lock-free чтение
 	// Получаем сразу копию объекта, безопасно для модификаций
 	if v, ok := m.getL1(cacheKey); ok {
+		recordHitL1(m.prefix)
+		observeDuration(m.prefix, "l1", time.Since(start).Seconds())
 		return v, nil
 	}
 
@@ -63,35 +67,50 @@ func (m *Manager[T]) GetOrSet(ctx context.Context, id string, fetch FetchFunc[T]
 	val, err, _ := m.sf.Do(cacheKey, func() (any, error) {
 		// Внутри SingleFlight повторно проверяем L1 (на случай гонки)
 		if v, ok := m.getL1(cacheKey); ok {
+			recordHitL1(m.prefix)
 			return v, nil
 		}
 
 		// 3. L2: Redis
+		tRedis := time.Now()
 		entity, err := m.getL2(ctx, cacheKey)
-		if err == nil && entity != nil {
-			m.setL1(cacheKey, entity) // Прогреваем L1
+		if err == nil {
+			m.setL1(cacheKey, entity)
+			recordHitL2(m.prefix)
+			observeDuration(m.prefix, "l2", time.Since(tRedis).Seconds())
 			return entity, nil
 		}
 
 		if errors.Is(err, ErrSentinel) {
 			// HIT Найден маркер пустоты
 			// Записей с таким маркером нет в бд
+			recordHitL2(m.prefix)
 			return nil, domainerr.ErrNotFound
 		}
 
 		if err != nil && !errors.Is(err, ErrMiss) {
+			recordError(m.prefix)
 			logger.FromContext(ctx).Warn("cache: redis get error", "key", cacheKey, "err", err)
 		}
 
 		// 4. Source: DB (FetchFunc)
+		tFetch := time.Now()
 		fetched, err := fetch()
+		fetchDuration := time.Since(tFetch).Seconds()
+
 		if err != nil {
+			recordError(m.prefix)
 			return nil, err
 		}
 		if fetched == nil {
 			m.setL2Nil(cacheKey)
+			recordMiss(m.prefix)
+			observeDuration(m.prefix, "fetch", fetchDuration)
 			return nil, ErrMiss
 		}
+
+		recordMiss(m.prefix)
+		observeDuration(m.prefix, "fetch", fetchDuration)
 
 		// 5. Запись в L1 (Ristretto) и L2 (Redis)
 		blob, err := m.serialize(fetched)

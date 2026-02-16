@@ -22,6 +22,7 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/app"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/config"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/logger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -55,6 +56,15 @@ func main() {
 			serverErrors <- err
 		}
 	}()
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+
+		log.Info("metrics server starting", "addr", cfg.MetricsPort)
+		if err := http.ListenAndServe("0.0.0.0:"+cfg.MetricsPort, mux); err != nil {
+			log.Error("metrics server failed", "error", err)
+		}
+	}()
 
 	// --- 5. Health endpoint (опционально, для Docker/k8s HEALTHCHECK) ---
 	// Простой HTTP /healthz на отдельном порту
@@ -64,7 +74,7 @@ func main() {
 		_, _ = w.Write([]byte("ok"))
 	})
 	healthServer := &http.Server{
-		Addr:    ":8091",
+		Addr:    ":" + cfg.HealthPort,
 		Handler: healthMux,
 	}
 	go func() {

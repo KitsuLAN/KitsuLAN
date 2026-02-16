@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: "KitsuLAN"
+    orgId: 1
+    folder: "KitsuLAN"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

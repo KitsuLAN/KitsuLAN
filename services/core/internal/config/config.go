@@ -74,6 +74,10 @@ type Config struct {
 	CacheL1NumCounters int64 // Ожидаемое кол-во ключей * 10 (для Bloom filter)
 	CacheL1TTL         time.Duration
 	CacheL1Metrics     bool
+
+	// --- Observability ---
+	HealthPort  string
+	MetricsPort string
 }
 
 // Load загружает конфигурацию. Сначала пытается прочитать .env файл
@@ -130,6 +134,9 @@ func Load() (*Config, error) {
 		CacheL1NumCounters: getInt64Env("CACHE_L1_NUM_COUNTERS", 1_000_000),
 		CacheL1TTL:         getDurationEnv("CACHE_L1_TTL", 5*time.Minute),
 		CacheL1Metrics:     getBoolEnv("CACHE_L1_METRICS", false),
+
+		HealthPort:  getEnv("HEALTH_PORT", "8091"),
+		MetricsPort: getEnv("METRICS_PORT", "8092"),
 	}
 
 	if err := cfg.validate(); err != nil {
