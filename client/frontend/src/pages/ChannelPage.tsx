@@ -90,18 +90,37 @@ function ChatInput({ channelId }: { channelId: string }) {
     }
   };
 
+  // Обработчик нажатий
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+      // Перенос по Enter, отправка по Shift + Enter
+      if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault(); // Отмена стандартного переноса строки
+          send();
+      }
+  };
+
   return (
       <div className={S.input.wrapper}>
         <div className={S.input.container}>
-          <input
+          <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), send())}
               placeholder="Напишите сообщение..."
               className={S.input.field}
               disabled={loading}
+              rows={1}
+              // Примитивная подстройка высоты
+              onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = `${target.scrollHeight}px`;
+              }}
           />
-          <button onClick={send} disabled={!draft.trim() || loading} className={S.input.sendBtn}>
+          <button
+              onClick={send}
+              disabled={!draft.trim() || loading}
+              className={S.input.sendBtn}>
             ↑
           </button>
         </div>
@@ -183,7 +202,7 @@ const S = {
   input: {
     wrapper: "shrink-0 p-4",
     container: "flex items-center gap-2 rounded-lg border border-kitsu-s4 bg-kitsu-s2 px-3 py-2.5",
-    field: "min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/50",
+    field: "min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/50 resize-none min-h-[20px] max-h-[200px] py-1",
     sendBtn: "shrink-0 rounded-md bg-primary p-1.5 text-white disabled:opacity-20",
   },
 };
