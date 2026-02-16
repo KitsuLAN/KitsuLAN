@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
+	"net"
+	"net/http"
 	"sync"
 	"time"
 
@@ -404,4 +407,27 @@ func (a *App) UpdateProfile(nickname, bio, avatarURL *string) (*pb.User, error) 
 		return nil, err
 	}
 	return resp.User, nil
+}
+
+func (a *App) PingServer(addr string) bool {
+	// addr приходит как "host:8090".
+	// Нам нужно постучаться на "host:8091/healthz"
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		host = addr // если порта нет
+	}
+
+	healthAddr := fmt.Sprintf("http://%s:8091/healthz", host)
+
+	client := http.Client{
+		Timeout: 2 * time.Second, // Системный таймаут
+	}
+
+	resp, err := client.Get(healthAddr)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	return resp.StatusCode == http.StatusOK
 }

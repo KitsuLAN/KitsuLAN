@@ -59,6 +59,12 @@ const MOCK_CHANNEL: Channel = {
 };
 
 const Mock = {
+  PingServer: async (addr: string) => {
+    await delay(500);
+    // Для мока: считаем онлайн только localhost
+    return addr.includes("localhost");
+  },
+
   // Auth
   CheckServerStatus: async () => {
     await delay(100);
@@ -190,6 +196,7 @@ async function loadReal(): Promise<WailsApp> {
     const App = await import(/* @vite-ignore */ "../../wailsjs/go/main/App");
     // Собираем объект в локальную переменную — убирает ошибку с null
     const real: WailsApp = {
+      PingServer: App.PingServer,
       CheckServerStatus: App.CheckServerStatus,
       ConnectToServer: App.ConnectToServer,
       SetToken: App.SetToken,
@@ -224,6 +231,7 @@ function api(): Promise<WailsApp> {
 // ── Публичный API ─────────────────────────────────────────────────────────────
 
 export const WailsAPI = {
+  PingServer: (addr: string) => api().then(a => (a as any).PingServer(addr)),
   // Auth
   CheckServerStatus: () => api().then((a) => a.CheckServerStatus()),
   ConnectToServer: (addr: string) => api().then((a) => a.ConnectToServer(addr)),

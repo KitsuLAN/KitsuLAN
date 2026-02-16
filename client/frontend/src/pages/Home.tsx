@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/uikit/button";
-import { useGuilds, useGuildActions } from "@/modules/guilds/guildStore";
 import { cn } from "@/uikit/lib/utils";
 import {
   CreateGuildModal,
   JoinGuildModal,
 } from "@/modules/guilds/components/modals/GuildModal";
+import {useGuilds} from "@/modules/guilds/guildStore";
+import {GuildController} from "@/modules/guilds/GuildController";
 
 // ── Главная страница ──────────────────────────────────────────────────────
 
@@ -13,7 +14,6 @@ type ModalType = "create" | "join" | null;
 
 export default function Home() {
   const guilds = useGuilds();
-  const { selectGuild } = useGuildActions();
   const [modal, setModal] = useState<ModalType>(null);
 
   return (
@@ -74,7 +74,7 @@ export default function Home() {
                 return (
                   <button
                     key={g.id}
-                    onClick={() => selectGuild(g.id!)}
+                    onClick={() => GuildController.selectGuild(g.id!)}
                     className={cn(
                       "flex items-center gap-3 rounded-lg border border-kitsu-s4",
                       "bg-kitsu-s1 px-4 py-3 text-left transition-colors hover:bg-kitsu-s2"

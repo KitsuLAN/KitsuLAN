@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Modal } from "@/components/modals/Modal";
-import { useGuildActions } from "@/modules/guilds/guildStore";
+import {GuildController} from "@/modules/guilds/GuildController";
 
 export function InviteModal({
   guildID,
@@ -12,10 +12,9 @@ export function InviteModal({
 }) {
   const [code, setCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const { createInvite } = useGuildActions();
 
   useEffect(() => {
-    createInvite(guildID, 0, 0)
+    GuildController.createInvite(guildID, 0, 0)
       .then(setCode)
       .catch((e) => {
         toast.error(String(e));

@@ -1,9 +1,9 @@
 import { toast } from "sonner";
-import { Button } from "../../../../uikit/button";
-import { Input } from "../../../../uikit/input";
+import { Button } from "@/uikit/button";
+import { Input } from "@/uikit/input";
 import { Modal } from "@/components/modals/Modal";
-import { useGuildActions } from "@/modules/guilds/guildStore";
 import { useState } from "react";
+import {GuildController} from "@/modules/guilds/GuildController";
 
 // ── Диалог создания гильдии ───────────────────────────────────────────────
 
@@ -11,15 +11,14 @@ export function CreateGuildModal({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [loading, setLoading] = useState(false);
-  const { createGuild, selectGuild } = useGuildActions();
 
   const handleCreate = async () => {
     if (!name.trim()) return;
     setLoading(true);
     try {
-      const guild = await createGuild(name.trim(), desc.trim());
+      const guild = await GuildController.createGuild(name.trim(), desc.trim());
       toast.success(`Гильдия «${guild.name}» создана!`);
-      selectGuild(guild.id!);
+      await GuildController.selectGuild(guild.id!);
       onClose();
     } catch (e) {
       toast.error(String(e));
@@ -72,15 +71,14 @@ export function CreateGuildModal({ onClose }: { onClose: () => void }) {
 export function JoinGuildModal({ onClose }: { onClose: () => void }) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const { joinByInvite, selectGuild } = useGuildActions();
 
   const handleJoin = async () => {
     if (!code.trim()) return;
     setLoading(true);
     try {
-      const guild = await joinByInvite(code.trim());
+      const guild = await GuildController.joinByInvite(code.trim());
       toast.success(`Вы вступили в «${guild.name}»!`);
-      selectGuild(guild.id!);
+      await GuildController.selectGuild(guild.id!);
       onClose();
     } catch (e) {
       toast.error(String(e));

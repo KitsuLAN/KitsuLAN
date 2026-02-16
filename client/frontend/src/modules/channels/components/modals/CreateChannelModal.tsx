@@ -2,9 +2,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/uikit/button";
 import { Modal } from "@/components/modals/Modal";
-import { useGuildActions } from "@/modules/guilds/guildStore";
 import { CHANNEL_TYPE_TEXT, CHANNEL_TYPE_VOICE } from "@/api/wails";
 import { cn } from "@/uikit/lib/utils";
+import {GuildController} from "@/modules/guilds/GuildController";
 
 export function CreateChannelModal({
   guildID,
@@ -16,19 +16,18 @@ export function CreateChannelModal({
   const [name, setName] = useState("");
   const [type, setType] = useState<1 | 2>(CHANNEL_TYPE_TEXT);
   const [loading, setLoading] = useState(false);
-  const { createChannel, selectChannel } = useGuildActions();
 
   const handleCreate = async () => {
     if (!name.trim()) return;
     setLoading(true);
     try {
-      const ch = await createChannel(
+      const ch = await GuildController.createChannel(
         guildID,
         name.trim().toLowerCase().replace(/\s+/g, "-"),
         type
       );
       toast.success(`Канал #${ch.name} создан`);
-      if (type === CHANNEL_TYPE_TEXT) selectChannel(ch.id!);
+      if (type === CHANNEL_TYPE_TEXT) await GuildController.selectChannel(ch.id!);
       onClose();
     } catch (e) {
       toast.error(String(e));

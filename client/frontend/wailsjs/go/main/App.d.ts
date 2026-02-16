@@ -28,6 +28,8 @@ export function ListMyGuilds():Promise<Array<kitsulanv1.Guild>>;
 
 export function Login(arg1:string,arg2:string):Promise<string>;
 
+export function PingServer(arg1:string):Promise<boolean>;
+
 export function Register(arg1:string,arg2:string):Promise<string>;
 
 export function SendMessage(arg1:string,arg2:string):Promise<kitsulanv1.ChatMessage>;

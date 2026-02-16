@@ -24,8 +24,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/uikit/card";
-import { useAuthActions, useIsAuthenticated } from "@/modules/auth/authStore";
+import { useIsAuthenticated } from "@/modules/auth/authStore";
 import { useServerAddress } from "@/modules/server/serverStore";
+import {AuthController} from "@/modules/auth/AuthController";
 
 const schema = z.object({
   username: z.string().min(1, "Введите никнейм"),
@@ -37,7 +38,6 @@ export default function Login() {
   const navigate = useNavigate();
   const isAuthenticated = useIsAuthenticated();
   const serverAddress = useServerAddress();
-  const { login, register: registerUser } = useAuthActions();
   const [mode, setMode] = useState<"login" | "register">("login");
 
   const {
@@ -58,12 +58,12 @@ export default function Login() {
   const onSubmit = async (data: FormData) => {
     try {
       if (mode === "register") {
-        await registerUser(data.username, data.password);
+        await AuthController.register(data.username, data.password);
         toast.success("Аккаунт создан", { description: "Теперь войдите" });
         setMode("login");
         reset({ username: data.username, password: "" });
       } else {
-        await login(data.username, data.password);
+        await AuthController.login(data.username, data.password);
         // navigate произойдёт через useEffect выше
       }
     } catch (err) {

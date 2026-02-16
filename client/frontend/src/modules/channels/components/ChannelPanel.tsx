@@ -1,19 +1,20 @@
 import { useMemo, useState } from "react";
 import { ScrollArea } from "@/uikit/scroll-area";
 import { Avatar, AvatarFallback } from "@/uikit/avatar";
-import { useUsername, useAuthActions } from "@/modules/auth/authStore";
+import { useUsername } from "@/modules/auth/authStore";
 import {
   useActiveGuildID,
   useActiveChannelID,
   useActiveChannels,
   useGuilds,
-  useGuildActions,
 } from "@/modules/guilds/guildStore";
 import { CreateChannelModal } from "@/modules/channels/components/modals/CreateChannelModal";
 import { InviteModal } from "@/modules/guilds/components/modals/InviteModal";
 import { CHANNEL_TYPE_VOICE } from "@/api/wails";
 import type { Channel } from "@/api/wails";
 import { cn } from "@/uikit/lib/utils";
+import {GuildController} from "@/modules/guilds/GuildController";
+import {AuthController} from "@/modules/auth/AuthController";
 
 function ChannelItem({
   channel,
@@ -45,12 +46,10 @@ function ChannelItem({
 
 export function ChannelPanel() {
   const username = useUsername();
-  const { logout } = useAuthActions();
   const guilds = useGuilds();
   const activeGuildID = useActiveGuildID();
   const activeChannelID = useActiveChannelID();
   const channels = useActiveChannels();
-  const { selectChannel } = useGuildActions();
 
   const [showChannelModal, setShowChannelModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -106,7 +105,7 @@ export function ChannelPanel() {
                   key={ch.id}
                   channel={ch}
                   active={activeChannelID === ch.id}
-                  onClick={() => selectChannel(ch.id!)}
+                  onClick={() => GuildController.selectChannel(ch.id!)}
                 />
               ))}
             </div>
@@ -124,7 +123,7 @@ export function ChannelPanel() {
                   key={ch.id}
                   channel={ch}
                   active={activeChannelID === ch.id}
-                  onClick={() => selectChannel(ch.id!)}
+                  onClick={() => GuildController.selectChannel(ch.id!)}
                 />
               ))}
             </div>
@@ -167,7 +166,7 @@ export function ChannelPanel() {
               </button>
             ))}
             <button
-              onClick={logout}
+              onClick={AuthController.logout}
               title="Выйти"
               className="rounded p-1 text-sm text-muted-foreground hover:bg-kitsu-s3 hover:text-destructive transition-colors"
             >

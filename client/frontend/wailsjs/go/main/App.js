@@ -54,6 +54,10 @@ export function Login(arg1, arg2) {
   return window['go']['main']['App']['Login'](arg1, arg2);
 }
 
+export function PingServer(arg1) {
+  return window['go']['main']['App']['PingServer'](arg1);
+}
+
 export function Register(arg1, arg2) {
   return window['go']['main']['App']['Register'](arg1, arg2);
 }

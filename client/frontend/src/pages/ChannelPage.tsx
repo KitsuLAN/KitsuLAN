@@ -1,20 +1,31 @@
 import { useEffect, useRef, useState } from "react";
 import { ScrollArea } from "@/uikit/scroll-area";
-import { useUsername } from "@/modules/auth/authStore";
 import { useActiveChannelID, useActiveChannels } from "@/modules/guilds/guildStore";
 import {
   useChatMessages,
   useChatHasMore,
-  useChatActions,
-  useChannelSubscription,
 } from "@/modules/chat/chatStore";
 import { timestampPbToISO, type ChatMessage } from "@/api/wails";
 import { cn } from "@/uikit/lib/utils";
+import {ChatController} from "@/modules/chat/ChatController";
+import {useUsername} from "@/modules/auth/authStore";
+import {useChannelSubscription} from "@/modules/chat/hooks/useChannelSubscription";
 
 function formatTime(iso?: string): string {
   if (!iso) return "";
   const d = new Date(iso);
   return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function ChatPlaceHolder() {
+  return (
+      <div className="flex h-full items-center justify-center text-muted-foreground">
+        <div className="text-center">
+          <div className="mb-3 text-4xl">👈</div>
+          <p className="text-sm">Выберите канал</p>
+        </div>
+      </div>
+  )
 }
 
 // ── Компонент сообщения ──
@@ -75,7 +86,6 @@ export default function ChannelPage() {
 
   const messages = useChatMessages(channelID);
   const hasMore = useChatHasMore(channelID);
-  const { loadHistory, sendMessage } = useChatActions();
 
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -93,25 +103,20 @@ export default function ChannelPage() {
   // Placeholder пока канал не выбран
   if (!channelID) {
     return (
-      <div className="flex h-full items-center justify-center text-muted-foreground">
-        <div className="text-center">
-          <div className="mb-3 text-4xl">👈</div>
-          <p className="text-sm">Выберите канал</p>
-        </div>
-      </div>
+      <ChatPlaceHolder/>
     );
   }
 
   const handleSend = async () => {
     const text = draft.trim();
-    if (!text || sending || !channelID) return;
+    if (!text || sending) return;
+
     setSending(true);
-    setDraft("");
     try {
-      await sendMessage(channelID, text);
-    } catch {
-      // Возвращаем текст обратно в инпут если не отправилось
-      setDraft(text);
+      await ChatController.sendMessage(channelID, text);
+      setDraft(""); // Очищаем только при успехе
+    } catch (e) {
+      // Сообщение об ошибке (можно добавить toast)
     } finally {
       setSending(false);
       inputRef.current?.focus();
@@ -120,7 +125,7 @@ export default function ChannelPage() {
 
   const handleLoadMore = () => {
     if (!hasMore || messages.length === 0) return;
-    loadHistory(channelID, messages[0].id);
+    ChatController.loadHistory(channelID, messages[0].id);
   };
 
   return (
