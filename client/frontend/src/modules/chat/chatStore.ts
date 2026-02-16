@@ -9,8 +9,8 @@
 import { create } from "zustand";
 import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { WailsAPI } from "@/lib/wails";
-import type { ChatMessage, MessageDeleted } from "@/lib/wails";
+import { WailsAPI } from "@/api/wails";
+import type { ChatMessage, MessageDeleted } from "@/api/wails";
 
 type StrictChatMessage = ChatMessage & {
   id: string;
@@ -38,7 +38,7 @@ function normalizeMessageDeleted(
 // Импортируем динамически чтобы не падать в браузере.
 async function getWailsRuntime() {
   try {
-    return await import(/* @vite-ignore */ "../../wailsjs/runtime/runtime");
+    return await import(/* @vite-ignore */ "../../../wailsjs/runtime");
   } catch {
     return null;
   }

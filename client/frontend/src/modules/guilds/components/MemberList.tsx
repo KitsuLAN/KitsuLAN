@@ -1,8 +1,8 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useActiveMembers } from "@/stores/guildStore";
-import type { Member } from "@/lib/wails";
-import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/uikit/scroll-area";
+import { Avatar, AvatarFallback } from "@/uikit/avatar";
+import { useActiveMembers } from "@/modules/guilds/guildStore";
+import type { Member } from "@/api/wails";
+import { cn } from "@/uikit/lib/utils";
 
 function MemberItem({ member }: { member: Member }) {
   const displayName = member.nickname || member.username || "?";

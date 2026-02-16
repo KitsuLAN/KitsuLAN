@@ -14,18 +14,18 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { LogIn, UserPlus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/uikit/button";
+import { Input } from "@/uikit/input";
+import { Label } from "@/uikit/label";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useAuthActions, useIsAuthenticated } from "@/stores/authStore";
-import { useServerAddress } from "@/stores/serverStore";
+} from "@/uikit/card";
+import { useAuthActions, useIsAuthenticated } from "@/modules/auth/authStore";
+import { useServerAddress } from "@/modules/server/serverStore";
 
 const schema = z.object({
   username: z.string().min(1, "Введите никнейм"),

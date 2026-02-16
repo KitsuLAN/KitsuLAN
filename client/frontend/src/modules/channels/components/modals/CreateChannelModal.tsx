@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/layout/Modal";
-import { useGuildActions } from "@/stores/guildStore";
-import { CHANNEL_TYPE_TEXT, CHANNEL_TYPE_VOICE } from "@/lib/wails";
-import { cn } from "@/lib/utils";
+import { Button } from "@/uikit/button";
+import { Modal } from "@/components/modals/Modal";
+import { useGuildActions } from "@/modules/guilds/guildStore";
+import { CHANNEL_TYPE_TEXT, CHANNEL_TYPE_VOICE } from "@/api/wails";
+import { cn } from "@/uikit/lib/utils";
 
 export function CreateChannelModal({
   guildID,

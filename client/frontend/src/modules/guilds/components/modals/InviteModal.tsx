@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Modal } from "@/components/layout/Modal";
-import { useGuildActions } from "@/stores/guildStore";
+import { Modal } from "@/components/modals/Modal";
+import { useGuildActions } from "@/modules/guilds/guildStore";
 
 export function InviteModal({
   guildID,

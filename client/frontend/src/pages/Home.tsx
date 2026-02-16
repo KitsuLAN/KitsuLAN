@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { useGuilds, useGuildActions } from "@/stores/guildStore";
-import { cn } from "@/lib/utils";
+import { Button } from "@/uikit/button";
+import { useGuilds, useGuildActions } from "@/modules/guilds/guildStore";
+import { cn } from "@/uikit/lib/utils";
 import {
   CreateGuildModal,
   JoinGuildModal,
-} from "@/components/layout/GuildModal";
+} from "@/modules/guilds/components/modals/GuildModal";
 
 // ── Главная страница ──────────────────────────────────────────────────────
 

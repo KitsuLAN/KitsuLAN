@@ -3,7 +3,7 @@
  * Редиректит на /auth (а не на /) если не залогинен.
  */
 import { Navigate, Outlet } from "react-router-dom";
-import { useIsAuthenticated } from "@/stores/authStore";
+import { useIsAuthenticated } from "@/modules/auth/authStore";
 
 export function PrivateRoute() {
   const isAuthenticated = useIsAuthenticated();

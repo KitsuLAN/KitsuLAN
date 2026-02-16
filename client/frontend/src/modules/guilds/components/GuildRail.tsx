@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/uikit/separator";
 import {
   useGuilds,
   useActiveGuildID,
   useGuildActions,
-} from "@/stores/guildStore";
-import type { Guild } from "@/lib/wails";
-import { cn } from "@/lib/utils";
+} from "@/modules/guilds/guildStore";
+import type { Guild } from "@/api/wails";
+import { cn } from "@/uikit/lib/utils";
 
 function GuildIcon({
   guild,

@@ -1,19 +1,19 @@
 import { useMemo, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useUsername, useAuthActions } from "@/stores/authStore";
+import { ScrollArea } from "@/uikit/scroll-area";
+import { Avatar, AvatarFallback } from "@/uikit/avatar";
+import { useUsername, useAuthActions } from "@/modules/auth/authStore";
 import {
   useActiveGuildID,
   useActiveChannelID,
   useActiveChannels,
   useGuilds,
   useGuildActions,
-} from "@/stores/guildStore";
-import { CreateChannelModal } from "@/components/layout/CreateChannelModal";
-import { InviteModal } from "@/components/layout/InviteModal";
-import { CHANNEL_TYPE_VOICE } from "@/lib/wails";
-import type { Channel } from "@/lib/wails";
-import { cn } from "@/lib/utils";
+} from "@/modules/guilds/guildStore";
+import { CreateChannelModal } from "@/modules/channels/components/modals/CreateChannelModal";
+import { InviteModal } from "@/modules/guilds/components/modals/InviteModal";
+import { CHANNEL_TYPE_VOICE } from "@/api/wails";
+import type { Channel } from "@/api/wails";
+import { cn } from "@/uikit/lib/utils";
 
 function ChannelItem({
   channel,

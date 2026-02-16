@@ -6,8 +6,8 @@
  */
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-import { WailsAPI } from "@/lib/wails";
-import type { Guild, Channel, Member } from "@/lib/wails";
+import { WailsAPI } from "@/api/wails";
+import type { Guild, Channel, Member } from "@/api/wails";
 
 interface GuildState {
   guilds: Guild[];

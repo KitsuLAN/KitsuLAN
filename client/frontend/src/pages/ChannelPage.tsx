@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useUsername } from "@/stores/authStore";
-import { useActiveChannelID, useActiveChannels } from "@/stores/guildStore";
+import { ScrollArea } from "@/uikit/scroll-area";
+import { useUsername } from "@/modules/auth/authStore";
+import { useActiveChannelID, useActiveChannels } from "@/modules/guilds/guildStore";
 import {
   useChatMessages,
   useChatHasMore,
   useChatActions,
   useChannelSubscription,
-} from "@/stores/chatStore";
-import { timestampPbToISO, type ChatMessage } from "@/lib/wails";
-import { cn } from "@/lib/utils";
+} from "@/modules/chat/chatStore";
+import { timestampPbToISO, type ChatMessage } from "@/api/wails";
+import { cn } from "@/uikit/lib/utils";
 
 function formatTime(iso?: string): string {
   if (!iso) return "";
@@ -67,7 +67,7 @@ function MessageItem({ msg, isOwn }: { msg: ChatMessage; isOwn: boolean }) {
 }
 
 // ── Главный компонент ──
-export default function Chat() {
+export default function ChannelPage() {
   const username = useUsername() ?? "";
   const channelID = useActiveChannelID();
   const channels = useActiveChannels();

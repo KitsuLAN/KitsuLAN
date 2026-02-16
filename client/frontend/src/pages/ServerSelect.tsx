@@ -5,11 +5,11 @@
  */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { WailsAPI } from "@/lib/wails";
-import { useServerActions, useServerAddress } from "@/stores/serverStore";
-import { cn } from "@/lib/utils";
+import { Button } from "@/uikit/button";
+import { Input } from "@/uikit/input";
+import { WailsAPI } from "@/api/wails";
+import { useServerActions, useServerAddress } from "@/modules/server/serverStore";
+import { cn } from "@/uikit/lib/utils";
 
 // Список известных серверов — в будущем можно хранить в serverStore
 const KNOWN_SERVERS = [

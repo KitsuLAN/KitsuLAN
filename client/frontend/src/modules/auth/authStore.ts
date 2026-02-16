@@ -5,7 +5,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useShallow } from "zustand/react/shallow";
-import { WailsAPI } from "@/lib/wails";
+import { WailsAPI } from "@/api/wails";
 
 interface AuthState {
   token: string | null;

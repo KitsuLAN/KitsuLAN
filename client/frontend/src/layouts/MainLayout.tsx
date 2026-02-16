@@ -1,16 +1,16 @@
 import { useEffect, useMemo } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { Separator } from "@/components/ui/separator";
-import { GuildRail } from "@/components/layout/GuildRail";
-import { ChannelPanel } from "@/components/layout/ChannelPanel";
-import { MemberList } from "@/components/layout/MemberList";
+import { Separator } from "@/uikit/separator";
+import { GuildRail } from "@/modules/guilds/components/GuildRail";
+import { ChannelPanel } from "@/modules/channels/components/ChannelPanel";
+import { MemberList } from "@/modules/guilds/components/MemberList";
 import {
   useGuilds,
   useActiveGuildID,
   useActiveChannelID,
   useActiveChannels,
   useGuildActions,
-} from "@/stores/guildStore";
+} from "@/modules/guilds/guildStore";
 
 export default function MainLayout() {
   const navigate = useNavigate();

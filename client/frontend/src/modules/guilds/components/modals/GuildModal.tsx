@@ -1,8 +1,8 @@
 import { toast } from "sonner";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Modal } from "./Modal";
-import { useGuildActions } from "@/stores/guildStore";
+import { Button } from "../../../../uikit/button";
+import { Input } from "../../../../uikit/input";
+import { Modal } from "@/components/modals/Modal";
+import { useGuildActions } from "@/modules/guilds/guildStore";
 import { useState } from "react";
 
 // ── Диалог создания гильдии ───────────────────────────────────────────────

@@ -1,18 +1,18 @@
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/uikit/sonner";
 
 import ServerSelect from "@/pages/ServerSelect";
 import Login from "@/pages/Login";
-import MainLayout from "@/pages/MainLayout";
+import MainLayout from "@/layouts/MainLayout";
 import Home from "@/pages/Home";
-import Chat from "@/pages/Chat";
+import ChannelPage from "@/pages/ChannelPage";
 import { PrivateRoute } from "@/components/PrivateRoute";
-import { useActiveChannelID } from "@/stores/guildStore";
+import { useActiveChannelID } from "@/modules/guilds/guildStore";
 
 // Показывает Home или Chat в зависимости от выбранного канала
 function AppContent() {
   const channelID = useActiveChannelID();
-  return channelID ? <Chat /> : <Home />;
+  return channelID ? <ChannelPage /> : <Home />;
 }
 
 export default function App() {
