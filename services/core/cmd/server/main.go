@@ -38,7 +38,7 @@ func main() {
 	log := logger.New(cfg.Env)
 	log.Info("KitsuLAN Core Service starting",
 		"env", cfg.Env,
-		"grpc_addr", cfg.GRPCAddr,
+		"grpc_addr", cfg.ListenAddr+cfg.PublicApiPort,
 		"db_driver", cfg.DBDriver,
 	)
 
@@ -74,7 +74,7 @@ func main() {
 		_, _ = w.Write([]byte("ok"))
 	})
 	healthServer := &http.Server{
-		Addr:    ":" + cfg.HealthPort,
+		Addr:    cfg.ListenAddr + cfg.HealthPort,
 		Handler: healthMux,
 	}
 	go func() {
@@ -82,7 +82,7 @@ func main() {
 			log.Warn("health server stopped", "error", err)
 		}
 	}()
-	log.Info("health endpoint started", "addr", ":8091/healthz")
+	log.Info("health endpoint started", "addr", cfg.ListenAddr+cfg.HealthPort+"/healthz")
 
 	// --- 6. Wait for shutdown signal ---
 	quit := make(chan os.Signal, 1)

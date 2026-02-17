@@ -88,9 +88,9 @@ func New(cfg *config.Config, log *slog.Logger) (*App, error) {
 	}
 
 	// 6. TCP Listener
-	lis, err := net.Listen("tcp", cfg.GRPCAddr)
+	lis, err := net.Listen("tcp", cfg.ListenAddr+cfg.PublicApiPort)
 	if err != nil {
-		return nil, fmt.Errorf("failed to listen on %s: %w", cfg.GRPCAddr, err)
+		return nil, fmt.Errorf("failed to listen on %s: %w", cfg.ListenAddr+cfg.PublicApiPort, err)
 	}
 
 	return &App{

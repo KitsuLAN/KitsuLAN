@@ -15,7 +15,6 @@ import (
 type Config struct {
 	// --- Server ---
 	Env          string        // "development" | "production"
-	GRPCAddr     string        // ":8090"
 	ReadTimeout  time.Duration // таймаут чтения gRPC запроса
 	WriteTimeout time.Duration // таймаут записи gRPC ответа
 
@@ -76,8 +75,10 @@ type Config struct {
 	CacheL1Metrics     bool
 
 	// --- Observability ---
-	HealthPort  string
-	MetricsPort string
+	ListenAddr    string // ""
+	PublicApiPort string // "8090"
+	HealthPort    string
+	MetricsPort   string
 }
 
 // Load загружает конфигурацию. Сначала пытается прочитать .env файл
@@ -87,8 +88,7 @@ func Load() (*Config, error) {
 	_ = godotenv.Load()
 
 	cfg := &Config{
-		Env:      getEnv("APP_ENV", "development"),
-		GRPCAddr: getEnv("GRPC_ADDR", ":8090"),
+		Env: getEnv("APP_ENV", "development"),
 
 		ReadTimeout:  getDurationEnv("READ_TIMEOUT", 30*time.Second),
 		WriteTimeout: getDurationEnv("WRITE_TIMEOUT", 30*time.Second),
@@ -135,8 +135,10 @@ func Load() (*Config, error) {
 		CacheL1TTL:         getDurationEnv("CACHE_L1_TTL", 5*time.Minute),
 		CacheL1Metrics:     getBoolEnv("CACHE_L1_METRICS", false),
 
-		HealthPort:  getEnv("HEALTH_PORT", "8091"),
-		MetricsPort: getEnv("METRICS_PORT", "8092"),
+		ListenAddr:    getAddrEnv("LISTEN_ADDR", "0.0.0.0"),
+		PublicApiPort: getEnv("PUBLIC_API_PORT", "8090"),
+		HealthPort:    getEnv("HEALTH_PORT", "8091"),
+		MetricsPort:   getEnv("METRICS_PORT", "8092"),
 	}
 
 	if err := cfg.validate(); err != nil {
@@ -211,6 +213,13 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func getAddrEnv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v + ":"
+	}
+	return fallback + ":"
 }
 
 func getBoolEnv(key string, fallback bool) bool {
