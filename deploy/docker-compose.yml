@@ -1,7 +1,13 @@
 services:
+  # ==========================================
+  # Core Infrastructure (Default Profile)
+  # Запускается всегда при 'docker compose up'
+  # ==========================================
+
   # --- LiveKit Server (SFU) ---
   livekit:
     image: livekit/livekit-server:latest
+    container_name: kitsulan_livekit
     command: --config /etc/livekit.yaml
     ports:
       - "7880:7880"   # API / WebSocket
@@ -19,12 +25,16 @@ services:
   # --- Redis (Message Broker & Cache) ---
   redis:
     image: redis:7-alpine
+    container_name: kitsulan_redis
     ports:
       - "6379:6379"
+    restart: always
+
 
   # --- PostgreSQL (Database) ---
   postgres:
     image: postgres:15-alpine
+    container_name: kitsulan_postgres
     environment:
       POSTGRES_USER: kitsu
       POSTGRES_PASSWORD: kitsu_password
@@ -33,10 +43,13 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: always
+
 
   # --- MinIO (S3 Compatible Storage - для файлов) ---
   minio:
     image: minio/minio
+    container_name: kitsulan_minio
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: kitsu_minio
@@ -46,12 +59,51 @@ services:
       - "9001:9001" # Console UI
     volumes:
       - minio_data:/data
+    restart: always
 
+
+  # ==========================================
+  # Backend Service (Profile: "app")
+  # ==========================================
+
+  kitsulan_service_core:
+    container_name: kitsulan_service_core
+    build:
+      context: ../services/core
+      dockerfile: Dockerfile # Используем Production Dockerfile
+    # Профиль "app".
+    # Если ты хочешь запускать app локально через Air, не указывай этот профиль.
+    # Если хочешь запустить всё в докере: docker compose --profile app up
+    profiles: ["app"]
+    environment:
+      - APP_ENV=production
+      # Обращаемся к сервисам по их именам в Docker Network
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=kitsu
+      - DB_PASSWORD=kitsu_password
+      - DB_NAME=kitsulan
+      - REDIS_ADDR=redis:6379
+      - JWT_SECRET=dev-secret-change-this-in-production-please
+    ports:
+      - "8090:8090" # gRPC
+      - "8091:8091" # Health
+      - "8092:8092" # Metrics
+    depends_on:
+      - postgres
+      - redis
+      - livekit
+    restart: unless-stopped
+
+  # ==========================================
+  # Observability Stack (Profile: "monitoring")
+  # ==========================================
 
   # --- Prometheus (Сбор метрик) ---
   prometheus:
     image: prom/prometheus:latest
     container_name: kitsulan_prometheus
+    profiles: ["monitoring"]
     ports:
       - "9090:9090"
     volumes:
@@ -69,6 +121,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: kitsulan_grafana
+    profiles: ["monitoring"]
     ports:
       - "3000:3000"
     environment:
@@ -85,6 +138,7 @@ services:
   loki:
     image: grafana/loki:2.9.8
     container_name: kitsulan_loki
+    profiles: ["monitoring"]
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
@@ -94,6 +148,7 @@ services:
   promtail:
     image: grafana/promtail:2.9.8
     container_name: kitsulan_promtail
+    profiles: ["monitoring"]
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
