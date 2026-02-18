@@ -221,6 +221,13 @@ func (s *GuildService) DeleteChannel(ctx context.Context, channelID, callerID st
 }
 
 func (s *GuildService) ListChannels(ctx context.Context, guildID, callerID string) ([]domain.Channel, error) {
+	// BUG(client)
+	// NOTE: иногда клиенты присылают guildID="undefined".
+	// Это нарушение клиентского контракта API.
+	// Намеренно не валидируем guildID:
+	//   - чтобы не добавлять лишний overhead в hot path
+	//   - чтобы не раскрывать существование ресурсов через ErrNotFound
+	// Проверки прав доступа достаточно для безопасного отклонения запроса.
 	isMember, err := s.guilds.IsMember(ctx, guildID, callerID)
 	if err != nil || !isMember {
 		return nil, domainerr.ErrPermissionDenied

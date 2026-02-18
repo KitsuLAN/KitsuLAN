@@ -6,11 +6,11 @@ package middleware
 
 import (
 	"context"
-	"log/slog"
 	"runtime/debug"
 	"strings"
 	"time"
 
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -29,7 +29,7 @@ const (
 
 // UnaryRecovery перехватывает панику в unary-обработчиках и возвращает
 // Internal gRPC ошибку вместо падения процесса.
-func UnaryRecovery(log *slog.Logger) grpc.UnaryServerInterceptor {
+func UnaryRecovery() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -38,6 +38,7 @@ func UnaryRecovery(log *slog.Logger) grpc.UnaryServerInterceptor {
 	) (resp any, err error) {
 		defer func() {
 			if r := recover(); r != nil {
+				log := logger.FromContext(ctx).With("component", "middleware")
 				log.Error("panic recovered in gRPC handler",
 					"method", info.FullMethod,
 					"panic", r,
@@ -51,7 +52,7 @@ func UnaryRecovery(log *slog.Logger) grpc.UnaryServerInterceptor {
 }
 
 // StreamRecovery — то же самое для stream-обработчиков.
-func StreamRecovery(log *slog.Logger) grpc.StreamServerInterceptor {
+func StreamRecovery() grpc.StreamServerInterceptor {
 	return func(
 		srv any,
 		ss grpc.ServerStream,
@@ -60,6 +61,7 @@ func StreamRecovery(log *slog.Logger) grpc.StreamServerInterceptor {
 	) (err error) {
 		defer func() {
 			if r := recover(); r != nil {
+				log := logger.FromContext(ss.Context()).With("component", "middleware")
 				log.Error("panic recovered in gRPC stream handler",
 					"method", info.FullMethod,
 					"panic", r,
@@ -76,7 +78,7 @@ func StreamRecovery(log *slog.Logger) grpc.StreamServerInterceptor {
 
 // UnaryLogging логирует каждый входящий unary-запрос с деталями:
 // метод, статус, время выполнения, user_id (если авторизован).
-func UnaryLogging(log *slog.Logger) grpc.UnaryServerInterceptor {
+func UnaryLogging() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -103,6 +105,7 @@ func UnaryLogging(log *slog.Logger) grpc.UnaryServerInterceptor {
 			attrs = append(attrs, "user_id", uid)
 		}
 
+		log := logger.FromContext(ctx).With("component", "middleware")
 		if err != nil && code != codes.Unauthenticated && code != codes.NotFound {
 			log.Error("gRPC call failed", append(attrs, "error", err)...)
 		} else {

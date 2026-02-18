@@ -62,7 +62,7 @@ func New(cfg *config.Config, log *slog.Logger) (*App, error) {
 	services := initServices(db, cfg, cacheProvider)
 
 	// 3. gRPC Сервер
-	grpcSrv, err := initGRPCServer(cfg, log, services)
+	grpcSrv, err := initGRPCServer(cfg, services)
 	if err != nil {
 		return nil, fmt.Errorf("grpc init: %w", err)
 	}
@@ -187,16 +187,20 @@ func initServices(db *gorm.DB, cfg *config.Config, cp *cache.Provider) *serviceD
 	}
 }
 
-func initGRPCServer(cfg *config.Config, log *slog.Logger, s *serviceDeps) (*grpc.Server, error) {
-	mwLog := log.With("component", "middleware")
+func initGRPCServer(cfg *config.Config, s *serviceDeps) (*grpc.Server, error) {
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			middleware.UnaryRecovery(mwLog),
+			// 1. Включаем в логгинг Request ID (обогащает контекст логгером с ID)
+			middleware.UnaryRequestID(),
+			// 2. Ловим паники
+			middleware.UnaryRecovery(),
+			// 3. Авторизация
 			middleware.UnaryAuth(cfg.JWTSecret),
-			middleware.UnaryLogging(mwLog),
+			// 4. Логируем сам запрос
+			middleware.UnaryLogging(),
 		),
 		grpc.ChainStreamInterceptor(
-			middleware.StreamRecovery(mwLog),
+			middleware.StreamRecovery(),
 			middleware.StreamAuth(cfg.JWTSecret),
 		),
 	)
