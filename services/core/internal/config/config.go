@@ -15,6 +15,7 @@ import (
 type Config struct {
 	// --- Server ---
 	Env          string        // "development" | "production"
+	RealmID      string        // Идентификатор текущего узла/сервиса
 	ReadTimeout  time.Duration // таймаут чтения gRPC запроса
 	WriteTimeout time.Duration // таймаут записи gRPC ответа
 
@@ -31,6 +32,7 @@ type Config struct {
 	DBSQLitePath string
 
 	// --- JWT ---
+	JWTKeyID           string
 	JWTSecret          string
 	JWTAccessTokenTTL  time.Duration
 	JWTRefreshTokenTTL time.Duration
@@ -88,7 +90,8 @@ func Load() (*Config, error) {
 	_ = godotenv.Load()
 
 	cfg := &Config{
-		Env: getEnv("APP_ENV", "development"),
+		Env:     getEnv("APP_ENV", "development"),
+		RealmID: getEnv("APP_REALM_ID", "kitsu-core-local"),
 
 		ReadTimeout:  getDurationEnv("READ_TIMEOUT", 30*time.Second),
 		WriteTimeout: getDurationEnv("WRITE_TIMEOUT", 30*time.Second),
@@ -102,6 +105,7 @@ func Load() (*Config, error) {
 		DBSSLMode:    getEnv("DB_SSL_MODE", "disable"),
 		DBSQLitePath: getEnv("DB_SQLITE_PATH", "kitsulan.db"),
 
+		JWTKeyID:           getEnv("JWT_KEY_ID", "kn-key-2026-02"),
 		JWTSecret:          getEnv("JWT_SECRET", ""),
 		JWTAccessTokenTTL:  getDurationEnv("JWT_ACCESS_TTL", 24*time.Hour),
 		JWTRefreshTokenTTL: getDurationEnv("JWT_REFRESH_TTL", 7*24*time.Hour),

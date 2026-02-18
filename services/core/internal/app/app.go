@@ -194,14 +194,14 @@ func initGRPCServer(cfg *config.Config, s *serviceDeps) (*grpc.Server, error) {
 			middleware.UnaryRequestID(),
 			// 2. Ловим паники
 			middleware.UnaryRecovery(),
-			// 3. Авторизация
-			middleware.UnaryAuth(cfg.JWTSecret),
-			// 4. Логируем сам запрос
+			// 3. Логируем сам запрос
 			middleware.UnaryLogging(),
+			// 4. Авторизация
+			middleware.UnaryAuth(s.auth),
 		),
 		grpc.ChainStreamInterceptor(
 			middleware.StreamRecovery(),
-			middleware.StreamAuth(cfg.JWTSecret),
+			middleware.StreamAuth(s.auth),
 		),
 	)
 

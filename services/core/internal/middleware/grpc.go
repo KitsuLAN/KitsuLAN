@@ -6,11 +6,14 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"runtime/debug"
 	"strings"
 	"time"
 
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/logger"
+	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -23,7 +26,21 @@ type contextKey string
 
 const (
 	ContextKeyUserID contextKey = "user_id"
+	ContextKeyClaims contextKey = "claims"
 )
+
+func mapAuthError(err error) error {
+	switch {
+	case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, domainerr.ErrTokenExpired):
+		return status.Error(codes.Unauthenticated, "token expired")
+
+	case errors.Is(err, domainerr.ErrTokenInvalid):
+		return status.Error(codes.Unauthenticated, "invalid token")
+
+	default:
+		return status.Error(codes.Unauthenticated, "auth failed")
+	}
+}
 
 // --- Recovery Interceptor ---
 
@@ -126,9 +143,13 @@ var publicMethods = map[string]struct{}{
 	"/kitsulan.v1.AuthService/RefreshToken": {},
 }
 
+type tokenValidator interface {
+	ValidateAccessToken(ctx context.Context, token string) (*domain.AuthClaims, error)
+}
+
 // UnaryAuth проверяет JWT-токен для защищённых методов.
 // Добавляет UserID в контекст при успешной проверке.
-func UnaryAuth(jwtSecret string) grpc.UnaryServerInterceptor {
+func UnaryAuth(auth tokenValidator) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -140,30 +161,41 @@ func UnaryAuth(jwtSecret string) grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		userID, err := extractAndValidateToken(ctx, jwtSecret)
+		tokenStr, err := extractBearer(ctx)
 		if err != nil {
 			return nil, err
 		}
 
+		claims, err := auth.ValidateAccessToken(ctx, tokenStr)
+		if err != nil {
+			return nil, mapAuthError(err) // Конвертируем доменную ошибку в gRPC статус
+		}
+
 		// Добавляем UserID в контекст для использования в обработчиках
-		ctx = context.WithValue(ctx, ContextKeyUserID, userID)
+		ctx = context.WithValue(ctx, ContextKeyUserID, claims.UserID)
+		ctx = context.WithValue(ctx, ContextKeyClaims, claims)
 		return handler(ctx, req)
 	}
 }
 
 // StreamAuth — interceptor авторизации для streaming RPC.
-func StreamAuth(jwtSecret string) grpc.StreamServerInterceptor {
+func StreamAuth(auth tokenValidator) grpc.StreamServerInterceptor {
 	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		if _, ok := publicMethods[info.FullMethod]; ok {
 			return handler(srv, ss)
 		}
 
-		userID, err := extractAndValidateToken(ss.Context(), jwtSecret)
+		tokenStr, err := extractBearer(ss.Context())
 		if err != nil {
 			return err // extractAndValidateToken уже возвращает gRPC status error
 		}
 
-		newCtx := context.WithValue(ss.Context(), ContextKeyUserID, userID)
+		claims, err := auth.ValidateAccessToken(ss.Context(), tokenStr)
+		if err != nil {
+			return mapAuthError(err)
+		}
+
+		newCtx := context.WithValue(ss.Context(), ContextKeyUserID, claims.UserID)
 		return handler(srv, &wrappedStream{ServerStream: ss, ctx: newCtx})
 	}
 }
@@ -182,8 +214,7 @@ func UserIDFromContext(ctx context.Context) (string, bool) {
 	return uid, ok && uid != ""
 }
 
-// extractAndValidateToken достаёт Bearer-токен из gRPC metadata и валидирует его.
-func extractAndValidateToken(ctx context.Context, secret string) (string, error) {
+func extractBearer(ctx context.Context) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return "", status.Error(codes.Unauthenticated, "missing metadata")
@@ -194,35 +225,12 @@ func extractAndValidateToken(ctx context.Context, secret string) (string, error)
 		return "", status.Error(codes.Unauthenticated, "missing authorization header")
 	}
 
-	// Формат: "Bearer <token>"
 	raw := values[0]
 	if !strings.HasPrefix(raw, "Bearer ") {
-		return "", status.Error(codes.Unauthenticated, "invalid authorization format, use: Bearer <token>")
-	}
-	tokenString := strings.TrimPrefix(raw, "Bearer ")
-
-	// Парсим и валидируем JWT
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "unexpected signing method: %v", t.Header["alg"])
-		}
-		return []byte(secret), nil
-	})
-	if err != nil || !token.Valid {
-		return "", status.Error(codes.Unauthenticated, "invalid or expired token")
+		return "", status.Error(codes.Unauthenticated, "invalid authorization format")
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return "", status.Error(codes.Unauthenticated, "invalid token claims")
-	}
-
-	userID, ok := claims["user_id"].(string)
-	if !ok || userID == "" {
-		return "", status.Error(codes.Unauthenticated, "user_id not found in token")
-	}
-
-	return userID, nil
+	return strings.TrimPrefix(raw, "Bearer "), nil
 }
 
 // MustUserID извлекает UserID из контекста.
