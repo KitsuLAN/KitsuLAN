@@ -58,6 +58,24 @@ export const GuildController = {
         const state = useGuildStore.getState();
         if (state.activeChannelID === channelID) return;
 
+        let guildID: string | null = null;
+        for (const [gid, channels] of Object.entries(state.channelsByGuild)) {
+            if (channels.some(c => c.id === channelID)) {
+                guildID = gid;
+                break;
+            }
+        }
+
+        if (!guildID) {
+            console.error("[GuildController] channel has no guild", channelID);
+            return;
+        }
+
+        // если гильдия не выбрана → выбрать
+        if (state.activeGuildID !== guildID) {
+            await this.selectGuild(guildID);
+        }
+
         // TODO: Сделать тут проверки на тип канала, если канал голосовой не менять URL
         useGuildStore.setState({ activeChannelID: channelID });
         // При смене канала просим чат-контроллер обновить историю

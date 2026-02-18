@@ -7,5 +7,6 @@ import { useIsAuthenticated } from "@/modules/auth/authStore";
 
 export function PrivateRoute() {
   const isAuthenticated = useIsAuthenticated();
+  // TODO: Сделать проверку живое ли подключение к серверу, иначе возвращать на /auth
   return isAuthenticated ? <Outlet /> : <Navigate to="/auth" replace />;
 }
