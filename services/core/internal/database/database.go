@@ -7,7 +7,6 @@
 package database
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"time"
@@ -17,7 +16,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	gormlogger "gorm.io/gorm/logger"
 )
 
 // Connect создаёт подключение к БД на основе конфигурации
@@ -77,84 +75,23 @@ func connectSQLite(cfg *config.Config, gormCfg *gorm.Config) (*gorm.DB, error) {
 // Добавляй сюда новые модели по мере их появления.
 func migrate(db *gorm.DB) error {
 	return db.AutoMigrate(
+		// 1. Identity & Federation
+		&models.RealmConfig{},
 		&models.User{},
+		&models.UserDevice{},
+
+		// 2. Guilds, Channels, Roles
 		&models.Guild{},
-		&models.Channel{},
+		&models.Role{},
 		&models.GuildMember{},
+		&models.Channel{},
+		&models.ChannelPermissionOverwrite{},
 		&models.GuildInvite{},
+		&models.AuditLog{},
+
+		// 3. Messages & Media
 		&models.Message{},
+		&models.MessageAttachment{},
+		&models.MessageReaction{},
 	)
-}
-
-// --- GORM logger adapter ---
-
-// gormSlogLogger адаптирует slog к интерфейсу gormlogger.Interface.
-type gormSlogLogger struct {
-	log      *slog.Logger
-	logLevel gormlogger.LogLevel
-}
-
-func newGormLogger(log *slog.Logger, env string) gormlogger.Interface {
-	level := gormlogger.Warn
-	if env != "production" {
-		level = gormlogger.Info
-	}
-	return &gormSlogLogger{
-		log:      log.With("component", "gorm"),
-		logLevel: level,
-	}
-}
-
-func (l *gormSlogLogger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
-	return &gormSlogLogger{
-		log:      l.log,
-		logLevel: level,
-	}
-}
-
-func (l *gormSlogLogger) Info(ctx context.Context, msg string, data ...interface{}) {
-	if l.logLevel >= gormlogger.Info {
-		l.log.InfoContext(ctx, fmt.Sprintf(msg, data...))
-	}
-}
-
-func (l *gormSlogLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
-	if l.logLevel >= gormlogger.Warn {
-		l.log.WarnContext(ctx, fmt.Sprintf(msg, data...))
-	}
-}
-
-func (l *gormSlogLogger) Error(ctx context.Context, msg string, data ...interface{}) {
-	if l.logLevel >= gormlogger.Error {
-		l.log.ErrorContext(ctx, fmt.Sprintf(msg, data...))
-	}
-}
-
-func (l *gormSlogLogger) Trace(
-	ctx context.Context,
-	begin time.Time,
-	fc func() (sql string, rowsAffected int64),
-	err error,
-) {
-	if l.logLevel == gormlogger.Silent {
-		return
-	}
-
-	elapsed := time.Since(begin)
-	sql, rows := fc()
-
-	attrs := []any{
-		"elapsed", elapsed,
-		"rows", rows,
-		"sql", sql,
-	}
-
-	if err != nil {
-		l.log.ErrorContext(ctx, "query error", append(attrs, "error", err)...)
-		return
-	}
-
-	if l.logLevel >= gormlogger.Info {
-		l.log.DebugContext(ctx, "query", attrs...)
-	}
 }

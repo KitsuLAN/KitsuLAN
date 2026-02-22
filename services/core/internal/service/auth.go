@@ -65,9 +65,20 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 		return "", domainerr.Wrap(domainerr.ErrInternal, "failed to hash password")
 	}
 
+	passStr := string(hashedPass)
+	currentRealmUUID, _ := uuid.Parse(s.cfg.RealmID) // TODO: Временно, лучше валидировать при старте
+	if currentRealmUUID == uuid.Nil {
+		// Fallback если в конфиге не UUID (например "core-local")
+		// Для тестов генерируем новый, в проде RealmID должен быть строгим UUID
+		currentRealmUUID = uuid.New()
+	}
+
 	user := &models.User{
+		BaseEntity: models.BaseEntity{
+			RealmID: currentRealmUUID,
+		},
 		Username:     strings.TrimSpace(username),
-		PasswordHash: string(hashedPass),
+		PasswordHash: &passStr,
 	}
 
 	if err := s.users.Create(ctx, user); err != nil {
@@ -87,7 +98,13 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (acc
 		return "", "", domainerr.ErrInvalidCredentials
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+	// Проверка: есть ли у пользователя вообще пароль (федеративные не имеют)
+	if user.PasswordHash == nil {
+		log.Warn("login failed: user has no password (federated?)", "username", username)
+		return "", "", domainerr.ErrInvalidCredentials
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(password)); err != nil {
 		log.Warn("login failed: invalid password", "username", username)
 		return "", "", domainerr.ErrInvalidCredentials
 	}

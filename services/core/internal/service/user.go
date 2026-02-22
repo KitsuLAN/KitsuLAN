@@ -49,7 +49,9 @@ func (s *UserService) GetProfile(ctx context.Context, userID string) (*models.Us
 	id, _ := uuid.Parse(dto.ID)
 
 	return &models.User{
-		ID:        id,
+		BaseEntity: models.BaseEntity{
+			ID: id,
+		},
 		Username:  dto.Username,
 		AvatarURL: dto.AvatarURL,
 		// Поля, которых нет в кэше, оставляем пустыми или заполняем дефолтами
