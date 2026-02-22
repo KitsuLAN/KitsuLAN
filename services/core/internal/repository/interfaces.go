@@ -15,23 +15,23 @@ package repository
 import (
 	"context"
 
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 )
 
 // UserRepository — контракт доступа к данным пользователей.
 // Все методы принимают context для поддержки таймаутов и трассировки.
 type UserRepository interface {
 	// Create сохраняет нового пользователя. ID генерируется в BeforeCreate.
-	Create(ctx context.Context, user *domain.User) error
+	Create(ctx context.Context, user *models.User) error
 
 	// FindByID возвращает пользователя по UUID. Ошибка errors.ErrUserNotFound если не найден.
-	FindByID(ctx context.Context, id string) (*domain.User, error)
+	FindByID(ctx context.Context, id string) (*models.User, error)
 
 	// FindByUsername возвращает пользователя по username.
-	FindByUsername(ctx context.Context, username string) (*domain.User, error)
+	FindByUsername(ctx context.Context, username string) (*models.User, error)
 
 	// FindByEmail возвращает пользователя по email.
-	FindByEmail(ctx context.Context, email string) (*domain.User, error)
+	FindByEmail(ctx context.Context, email string) (*models.User, error)
 
 	// Update обновляет изменяемые поля пользователя (username, avatar_url и т.д.).
 	// Использует GORM Save только для переданных полей через map.
@@ -41,7 +41,7 @@ type UserRepository interface {
 	Delete(ctx context.Context, id string) error
 
 	// Search ищет пользователей по username (LIKE). Limit — максимальное количество результатов.
-	Search(ctx context.Context, query string, limit int) ([]domain.User, error)
+	Search(ctx context.Context, query string, limit int) ([]models.User, error)
 
 	// ExistsByUsername проверяет занятость username без полной загрузки записи.
 	ExistsByUsername(ctx context.Context, username string) (bool, error)
@@ -55,37 +55,37 @@ type UserRepository interface {
 
 // GuildRepository управляет гильдиями и их составом.
 type GuildRepository interface {
-	Create(ctx context.Context, guild *domain.Guild) error
-	FindByID(ctx context.Context, id string) (*domain.Guild, error)
-	ListByMember(ctx context.Context, userID string) ([]domain.Guild, error)
+	Create(ctx context.Context, guild *models.Guild) error
+	FindByID(ctx context.Context, id string) (*models.Guild, error)
+	ListByMember(ctx context.Context, userID string) ([]models.Guild, error)
 	Delete(ctx context.Context, id string) error
 	MemberCount(ctx context.Context, guildID string) (int64, error)
 
 	// Члены
-	AddMember(ctx context.Context, m *domain.GuildMember) error
+	AddMember(ctx context.Context, m *models.GuildMember) error
 	RemoveMember(ctx context.Context, guildID, userID string) error
 	IsMember(ctx context.Context, guildID, userID string) (bool, error)
-	ListMembers(ctx context.Context, guildID string) ([]domain.GuildMember, error)
+	ListMembers(ctx context.Context, guildID string) ([]models.GuildMember, error)
 
 	// Инвайты
-	CreateInvite(ctx context.Context, inv *domain.GuildInvite) error
-	FindInvite(ctx context.Context, code string) (*domain.GuildInvite, error)
+	CreateInvite(ctx context.Context, inv *models.GuildInvite) error
+	FindInvite(ctx context.Context, code string) (*models.GuildInvite, error)
 	IncrementInviteUses(ctx context.Context, code string) error
 }
 
 // ChannelRepository управляет каналами.
 type ChannelRepository interface {
-	Create(ctx context.Context, ch *domain.Channel) error
-	FindByID(ctx context.Context, id string) (*domain.Channel, error)
-	ListByGuild(ctx context.Context, guildID string) ([]domain.Channel, error)
+	Create(ctx context.Context, ch *models.Channel) error
+	FindByID(ctx context.Context, id string) (*models.Channel, error)
+	ListByGuild(ctx context.Context, guildID string) ([]models.Channel, error)
 	Delete(ctx context.Context, id string) error
 }
 
 // MessageRepository хранит историю сообщений.
 type MessageRepository interface {
-	Create(ctx context.Context, msg *domain.Message) error
+	Create(ctx context.Context, msg *models.Message) error
 	// GetHistory возвращает limit сообщений из канала, старше beforeID.
 	// Если beforeID пусто — возвращает самые последние.
-	GetHistory(ctx context.Context, channelID string, limit int, beforeID string) ([]domain.Message, error)
+	GetHistory(ctx context.Context, channelID string, limit int, beforeID string) ([]models.Message, error)
 	Delete(ctx context.Context, id string) error
 }

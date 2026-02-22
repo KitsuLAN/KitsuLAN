@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -29,7 +29,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 
 // Create сохраняет нового пользователя.
 // UUIDv7 генерируется в domain.User.BeforeCreate.
-func (r *userGORMRepo) Create(ctx context.Context, user *domain.User) error {
+func (r *userGORMRepo) Create(ctx context.Context, user *models.User) error {
 	result := r.getDB(ctx).Create(user)
 	if result.Error != nil {
 		if isUniqueViolation(result.Error) {
@@ -41,8 +41,8 @@ func (r *userGORMRepo) Create(ctx context.Context, user *domain.User) error {
 }
 
 // FindByID возвращает пользователя по строковому UUID.
-func (r *userGORMRepo) FindByID(ctx context.Context, id string) (*domain.User, error) {
-	var user domain.User
+func (r *userGORMRepo) FindByID(ctx context.Context, id string) (*models.User, error) {
+	var user models.User
 	err := r.getDB(ctx).
 		Where("id = ?", id).
 		First(&user).Error
@@ -54,8 +54,8 @@ func (r *userGORMRepo) FindByID(ctx context.Context, id string) (*domain.User, e
 
 // FindByUsername ищет пользователя по точному совпадению username.
 // Username нечувствителен к регистру (LOWER).
-func (r *userGORMRepo) FindByUsername(ctx context.Context, username string) (*domain.User, error) {
-	var user domain.User
+func (r *userGORMRepo) FindByUsername(ctx context.Context, username string) (*models.User, error) {
+	var user models.User
 	err := r.getDB(ctx).
 		Where("LOWER(username) = LOWER(?)", username).
 		First(&user).Error
@@ -66,8 +66,8 @@ func (r *userGORMRepo) FindByUsername(ctx context.Context, username string) (*do
 }
 
 // FindByEmail ищет пользователя по email (case-insensitive).
-func (r *userGORMRepo) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
-	var user domain.User
+func (r *userGORMRepo) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+	var user models.User
 	err := r.getDB(ctx).
 		Where("LOWER(email) = LOWER(?)", email).
 		First(&user).Error
@@ -90,7 +90,7 @@ func (r *userGORMRepo) Update(ctx context.Context, id string, fields map[string]
 	delete(fields, "created_at")
 
 	result := r.getDB(ctx).
-		Model(&domain.User{}).
+		Model(&models.User{}).
 		Where("id = ?", id).
 		Updates(fields)
 
@@ -114,7 +114,7 @@ func (r *userGORMRepo) Update(ctx context.Context, id string, fields map[string]
 func (r *userGORMRepo) Delete(ctx context.Context, id string) error {
 	result := r.getDB(ctx).
 		Where("id = ?", id).
-		Delete(&domain.User{})
+		Delete(&models.User{})
 
 	if result.Error != nil {
 		return result.Error
@@ -128,12 +128,12 @@ func (r *userGORMRepo) Delete(ctx context.Context, id string) error {
 // Search ищет пользователей по подстроке username.
 // Возвращает не более limit записей, отсортированных по username.
 // limit <= 0 заменяется на дефолтный (20).
-func (r *userGORMRepo) Search(ctx context.Context, query string, limit int) ([]domain.User, error) {
+func (r *userGORMRepo) Search(ctx context.Context, query string, limit int) ([]models.User, error) {
 	if limit <= 0 || limit > 50 {
 		limit = 20
 	}
 
-	var users []domain.User
+	var users []models.User
 	err := r.getDB(ctx).
 		Where("LOWER(username) LIKE LOWER(?)", "%"+escapeLike(query)+"%").
 		Order("username ASC").
@@ -151,7 +151,7 @@ func (r *userGORMRepo) Search(ctx context.Context, query string, limit int) ([]d
 func (r *userGORMRepo) ExistsByUsername(ctx context.Context, username string) (bool, error) {
 	var count int64
 	err := r.getDB(ctx).
-		Model(&domain.User{}).
+		Model(&models.User{}).
 		Where("LOWER(username) = LOWER(?)", username).
 		Count(&count).Error
 	if err != nil {

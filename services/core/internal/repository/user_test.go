@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"gorm.io/driver/sqlite"
@@ -22,7 +22,7 @@ func newTestDB(t *testing.T) *gorm.DB {
 	if err != nil {
 		t.Fatalf("failed to open test db: %v", err)
 	}
-	if err := db.AutoMigrate(&domain.User{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}); err != nil {
 		t.Fatalf("failed to migrate test db: %v", err)
 	}
 	t.Cleanup(func() {
@@ -33,8 +33,8 @@ func newTestDB(t *testing.T) *gorm.DB {
 }
 
 // makeUser создаёт тестового пользователя с разумными дефолтами.
-func makeUser(username string) *domain.User {
-	return &domain.User{
+func makeUser(username string) *models.User {
+	return &models.User{
 		Username:     username,
 		PasswordHash: "$2a$10$test-hash-placeholder",
 	}

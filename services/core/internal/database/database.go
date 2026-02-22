@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/config"
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -77,12 +77,12 @@ func connectSQLite(cfg *config.Config, gormCfg *gorm.Config) (*gorm.DB, error) {
 // Добавляй сюда новые модели по мере их появления.
 func migrate(db *gorm.DB) error {
 	return db.AutoMigrate(
-		&domain.User{},
-		&domain.Guild{},
-		&domain.Channel{},
-		&domain.GuildMember{},
-		&domain.GuildInvite{},
-		&domain.Message{},
+		&models.User{},
+		&models.Guild{},
+		&models.Channel{},
+		&models.GuildMember{},
+		&models.GuildInvite{},
+		&models.Message{},
 	)
 }
 

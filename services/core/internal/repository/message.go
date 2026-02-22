@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"gorm.io/gorm"
 )
 
@@ -19,11 +19,11 @@ func NewMessageRepository(db *gorm.DB) MessageRepository {
 	return &messageGORMRepo{db: db}
 }
 
-func (r *messageGORMRepo) Create(ctx context.Context, msg *domain.Message) error {
+func (r *messageGORMRepo) Create(ctx context.Context, msg *models.Message) error {
 	return r.getDB(ctx).Create(msg).Error
 }
 
-func (r *messageGORMRepo) GetHistory(ctx context.Context, channelID string, limit int, beforeID string) ([]domain.Message, error) {
+func (r *messageGORMRepo) GetHistory(ctx context.Context, channelID string, limit int, beforeID string) ([]models.Message, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 50
 	}
@@ -40,7 +40,7 @@ func (r *messageGORMRepo) GetHistory(ctx context.Context, channelID string, limi
 		q = q.Where("id < ?", beforeID)
 	}
 
-	var msgs []domain.Message
+	var msgs []models.Message
 	if err := q.Find(&msgs).Error; err != nil {
 		return nil, err
 	}
@@ -53,5 +53,5 @@ func (r *messageGORMRepo) GetHistory(ctx context.Context, channelID string, limi
 }
 
 func (r *messageGORMRepo) Delete(ctx context.Context, id string) error {
-	return r.getDB(ctx).Where("id = ?", id).Delete(&domain.Message{}).Error
+	return r.getDB(ctx).Where("id = ?", id).Delete(&models.Message{}).Error
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/cachemodel"
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/infra/cache"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
 	"github.com/google/uuid"
@@ -22,7 +22,7 @@ func NewUserService(repo repository.UserRepository, provider *cache.Provider) *U
 	}
 }
 
-func (s *UserService) GetProfile(ctx context.Context, userID string) (*domain.User, error) {
+func (s *UserService) GetProfile(ctx context.Context, userID string) (*models.User, error) {
 	dto, err := s.cache.GetOrSet(ctx, userID, func() (*cachemodel.UserCacheDTO, error) {
 		// --- ЭТА ФУНКЦИЯ ВЫПОЛНЯЕТСЯ ТОЛЬКО ЕСЛИ НЕТ В КЭШЕ ---
 
@@ -48,7 +48,7 @@ func (s *UserService) GetProfile(ctx context.Context, userID string) (*domain.Us
 	// Важно: парсим UUID обратно, т.к. в DTO храним string
 	id, _ := uuid.Parse(dto.ID)
 
-	return &domain.User{
+	return &models.User{
 		ID:        id,
 		Username:  dto.Username,
 		AvatarURL: dto.AvatarURL,
@@ -57,7 +57,7 @@ func (s *UserService) GetProfile(ctx context.Context, userID string) (*domain.Us
 	}, nil
 }
 
-func (s *UserService) UpdateProfile(ctx context.Context, userID string, nickname, bio, avatar *string) (*domain.User, error) {
+func (s *UserService) UpdateProfile(ctx context.Context, userID string, nickname, bio, avatar *string) (*models.User, error) {
 	fields := make(map[string]any)
 
 	// Обновляем только то, что пришло (не nil)

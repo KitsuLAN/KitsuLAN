@@ -4,7 +4,7 @@ import (
 	"context"
 
 	pb "github.com/KitsuLAN/KitsuLAN/services/core/gen/go/kitsulan/v1"
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/middleware"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/service"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
@@ -131,7 +131,7 @@ func (s *GuildServer) ListMembers(ctx context.Context, req *pb.ListMembersReques
 
 // --- converters ---
 
-func guildToProto(g *domain.Guild, memberCount int32) *pb.Guild {
+func guildToProto(g *models.Guild, memberCount int32) *pb.Guild {
 	return &pb.Guild{
 		Id:          g.ID.String(),
 		Name:        g.Name,
@@ -144,7 +144,7 @@ func guildToProto(g *domain.Guild, memberCount int32) *pb.Guild {
 	}
 }
 
-func channelToProto(ch *domain.Channel) *pb.Channel {
+func channelToProto(ch *models.Channel) *pb.Channel {
 	return &pb.Channel{
 		Id:       ch.ID.String(),
 		GuildId:  ch.GuildID.String(),
@@ -154,16 +154,16 @@ func channelToProto(ch *domain.Channel) *pb.Channel {
 	}
 }
 
-func channelTypeToProto(t domain.ChannelType) pb.ChannelType {
-	if t == domain.ChannelTypeVoice {
+func channelTypeToProto(t models.ChannelType) pb.ChannelType {
+	if t == models.ChannelTypeVoice {
 		return pb.ChannelType_CHANNEL_TYPE_VOICE
 	}
 	return pb.ChannelType_CHANNEL_TYPE_TEXT
 }
 
-func protoToChannelType(t pb.ChannelType) domain.ChannelType {
+func protoToChannelType(t pb.ChannelType) models.ChannelType {
 	if t == pb.ChannelType_CHANNEL_TYPE_VOICE {
-		return domain.ChannelTypeVoice
+		return models.ChannelTypeVoice
 	}
-	return domain.ChannelTypeText
+	return models.ChannelTypeText
 }

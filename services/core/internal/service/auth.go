@@ -8,6 +8,7 @@ import (
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/config"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/logger"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"github.com/golang-jwt/jwt/v5"
@@ -17,13 +18,13 @@ import (
 
 type userRepo interface {
 	// Create сохраняет нового пользователя. ID генерируется в BeforeCreate.
-	Create(ctx context.Context, user *domain.User) error
+	Create(ctx context.Context, user *models.User) error
 
 	// FindByID возвращает пользователя по UUID. Ошибка errors.ErrUserNotFound если не найден.
-	FindByID(ctx context.Context, id string) (*domain.User, error)
+	FindByID(ctx context.Context, id string) (*models.User, error)
 
 	// FindByUsername возвращает пользователя по username.
-	FindByUsername(ctx context.Context, username string) (*domain.User, error)
+	FindByUsername(ctx context.Context, username string) (*models.User, error)
 
 	// ExistsByUsername проверяет занятость username без полной загрузки записи.
 	ExistsByUsername(ctx context.Context, username string) (bool, error)
@@ -64,7 +65,7 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 		return "", domainerr.Wrap(domainerr.ErrInternal, "failed to hash password")
 	}
 
-	user := &domain.User{
+	user := &models.User{
 		Username:     strings.TrimSpace(username),
 		PasswordHash: string(hashedPass),
 	}

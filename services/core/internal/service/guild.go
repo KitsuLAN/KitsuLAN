@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"github.com/google/uuid"
@@ -30,7 +30,7 @@ var guildColors = []string{
 	"#db2777",
 }
 
-func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, description string) (*domain.Guild, error) {
+func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, description string) (*models.Guild, error) {
 	if len(name) < 2 || len(name) > 100 {
 		return nil, domainerr.Wrap(domainerr.ErrInvalidArgument, "guild name must be 2–100 characters")
 	}
@@ -43,7 +43,7 @@ func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, descripti
 	// Выбираем случайный цвет для отображения на клиенте
 	color := guildColors[rand.Intn(len(guildColors))]
 
-	guild := &domain.Guild{
+	guild := &models.Guild{
 		Name:        name,
 		Description: description,
 		OwnerID:     ownerUUID,
@@ -56,7 +56,7 @@ func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, descripti
 		}
 
 		// Автоматически добавить создателя в гильдию
-		if err := s.guilds.AddMember(txCtx, &domain.GuildMember{
+		if err := s.guilds.AddMember(txCtx, &models.GuildMember{
 			GuildID:  guild.ID,
 			UserID:   ownerUUID,
 			JoinedAt: time.Now(),
@@ -65,10 +65,10 @@ func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, descripti
 		}
 
 		// Создать дефолтный канал #general
-		if err := s.channels.Create(txCtx, &domain.Channel{
+		if err := s.channels.Create(txCtx, &models.Channel{
 			GuildID:  guild.ID,
 			Name:     "general",
-			Type:     domain.ChannelTypeText,
+			Type:     models.ChannelTypeText,
 			Position: 0,
 		}); err != nil {
 			return fmt.Errorf("create default channel: %w", err)
@@ -84,7 +84,7 @@ func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, descripti
 
 }
 
-func (s *GuildService) GetGuild(ctx context.Context, guildID, callerID string) (*domain.Guild, error) {
+func (s *GuildService) GetGuild(ctx context.Context, guildID, callerID string) (*models.Guild, error) {
 	isMember, err := s.guilds.IsMember(ctx, guildID, callerID)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (s *GuildService) GetGuild(ctx context.Context, guildID, callerID string) (
 	return s.guilds.FindByID(ctx, guildID)
 }
 
-func (s *GuildService) ListMyGuilds(ctx context.Context, userID string) ([]domain.Guild, error) {
+func (s *GuildService) ListMyGuilds(ctx context.Context, userID string) ([]models.Guild, error) {
 	return s.guilds.ListByMember(ctx, userID)
 }
 
@@ -110,7 +110,7 @@ func (s *GuildService) DeleteGuild(ctx context.Context, guildID, callerID string
 	return s.guilds.Delete(ctx, guildID)
 }
 
-func (s *GuildService) CreateInvite(ctx context.Context, guildID, callerID string, maxUses int, expiresInHours int) (*domain.GuildInvite, error) {
+func (s *GuildService) CreateInvite(ctx context.Context, guildID, callerID string, maxUses int, expiresInHours int) (*models.GuildInvite, error) {
 	isMember, err := s.guilds.IsMember(ctx, guildID, callerID)
 	if err != nil || !isMember {
 		return nil, domainerr.ErrPermissionDenied
@@ -119,7 +119,7 @@ func (s *GuildService) CreateInvite(ctx context.Context, guildID, callerID strin
 	guildUUID, _ := uuid.Parse(guildID)
 	callerUUID, _ := uuid.Parse(callerID)
 
-	inv := &domain.GuildInvite{
+	inv := &models.GuildInvite{
 		GuildID:   guildUUID,
 		CreatedBy: callerUUID,
 		MaxUses:   maxUses,
@@ -135,7 +135,7 @@ func (s *GuildService) CreateInvite(ctx context.Context, guildID, callerID strin
 	return inv, nil
 }
 
-func (s *GuildService) JoinByInvite(ctx context.Context, code, userID string) (*domain.Guild, error) {
+func (s *GuildService) JoinByInvite(ctx context.Context, code, userID string) (*models.Guild, error) {
 	inv, err := s.guilds.FindInvite(ctx, code)
 	if err != nil {
 		return nil, domainerr.Wrap(domainerr.ErrNotFound, "invite not found")
@@ -151,7 +151,7 @@ func (s *GuildService) JoinByInvite(ctx context.Context, code, userID string) (*
 
 	userUUID, _ := uuid.Parse(userID)
 	err = s.tm.Do(ctx, func(txCtx context.Context) error {
-		if err := s.guilds.AddMember(ctx, &domain.GuildMember{
+		if err := s.guilds.AddMember(ctx, &models.GuildMember{
 			GuildID: inv.GuildID,
 			UserID:  userUUID,
 		}); err != nil {
@@ -181,7 +181,7 @@ func (s *GuildService) LeaveGuild(ctx context.Context, guildID, userID string) e
 	return s.guilds.RemoveMember(ctx, guildID, userID)
 }
 
-func (s *GuildService) CreateChannel(ctx context.Context, guildID, callerID, name string, chType domain.ChannelType) (*domain.Channel, error) {
+func (s *GuildService) CreateChannel(ctx context.Context, guildID, callerID, name string, chType models.ChannelType) (*models.Channel, error) {
 	guild, err := s.guilds.FindByID(ctx, guildID)
 	if err != nil {
 		return nil, err
@@ -194,7 +194,7 @@ func (s *GuildService) CreateChannel(ctx context.Context, guildID, callerID, nam
 	}
 
 	guildUUID, _ := uuid.Parse(guildID)
-	ch := &domain.Channel{
+	ch := &models.Channel{
 		GuildID: guildUUID,
 		Name:    name,
 		Type:    chType,
@@ -220,7 +220,7 @@ func (s *GuildService) DeleteChannel(ctx context.Context, channelID, callerID st
 	return s.channels.Delete(ctx, channelID)
 }
 
-func (s *GuildService) ListChannels(ctx context.Context, guildID, callerID string) ([]domain.Channel, error) {
+func (s *GuildService) ListChannels(ctx context.Context, guildID, callerID string) ([]models.Channel, error) {
 	// BUG(client)
 	// NOTE: иногда клиенты присылают guildID="undefined".
 	// Это нарушение клиентского контракта API.
@@ -235,7 +235,7 @@ func (s *GuildService) ListChannels(ctx context.Context, guildID, callerID strin
 	return s.channels.ListByGuild(ctx, guildID)
 }
 
-func (s *GuildService) ListMembers(ctx context.Context, guildID, callerID string) ([]domain.GuildMember, error) {
+func (s *GuildService) ListMembers(ctx context.Context, guildID, callerID string) ([]models.GuildMember, error) {
 	isMember, err := s.guilds.IsMember(ctx, guildID, callerID)
 	if err != nil || !isMember {
 		return nil, domainerr.ErrPermissionDenied

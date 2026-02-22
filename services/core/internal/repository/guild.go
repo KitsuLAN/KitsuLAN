@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -23,12 +23,12 @@ func NewGuildRepository(db *gorm.DB) GuildRepository {
 	return &guildGORMRepo{db: db}
 }
 
-func (r *guildGORMRepo) Create(ctx context.Context, g *domain.Guild) error {
+func (r *guildGORMRepo) Create(ctx context.Context, g *models.Guild) error {
 	return r.getDB(ctx).Create(g).Error
 }
 
-func (r *guildGORMRepo) FindByID(ctx context.Context, id string) (*domain.Guild, error) {
-	var g domain.Guild
+func (r *guildGORMRepo) FindByID(ctx context.Context, id string) (*models.Guild, error) {
+	var g models.Guild
 	err := r.getDB(ctx).Where("id = ?", id).First(&g).Error
 	if err != nil {
 		return nil, mapNotFound(err, domainerr.ErrNotFound)
@@ -36,8 +36,8 @@ func (r *guildGORMRepo) FindByID(ctx context.Context, id string) (*domain.Guild,
 	return &g, nil
 }
 
-func (r *guildGORMRepo) ListByMember(ctx context.Context, userID string) ([]domain.Guild, error) {
-	var guilds []domain.Guild
+func (r *guildGORMRepo) ListByMember(ctx context.Context, userID string) ([]models.Guild, error) {
+	var guilds []models.Guild
 	err := r.getDB(ctx).
 		Joins("JOIN guild_members ON guild_members.guild_id = guilds.id").
 		Where("guild_members.user_id = ?", userID).
@@ -47,7 +47,7 @@ func (r *guildGORMRepo) ListByMember(ctx context.Context, userID string) ([]doma
 }
 
 func (r *guildGORMRepo) Delete(ctx context.Context, id string) error {
-	res := r.getDB(ctx).Where("id = ?", id).Delete(&domain.Guild{})
+	res := r.getDB(ctx).Where("id = ?", id).Delete(&models.Guild{})
 	if res.Error != nil {
 		return res.Error
 	}
@@ -59,37 +59,37 @@ func (r *guildGORMRepo) Delete(ctx context.Context, id string) error {
 
 func (r *guildGORMRepo) MemberCount(ctx context.Context, guildID string) (int64, error) {
 	var count int64
-	err := r.getDB(ctx).Model(&domain.GuildMember{}).
+	err := r.getDB(ctx).Model(&models.GuildMember{}).
 		Where("guild_id = ?", guildID).Count(&count).Error
 	return count, err
 }
 
-func (r *guildGORMRepo) AddMember(ctx context.Context, m *domain.GuildMember) error {
+func (r *guildGORMRepo) AddMember(ctx context.Context, m *models.GuildMember) error {
 	if m.JoinedAt.IsZero() {
 		m.JoinedAt = time.Now()
 	}
 	return r.getDB(ctx).
-		Where(domain.GuildMember{GuildID: m.GuildID, UserID: m.UserID}).
+		Where(models.GuildMember{GuildID: m.GuildID, UserID: m.UserID}).
 		FirstOrCreate(m).Error
 }
 
 func (r *guildGORMRepo) RemoveMember(ctx context.Context, guildID, userID string) error {
 	res := r.getDB(ctx).
 		Where("guild_id = ? AND user_id = ?", guildID, userID).
-		Delete(&domain.GuildMember{})
+		Delete(&models.GuildMember{})
 	return res.Error
 }
 
 func (r *guildGORMRepo) IsMember(ctx context.Context, guildID, userID string) (bool, error) {
 	var count int64
-	err := r.getDB(ctx).Model(&domain.GuildMember{}).
+	err := r.getDB(ctx).Model(&models.GuildMember{}).
 		Where("guild_id = ? AND user_id = ?", guildID, userID).
 		Count(&count).Error
 	return count > 0, err
 }
 
-func (r *guildGORMRepo) ListMembers(ctx context.Context, guildID string) ([]domain.GuildMember, error) {
-	var members []domain.GuildMember
+func (r *guildGORMRepo) ListMembers(ctx context.Context, guildID string) ([]models.GuildMember, error) {
+	var members []models.GuildMember
 	err := r.getDB(ctx).
 		Preload("User").
 		Where("guild_id = ?", guildID).
@@ -97,7 +97,7 @@ func (r *guildGORMRepo) ListMembers(ctx context.Context, guildID string) ([]doma
 	return members, err
 }
 
-func (r *guildGORMRepo) CreateInvite(ctx context.Context, inv *domain.GuildInvite) error {
+func (r *guildGORMRepo) CreateInvite(ctx context.Context, inv *models.GuildInvite) error {
 	if inv.Code == "" {
 		code, err := generateInviteCode()
 		if err != nil {
@@ -108,8 +108,8 @@ func (r *guildGORMRepo) CreateInvite(ctx context.Context, inv *domain.GuildInvit
 	return r.getDB(ctx).Create(inv).Error
 }
 
-func (r *guildGORMRepo) FindInvite(ctx context.Context, code string) (*domain.GuildInvite, error) {
-	var inv domain.GuildInvite
+func (r *guildGORMRepo) FindInvite(ctx context.Context, code string) (*models.GuildInvite, error) {
+	var inv models.GuildInvite
 	err := r.getDB(ctx).Where("code = ?", code).First(&inv).Error
 	if err != nil {
 		return nil, mapNotFound(err, domainerr.ErrNotFound)
@@ -118,7 +118,7 @@ func (r *guildGORMRepo) FindInvite(ctx context.Context, code string) (*domain.Gu
 }
 
 func (r *guildGORMRepo) IncrementInviteUses(ctx context.Context, code string) error {
-	return r.getDB(ctx).Model(&domain.GuildInvite{}).
+	return r.getDB(ctx).Model(&models.GuildInvite{}).
 		Where("code = ?", code).
 		UpdateColumn("uses", gorm.Expr("uses + 1")).Error
 }
