@@ -13,6 +13,7 @@ import { useUsername } from "@/modules/auth/authStore";
 import { useChatMessages, useChatHasMore } from "@/modules/chat/chatStore";
 import { useChannelSubscription } from "@/modules/chat/hooks/useChannelSubscription";
 import { ChatController } from "@/modules/chat/ChatController";
+import { ChannelHeader } from "@/modules/channels/components/ChannelHeader";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 
@@ -28,7 +29,7 @@ export function ChatView({ channelId }: ChatViewProps) {
 
     // Имя канала для placeholder и EmptyState
     const channels = useActiveChannels();
-    const channelName = channels.find((c) => c.id === channelId)?.name;
+    const channel = channels.find((c) => c.id === channelId);
 
     // Real-time подписка на сообщения через Wails события
     useChannelSubscription(channelId);
@@ -40,17 +41,20 @@ export function ChatView({ channelId }: ChatViewProps) {
 
     return (
         <div className="flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden bg-kitsu-bg">
+            {/* Хедер канала */}
+            <ChannelHeader channelId={channelId} />
+
             {/* Лента сообщений */}
             <MessageList
                 messages={messages}
                 currentUsername={currentUsername}
                 hasMore={hasMore}
-                channelName={channelName}
+                channelName={channel?.name}
                 onLoadMore={handleLoadMore}
             />
 
             {/* Поле ввода */}
-            <MessageInput channelId={channelId} channelName={channelName} />
+            <MessageInput channelId={channelId} channelName={channel?.name} />
         </div>
     );
 }
