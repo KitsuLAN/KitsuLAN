@@ -34,9 +34,10 @@ func newTestDB(t *testing.T) *gorm.DB {
 
 // makeUser создаёт тестового пользователя с разумными дефолтами.
 func makeUser(username string) *models.User {
+	passwordHash := "$2a$10$test-hash-placeholder"
 	return &models.User{
 		Username:     username,
-		PasswordHash: "$2a$10$test-hash-placeholder",
+		PasswordHash: &passwordHash,
 	}
 }
 
@@ -64,7 +65,7 @@ func TestUserRepository_Create(t *testing.T) {
 
 		u2 := makeUser("bob")
 		err := repo.Create(ctx, u2)
-		if !domainerr.Is(err, domainerr.ErrUsernameConflict) {
+		if !domainerr.Is(err, domainerr.ErrUsernameTaken) {
 			t.Errorf("expected ErrUsernameConflict, got: %v", err)
 		}
 	})

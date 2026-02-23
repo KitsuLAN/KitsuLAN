@@ -18,6 +18,7 @@ type Client struct {
 	User       pb.UserServiceClient
 	Guild      pb.GuildServiceClient
 	Chat       pb.ChatServiceClient
+	Realm      pb.RealmServiceClient
 	serverAddr string
 }
 
@@ -46,6 +47,7 @@ func (c *Client) Connect() error {
 	c.User = pb.NewUserServiceClient(conn)
 	c.Guild = pb.NewGuildServiceClient(conn)
 	c.Chat = pb.NewChatServiceClient(conn)
+	c.Realm = pb.NewRealmServiceClient(c.conn)
 
 	log.Printf("✅ gRPC Connected to %s", c.serverAddr)
 	return nil

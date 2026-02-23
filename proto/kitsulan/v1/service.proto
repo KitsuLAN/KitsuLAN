@@ -245,3 +245,28 @@ message GetHistoryResponse {
 }
 
 message SubscribeChannelRequest { string channel_id = 1; }
+
+service RealmService {
+  // SetupRealm вызывается один раз для инициализации узла.
+  // Если узел уже настроен, вернет ошибку CONFLICT.
+  rpc SetupRealm(SetupRealmRequest) returns (SetupRealmResponse);
+
+  // GetRealmStatus возвращает состояние узла (нужен ли Setup).
+  rpc GetRealmStatus(GetRealmStatusRequest) returns (GetRealmStatusResponse);
+}
+
+message SetupRealmRequest {
+  string domain = 1;
+  string display_name = 2;
+}
+
+message SetupRealmResponse {
+  string realm_id = 1;
+  string public_key = 2;
+}
+
+message GetRealmStatusRequest {}
+message GetRealmStatusResponse {
+  bool is_initialized = 1;
+  string version = 2;
+}

@@ -16,6 +16,7 @@ import "gorm.io/gorm"
 //	authSvc := service.NewAuthService(repos.Users, cfg)
 //	userSvc := service.NewUserService(repos.Users)
 type Registry struct {
+	Realms   RealmRepository
 	Users    UserRepository
 	Guilds   GuildRepository
 	Channels ChannelRepository
@@ -25,6 +26,7 @@ type Registry struct {
 // NewRegistry создаёт все GORM-репозитории и упаковывает в Registry.
 func NewRegistry(db *gorm.DB) *Registry {
 	return &Registry{
+		Realms:   NewRealmRepository(db),
 		Users:    NewUserRepository(db),
 		Guilds:   NewGuildRepository(db),
 		Channels: NewChannelRepository(db),

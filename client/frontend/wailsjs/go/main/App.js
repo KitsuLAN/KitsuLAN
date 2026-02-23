@@ -30,6 +30,10 @@ export function GetHistory(arg1, arg2, arg3) {
   return window['go']['main']['App']['GetHistory'](arg1, arg2, arg3);
 }
 
+export function GetRealmStatus() {
+  return window['go']['main']['App']['GetRealmStatus']();
+}
+
 export function JoinByInvite(arg1) {
   return window['go']['main']['App']['JoinByInvite'](arg1);
 }
@@ -68,6 +72,10 @@ export function SendMessage(arg1, arg2) {
 
 export function SetToken(arg1) {
   return window['go']['main']['App']['SetToken'](arg1);
+}
+
+export function SetupRealm(arg1, arg2) {
+  return window['go']['main']['App']['SetupRealm'](arg1, arg2);
 }
 
 export function SubscribeChannel(arg1) {

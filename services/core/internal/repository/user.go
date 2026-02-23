@@ -183,10 +183,10 @@ func isUniqueViolation(err error) bool {
 func classifyUniqueViolation(err error) error {
 	msg := strings.ToLower(err.Error())
 	if strings.Contains(msg, "email") {
-		return domainerr.ErrEmailConflict
+		return domainerr.ErrEmailTaken
 	}
 	// По умолчанию — username (наиболее частый случай)
-	return domainerr.ErrUsernameConflict
+	return domainerr.ErrUsernameTaken
 }
 
 // escapeLike экранирует спецсимволы SQL LIKE-запроса.

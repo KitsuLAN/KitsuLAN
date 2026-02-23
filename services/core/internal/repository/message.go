@@ -20,7 +20,22 @@ func NewMessageRepository(db *gorm.DB) MessageRepository {
 }
 
 func (r *messageGORMRepo) Create(ctx context.Context, msg *models.Message) error {
-	return r.getDB(ctx).Create(msg).Error
+	return r.getDB(ctx).Transaction(func(tx *gorm.DB) error {
+		// Атомарный инкремент и получение номера
+		var nextSeq int64
+		err := tx.Model(&models.Channel{}).
+			Where("id = ?", msg.ChannelID).
+			UpdateColumn("next_seq", gorm.Expr("next_seq + 1")).
+			Select("next_seq").
+			Scan(&nextSeq).Error
+
+		if err != nil {
+			return err
+		}
+
+		msg.Seq = nextSeq - 1 // Устанавливаем полученный номер
+		return tx.Create(msg).Error
+	})
 }
 
 func (r *messageGORMRepo) GetHistory(ctx context.Context, channelID string, limit int, beforeID string) ([]models.Message, error) {

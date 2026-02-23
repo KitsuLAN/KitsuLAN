@@ -7,6 +7,7 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/infra/cache"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
+	"github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"github.com/google/uuid"
 )
 
@@ -23,6 +24,8 @@ func NewUserService(repo repository.UserRepository, provider *cache.Provider) *U
 }
 
 func (s *UserService) GetProfile(ctx context.Context, userID string) (*models.User, error) {
+	const op = "UserService.GetProfile"
+
 	dto, err := s.cache.GetOrSet(ctx, userID, func() (*cachemodel.UserCacheDTO, error) {
 		// --- ЭТА ФУНКЦИЯ ВЫПОЛНЯЕТСЯ ТОЛЬКО ЕСЛИ НЕТ В КЭШЕ ---
 
@@ -41,7 +44,8 @@ func (s *UserService) GetProfile(ctx context.Context, userID string) (*models.Us
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, errors.AsAppError(err).WithOp(op).
+			WithRemedy("Verify if the user ID is correct.")
 	}
 
 	// 3. Маппим Cache DTO -> Domain Model (для ответа)
@@ -60,8 +64,13 @@ func (s *UserService) GetProfile(ctx context.Context, userID string) (*models.Us
 }
 
 func (s *UserService) UpdateProfile(ctx context.Context, userID string, nickname, bio, avatar *string) (*models.User, error) {
-	fields := make(map[string]any)
+	const op = "UserService.UpdateProfile"
 
+	if nickname != nil && (len(*nickname) < 3 || len(*nickname) > 32) {
+		return nil, errors.ValidationError("nickname", "Length must be 3-32").WithOp(op)
+	}
+
+	fields := make(map[string]any)
 	// Обновляем только то, что пришло (не nil)
 	if nickname != nil {
 		// Пока что nickname меняет username, в будущем можно разделить
@@ -77,14 +86,31 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID string, nickname
 	// Если есть изменения — пишем в БД
 	if len(fields) > 0 {
 		if err := s.repo.Update(ctx, userID, fields); err != nil {
-			return nil, err
+			return nil, errors.AsAppError(err).WithOp(op).
+				WithMsg("Failed to update profile fields")
 		}
 		// Инвалидируем кеш
-		_ = s.cache.Invalidate(ctx, userID)
+		if err := s.cache.Invalidate(ctx, userID); err != nil {
+			// Ошибка кеша — это CodeCacheUnavailable в логах, но юзеру можно не показывать
+			return nil, errors.Wrap(err, errors.ErrCacheUnavailable, op)
+		}
 	}
 
 	// Получаем свежий профиль и прогреваем кэш
 	return s.repo.FindByID(ctx, userID)
 }
 
-// TODO: SearchUsers
+func (s *UserService) SearchUsers(ctx context.Context, query string, limit int) ([]models.User, error) {
+	const op = "UserService.SearchUsers"
+
+	if len(query) < 2 {
+		return nil, errors.ValidationError("query", "Search term too short").WithOp(op)
+	}
+
+	users, err := s.repo.Search(ctx, query, limit)
+	if err != nil {
+		return nil, errors.Wrap(err, errors.ErrDBQueryFailed, op)
+	}
+
+	return users, nil
+}

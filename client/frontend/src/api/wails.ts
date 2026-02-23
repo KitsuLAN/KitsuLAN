@@ -197,6 +197,8 @@ async function loadReal(): Promise<WailsApp> {
     // Собираем объект в локальную переменную — убирает ошибку с null
     const real: WailsApp = {
       PingServer: App.PingServer,
+      GetRealmStatus: App.GetRealmStatus,
+      SetupRealm: App.SetupRealm,
       CheckServerStatus: App.CheckServerStatus,
       ConnectToServer: App.ConnectToServer,
       SetToken: App.SetToken,
@@ -231,6 +233,10 @@ function api(): Promise<WailsApp> {
 // ── Публичный API ─────────────────────────────────────────────────────────────
 
 export const WailsAPI = {
+  GetRealmStatus: () => api().then(a => (a as any).GetRealmStatus()),
+  SetupRealm: (domain: string, name: string) =>
+      api().then(a => (a as any).SetupRealm(domain, name)),
+
   PingServer: (addr: string) => api().then(a => (a as any).PingServer(addr)),
   // Auth
   CheckServerStatus: () => api().then((a) => a.CheckServerStatus()),

@@ -91,7 +91,7 @@ func Load() (*Config, error) {
 
 	cfg := &Config{
 		Env:     getEnv("APP_ENV", "development"),
-		RealmID: getEnv("APP_REALM_ID", "kitsu-core-local"),
+		RealmID: getEnv("APP_REALM_ID", ""),
 
 		ReadTimeout:  getDurationEnv("READ_TIMEOUT", 30*time.Second),
 		WriteTimeout: getDurationEnv("WRITE_TIMEOUT", 30*time.Second),

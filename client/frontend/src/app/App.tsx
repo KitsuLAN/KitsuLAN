@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import ChannelPage from "@/pages/ChannelPage";
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { useActiveChannelID } from "@/modules/guilds/guildStore";
+import {SetupGuard} from "@/components/SetupGuard";
 
 // Показывает Home или Chat в зависимости от выбранного канала
 function AppContent() {
@@ -18,34 +19,35 @@ function AppContent() {
 export default function App() {
   return (
     <HashRouter>
-      <Routes>
-        {/* 1. Выбор сервера */}
-        <Route path="/" element={<ServerSelect />} />
+      <SetupGuard>
+        <Routes>
+          {/* 1. Выбор сервера */}
+          <Route path="/" element={<ServerSelect />} />
 
-        {/* 2. Авторизация (только если сервер выбран — проверяется внутри Login) */}
-        <Route path="/auth" element={<Login />} />
+          {/* 2. Авторизация (только если сервер выбран — проверяется внутри Login) */}
+          <Route path="/auth" element={<Login />} />
 
-        {/* 3. Основное приложение (только если залогинен) */}
-        <Route element={<PrivateRoute />}>
-          <Route path="/app" element={<MainLayout />}>
-            {/* /app/home — когда ничего не выбрано */}
-            <Route path="home" element={<Home />} />
+          {/* 3. Основное приложение (только если залогинен) */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/app" element={<MainLayout />}>
+              {/* /app/home — когда ничего не выбрано */}
+              <Route path="home" element={<Home />} />
 
-            {/* /app/:guildId — зашли в гильдию, канал еще не выбран */}
-            <Route path=":guildId" element={<ChannelPage />} />
+              {/* /app/:guildId — зашли в гильдию, канал еще не выбран */}
+              <Route path=":guildId" element={<ChannelPage />} />
 
-            {/* /app/:guildId/:channelId — конкретный канал */}
-            <Route path=":guildId/:channelId" element={<ChannelPage />} />
+              {/* /app/:guildId/:channelId — конкретный канал */}
+              <Route path=":guildId/:channelId" element={<ChannelPage />} />
 
-            {/* Редирект с голого /app на /app/home */}
-            <Route index element={<Navigate to="home" replace />} />
+              {/* Редирект с голого /app на /app/home */}
+              <Route index element={<Navigate to="home" replace />} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </SetupGuard>
       <Toaster theme="dark" position="bottom-right" />
     </HashRouter>
   );

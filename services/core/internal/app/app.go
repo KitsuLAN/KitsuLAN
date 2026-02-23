@@ -168,6 +168,7 @@ func (a *App) closeResources() {
 // --- Helpers ---
 
 type serviceDeps struct {
+	realm *service.RealmService
 	auth  *service.AuthService
 	user  *service.UserService
 	guild *service.GuildService
@@ -178,12 +179,14 @@ func initServices(db *gorm.DB, cfg *config.Config, cp *cache.Provider) *serviceD
 	repos := repository.NewRegistry(db)
 	tm := database.NewTransactionManager(db)
 	chatHub := hub.New()
+	usersService := service.NewUserService(repos.Users, cp)
 
 	return &serviceDeps{
+		realm: service.NewRealmService(repos.Realms, cfg),
 		auth:  service.NewAuthService(repos.Users, cfg),
-		user:  service.NewUserService(repos.Users, cp),
+		user:  usersService,
 		guild: service.NewGuildService(repos.Guilds, repos.Channels, tm),
-		chat:  service.NewChatService(repos.Messages, repos.Channels, repos.Guilds, chatHub),
+		chat:  service.NewChatService(repos.Messages, repos.Channels, repos.Guilds, usersService, chatHub),
 	}
 }
 
@@ -205,6 +208,7 @@ func initGRPCServer(cfg *config.Config, s *serviceDeps) (*grpc.Server, error) {
 		),
 	)
 
+	pb.RegisterRealmServiceServer(grpcServer, grpctransport.NewRealmServer(s.realm))
 	pb.RegisterAuthServiceServer(grpcServer, grpctransport.NewAuthServer(s.auth))
 	pb.RegisterUserServiceServer(grpcServer, grpctransport.NewUserServer(s.user))
 	pb.RegisterGuildServiceServer(grpcServer, grpctransport.NewGuildServer(s.guild))

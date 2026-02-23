@@ -2477,6 +2477,198 @@ func (x *SubscribeChannelRequest) GetChannelId() string {
 	return ""
 }
 
+type SetupRealmRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Domain        string                 `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetupRealmRequest) Reset() {
+	*x = SetupRealmRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetupRealmRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetupRealmRequest) ProtoMessage() {}
+
+func (x *SetupRealmRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetupRealmRequest.ProtoReflect.Descriptor instead.
+func (*SetupRealmRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *SetupRealmRequest) GetDomain() string {
+	if x != nil {
+		return x.Domain
+	}
+	return ""
+}
+
+func (x *SetupRealmRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+type SetupRealmResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RealmId       string                 `protobuf:"bytes,1,opt,name=realm_id,json=realmId,proto3" json:"realm_id,omitempty"`
+	PublicKey     string                 `protobuf:"bytes,2,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetupRealmResponse) Reset() {
+	*x = SetupRealmResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetupRealmResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetupRealmResponse) ProtoMessage() {}
+
+func (x *SetupRealmResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetupRealmResponse.ProtoReflect.Descriptor instead.
+func (*SetupRealmResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *SetupRealmResponse) GetRealmId() string {
+	if x != nil {
+		return x.RealmId
+	}
+	return ""
+}
+
+func (x *SetupRealmResponse) GetPublicKey() string {
+	if x != nil {
+		return x.PublicKey
+	}
+	return ""
+}
+
+type GetRealmStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRealmStatusRequest) Reset() {
+	*x = GetRealmStatusRequest{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRealmStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRealmStatusRequest) ProtoMessage() {}
+
+func (x *GetRealmStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRealmStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetRealmStatusRequest) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{48}
+}
+
+type GetRealmStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	IsInitialized bool                   `protobuf:"varint,1,opt,name=is_initialized,json=isInitialized,proto3" json:"is_initialized,omitempty"`
+	Version       string                 `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRealmStatusResponse) Reset() {
+	*x = GetRealmStatusResponse{}
+	mi := &file_kitsulan_v1_service_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRealmStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRealmStatusResponse) ProtoMessage() {}
+
+func (x *GetRealmStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kitsulan_v1_service_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRealmStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetRealmStatusResponse) Descriptor() ([]byte, []int) {
+	return file_kitsulan_v1_service_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *GetRealmStatusResponse) GetIsInitialized() bool {
+	if x != nil {
+		return x.IsInitialized
+	}
+	return false
+}
+
+func (x *GetRealmStatusResponse) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
 var File_kitsulan_v1_service_proto protoreflect.FileDescriptor
 
 const file_kitsulan_v1_service_proto_rawDesc = "" +
@@ -2633,7 +2825,18 @@ const file_kitsulan_v1_service_proto_rawDesc = "" +
 	"\bhas_more\x18\x02 \x01(\bR\ahasMore\"8\n" +
 	"\x17SubscribeChannelRequest\x12\x1d\n" +
 	"\n" +
-	"channel_id\x18\x01 \x01(\tR\tchannelId*Z\n" +
+	"channel_id\x18\x01 \x01(\tR\tchannelId\"N\n" +
+	"\x11SetupRealmRequest\x12\x16\n" +
+	"\x06domain\x18\x01 \x01(\tR\x06domain\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"N\n" +
+	"\x12SetupRealmResponse\x12\x19\n" +
+	"\brealm_id\x18\x01 \x01(\tR\arealmId\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x02 \x01(\tR\tpublicKey\"\x17\n" +
+	"\x15GetRealmStatusRequest\"Y\n" +
+	"\x16GetRealmStatusResponse\x12%\n" +
+	"\x0eis_initialized\x18\x01 \x01(\bR\risInitialized\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion*Z\n" +
 	"\vChannelType\x12\x1c\n" +
 	"\x18CHANNEL_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11CHANNEL_TYPE_TEXT\x10\x01\x12\x16\n" +
@@ -2664,7 +2867,11 @@ const file_kitsulan_v1_service_proto_rawDesc = "" +
 	"\vSendMessage\x12\x1f.kitsulan.v1.SendMessageRequest\x1a .kitsulan.v1.SendMessageResponse\x12M\n" +
 	"\n" +
 	"GetHistory\x12\x1e.kitsulan.v1.GetHistoryRequest\x1a\x1f.kitsulan.v1.GetHistoryResponse\x12R\n" +
-	"\x10SubscribeChannel\x12$.kitsulan.v1.SubscribeChannelRequest\x1a\x16.kitsulan.v1.ChatEvent0\x01B\xb6\x01\n" +
+	"\x10SubscribeChannel\x12$.kitsulan.v1.SubscribeChannelRequest\x1a\x16.kitsulan.v1.ChatEvent0\x012\xb8\x01\n" +
+	"\fRealmService\x12M\n" +
+	"\n" +
+	"SetupRealm\x12\x1e.kitsulan.v1.SetupRealmRequest\x1a\x1f.kitsulan.v1.SetupRealmResponse\x12Y\n" +
+	"\x0eGetRealmStatus\x12\".kitsulan.v1.GetRealmStatusRequest\x1a#.kitsulan.v1.GetRealmStatusResponseB\xb6\x01\n" +
 	"\x0fcom.kitsulan.v1B\fServiceProtoP\x01ZHgithub.com/KitsuLAN/KitsuLAN/services/core/gen/go/kitsulan/v1;kitsulanv1\xa2\x02\x03KXX\xaa\x02\vKitsulan.V1\xca\x02\vKitsulan\\V1\xe2\x02\x17Kitsulan\\V1\\GPBMetadata\xea\x02\fKitsulan::V1b\x06proto3"
 
 var (
@@ -2680,7 +2887,7 @@ func file_kitsulan_v1_service_proto_rawDescGZIP() []byte {
 }
 
 var file_kitsulan_v1_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_kitsulan_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
+var file_kitsulan_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 50)
 var file_kitsulan_v1_service_proto_goTypes = []any{
 	(ChannelType)(0),                // 0: kitsulan.v1.ChannelType
 	(*User)(nil),                    // 1: kitsulan.v1.User
@@ -2729,15 +2936,19 @@ var file_kitsulan_v1_service_proto_goTypes = []any{
 	(*GetHistoryRequest)(nil),       // 44: kitsulan.v1.GetHistoryRequest
 	(*GetHistoryResponse)(nil),      // 45: kitsulan.v1.GetHistoryResponse
 	(*SubscribeChannelRequest)(nil), // 46: kitsulan.v1.SubscribeChannelRequest
-	(*timestamppb.Timestamp)(nil),   // 47: google.protobuf.Timestamp
+	(*SetupRealmRequest)(nil),       // 47: kitsulan.v1.SetupRealmRequest
+	(*SetupRealmResponse)(nil),      // 48: kitsulan.v1.SetupRealmResponse
+	(*GetRealmStatusRequest)(nil),   // 49: kitsulan.v1.GetRealmStatusRequest
+	(*GetRealmStatusResponse)(nil),  // 50: kitsulan.v1.GetRealmStatusResponse
+	(*timestamppb.Timestamp)(nil),   // 51: google.protobuf.Timestamp
 }
 var file_kitsulan_v1_service_proto_depIdxs = []int32{
 	1,  // 0: kitsulan.v1.GetProfileResponse.user:type_name -> kitsulan.v1.User
 	1,  // 1: kitsulan.v1.UpdateProfileResponse.user:type_name -> kitsulan.v1.User
 	1,  // 2: kitsulan.v1.SearchUsersResponse.users:type_name -> kitsulan.v1.User
-	47, // 3: kitsulan.v1.Guild.created_at:type_name -> google.protobuf.Timestamp
+	51, // 3: kitsulan.v1.Guild.created_at:type_name -> google.protobuf.Timestamp
 	0,  // 4: kitsulan.v1.Channel.type:type_name -> kitsulan.v1.ChannelType
-	47, // 5: kitsulan.v1.Member.joined_at:type_name -> google.protobuf.Timestamp
+	51, // 5: kitsulan.v1.Member.joined_at:type_name -> google.protobuf.Timestamp
 	14, // 6: kitsulan.v1.CreateGuildResponse.guild:type_name -> kitsulan.v1.Guild
 	14, // 7: kitsulan.v1.GetGuildResponse.guild:type_name -> kitsulan.v1.Guild
 	14, // 8: kitsulan.v1.ListMyGuildsResponse.guilds:type_name -> kitsulan.v1.Guild
@@ -2746,8 +2957,8 @@ var file_kitsulan_v1_service_proto_depIdxs = []int32{
 	15, // 11: kitsulan.v1.CreateChannelResponse.channel:type_name -> kitsulan.v1.Channel
 	15, // 12: kitsulan.v1.ListChannelsResponse.channels:type_name -> kitsulan.v1.Channel
 	16, // 13: kitsulan.v1.ListMembersResponse.members:type_name -> kitsulan.v1.Member
-	47, // 14: kitsulan.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
-	47, // 15: kitsulan.v1.ChatMessage.edited_at:type_name -> google.protobuf.Timestamp
+	51, // 14: kitsulan.v1.ChatMessage.created_at:type_name -> google.protobuf.Timestamp
+	51, // 15: kitsulan.v1.ChatMessage.edited_at:type_name -> google.protobuf.Timestamp
 	39, // 16: kitsulan.v1.ChatEvent.message_created:type_name -> kitsulan.v1.ChatMessage
 	41, // 17: kitsulan.v1.ChatEvent.message_deleted:type_name -> kitsulan.v1.MessageDeleted
 	39, // 18: kitsulan.v1.SendMessageResponse.message:type_name -> kitsulan.v1.ChatMessage
@@ -2772,28 +2983,32 @@ var file_kitsulan_v1_service_proto_depIdxs = []int32{
 	42, // 37: kitsulan.v1.ChatService.SendMessage:input_type -> kitsulan.v1.SendMessageRequest
 	44, // 38: kitsulan.v1.ChatService.GetHistory:input_type -> kitsulan.v1.GetHistoryRequest
 	46, // 39: kitsulan.v1.ChatService.SubscribeChannel:input_type -> kitsulan.v1.SubscribeChannelRequest
-	3,  // 40: kitsulan.v1.AuthService.Register:output_type -> kitsulan.v1.RegisterResponse
-	5,  // 41: kitsulan.v1.AuthService.Login:output_type -> kitsulan.v1.LoginResponse
-	7,  // 42: kitsulan.v1.AuthService.RefreshToken:output_type -> kitsulan.v1.RefreshTokenResponse
-	9,  // 43: kitsulan.v1.UserService.GetProfile:output_type -> kitsulan.v1.GetProfileResponse
-	11, // 44: kitsulan.v1.UserService.UpdateProfile:output_type -> kitsulan.v1.UpdateProfileResponse
-	13, // 45: kitsulan.v1.UserService.SearchUsers:output_type -> kitsulan.v1.SearchUsersResponse
-	18, // 46: kitsulan.v1.GuildService.CreateGuild:output_type -> kitsulan.v1.CreateGuildResponse
-	20, // 47: kitsulan.v1.GuildService.GetGuild:output_type -> kitsulan.v1.GetGuildResponse
-	22, // 48: kitsulan.v1.GuildService.ListMyGuilds:output_type -> kitsulan.v1.ListMyGuildsResponse
-	24, // 49: kitsulan.v1.GuildService.DeleteGuild:output_type -> kitsulan.v1.DeleteGuildResponse
-	26, // 50: kitsulan.v1.GuildService.CreateInvite:output_type -> kitsulan.v1.CreateInviteResponse
-	28, // 51: kitsulan.v1.GuildService.JoinByInvite:output_type -> kitsulan.v1.JoinByInviteResponse
-	30, // 52: kitsulan.v1.GuildService.LeaveGuild:output_type -> kitsulan.v1.LeaveGuildResponse
-	32, // 53: kitsulan.v1.GuildService.CreateChannel:output_type -> kitsulan.v1.CreateChannelResponse
-	34, // 54: kitsulan.v1.GuildService.DeleteChannel:output_type -> kitsulan.v1.DeleteChannelResponse
-	36, // 55: kitsulan.v1.GuildService.ListChannels:output_type -> kitsulan.v1.ListChannelsResponse
-	38, // 56: kitsulan.v1.GuildService.ListMembers:output_type -> kitsulan.v1.ListMembersResponse
-	43, // 57: kitsulan.v1.ChatService.SendMessage:output_type -> kitsulan.v1.SendMessageResponse
-	45, // 58: kitsulan.v1.ChatService.GetHistory:output_type -> kitsulan.v1.GetHistoryResponse
-	40, // 59: kitsulan.v1.ChatService.SubscribeChannel:output_type -> kitsulan.v1.ChatEvent
-	40, // [40:60] is the sub-list for method output_type
-	20, // [20:40] is the sub-list for method input_type
+	47, // 40: kitsulan.v1.RealmService.SetupRealm:input_type -> kitsulan.v1.SetupRealmRequest
+	49, // 41: kitsulan.v1.RealmService.GetRealmStatus:input_type -> kitsulan.v1.GetRealmStatusRequest
+	3,  // 42: kitsulan.v1.AuthService.Register:output_type -> kitsulan.v1.RegisterResponse
+	5,  // 43: kitsulan.v1.AuthService.Login:output_type -> kitsulan.v1.LoginResponse
+	7,  // 44: kitsulan.v1.AuthService.RefreshToken:output_type -> kitsulan.v1.RefreshTokenResponse
+	9,  // 45: kitsulan.v1.UserService.GetProfile:output_type -> kitsulan.v1.GetProfileResponse
+	11, // 46: kitsulan.v1.UserService.UpdateProfile:output_type -> kitsulan.v1.UpdateProfileResponse
+	13, // 47: kitsulan.v1.UserService.SearchUsers:output_type -> kitsulan.v1.SearchUsersResponse
+	18, // 48: kitsulan.v1.GuildService.CreateGuild:output_type -> kitsulan.v1.CreateGuildResponse
+	20, // 49: kitsulan.v1.GuildService.GetGuild:output_type -> kitsulan.v1.GetGuildResponse
+	22, // 50: kitsulan.v1.GuildService.ListMyGuilds:output_type -> kitsulan.v1.ListMyGuildsResponse
+	24, // 51: kitsulan.v1.GuildService.DeleteGuild:output_type -> kitsulan.v1.DeleteGuildResponse
+	26, // 52: kitsulan.v1.GuildService.CreateInvite:output_type -> kitsulan.v1.CreateInviteResponse
+	28, // 53: kitsulan.v1.GuildService.JoinByInvite:output_type -> kitsulan.v1.JoinByInviteResponse
+	30, // 54: kitsulan.v1.GuildService.LeaveGuild:output_type -> kitsulan.v1.LeaveGuildResponse
+	32, // 55: kitsulan.v1.GuildService.CreateChannel:output_type -> kitsulan.v1.CreateChannelResponse
+	34, // 56: kitsulan.v1.GuildService.DeleteChannel:output_type -> kitsulan.v1.DeleteChannelResponse
+	36, // 57: kitsulan.v1.GuildService.ListChannels:output_type -> kitsulan.v1.ListChannelsResponse
+	38, // 58: kitsulan.v1.GuildService.ListMembers:output_type -> kitsulan.v1.ListMembersResponse
+	43, // 59: kitsulan.v1.ChatService.SendMessage:output_type -> kitsulan.v1.SendMessageResponse
+	45, // 60: kitsulan.v1.ChatService.GetHistory:output_type -> kitsulan.v1.GetHistoryResponse
+	40, // 61: kitsulan.v1.ChatService.SubscribeChannel:output_type -> kitsulan.v1.ChatEvent
+	48, // 62: kitsulan.v1.RealmService.SetupRealm:output_type -> kitsulan.v1.SetupRealmResponse
+	50, // 63: kitsulan.v1.RealmService.GetRealmStatus:output_type -> kitsulan.v1.GetRealmStatusResponse
+	42, // [42:64] is the sub-list for method output_type
+	20, // [20:42] is the sub-list for method input_type
 	20, // [20:20] is the sub-list for extension type_name
 	20, // [20:20] is the sub-list for extension extendee
 	0,  // [0:20] is the sub-list for field type_name
@@ -2815,9 +3030,9 @@ func file_kitsulan_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kitsulan_v1_service_proto_rawDesc), len(file_kitsulan_v1_service_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   46,
+			NumMessages:   50,
 			NumExtensions: 0,
-			NumServices:   4,
+			NumServices:   5,
 		},
 		GoTypes:           file_kitsulan_v1_service_proto_goTypes,
 		DependencyIndexes: file_kitsulan_v1_service_proto_depIdxs,

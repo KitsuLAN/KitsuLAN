@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"time"
 
@@ -10,10 +9,11 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/logger"
-	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
+	"github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
 )
 
 type userRepo interface {
@@ -44,25 +44,31 @@ func NewAuthService(users userRepo, cfg *config.Config) *AuthService {
 
 // Register создаёт нового пользователя. Возвращает UserID при успехе.
 func (s *AuthService) Register(ctx context.Context, username, password string) (string, error) {
+	const op = "AuthService.Register"
+
 	log := logger.FromContext(ctx)
 	log.Info("attempting registration", "username", username)
 
 	if err := validateCredentials(username, password); err != nil {
-		return "", err
+		return "", errors.AsAppError(err).WithOp(op)
 	}
 
 	// Ранняя проверка занятости username (до хеширования пароля)
 	exists, err := s.users.ExistsByUsername(ctx, strings.TrimSpace(username))
 	if err != nil {
-		return "", domainerr.Wrap(domainerr.ErrInternal, "failed to check username availability")
+		return "", errors.Wrap(err, errors.ErrDBQueryFailed, op).
+			WithMsg("Failed to check username availability")
 	}
 	if exists {
-		return "", domainerr.ErrUsernameConflict
+		return "", errors.ErrUsernameTaken.WithOp(op).
+			WithRemedy("This username is already in use on this Realm. Try adding some characters or choosing another one.")
 	}
 
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", domainerr.Wrap(domainerr.ErrInternal, "failed to hash password")
+		return "", errors.Wrap(err, errors.ErrInternal, op).
+			WithMsg("Failed to process security credentials").
+			WithMeta("algo", "bcrypt")
 	}
 
 	passStr := string(hashedPass)
@@ -82,7 +88,7 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 	}
 
 	if err := s.users.Create(ctx, user); err != nil {
-		return "", err // репозиторий уже возвращает доменную ошибку
+		return "", errors.AsAppError(err).WithOp(op)
 	}
 
 	return user.ID.String(), nil
@@ -90,23 +96,27 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 
 // Login проверяет credentials и возвращает пару access/refresh токенов.
 func (s *AuthService) Login(ctx context.Context, username, password string) (accessToken, refreshToken string, err error) {
+	const op = "AuthService.Login"
 	log := logger.FromContext(ctx)
 
 	user, err := s.users.FindByUsername(ctx, strings.TrimSpace(username))
 	if err != nil {
-		log.Warn("login failed: user not found", "username", username, "error", err)
-		return "", "", domainerr.ErrInvalidCredentials
+		if errors.Is(err, errors.ErrUserNotFound) {
+			return "", "", errors.ErrInvalidCredentials.WithOp(op)
+		}
+		return "", "", errors.AsAppError(err).WithOp(op)
 	}
 
 	// Проверка: есть ли у пользователя вообще пароль (федеративные не имеют)
 	if user.PasswordHash == nil {
-		log.Warn("login failed: user has no password (federated?)", "username", username)
-		return "", "", domainerr.ErrInvalidCredentials
+		log.Warn("login failed: user has no password (federated?)", "username", username, "user_id", user.ID, "realm_id", user.HomeRealmID)
+		return "", "", errors.ErrInvalidCredentials.WithOp(op).
+			WithMeta("reason", "federated_user_local_login_attempt")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(password)); err != nil {
 		log.Warn("login failed: invalid password", "username", username)
-		return "", "", domainerr.ErrInvalidCredentials
+		return "", "", errors.ErrInvalidCredentials.WithOp(op)
 	}
 
 	sessionID := uuid.NewString()
@@ -115,12 +125,12 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (acc
 
 	accessToken, err = s.generateToken(userID, sessionID, domain.JwtTokenTypeAccess, s.cfg.JWTAccessTokenTTL, nil, "")
 	if err != nil {
-		return "", "", domainerr.Wrap(domainerr.ErrInternal, "failed to generate access token")
+		return "", "", errors.Wrap(err, errors.ErrInternal, op).WithMsg("Failed to issue access token")
 	}
 
 	refreshToken, err = s.generateToken(userID, sessionID, domain.JwtTokenTypeRefresh, s.cfg.JWTRefreshTokenTTL, &now, "")
 	if err != nil {
-		return "", "", domainerr.Wrap(domainerr.ErrInternal, "failed to generate refresh token")
+		return "", "", errors.Wrap(err, errors.ErrInternal, op).WithMsg("Failed to issue refresh token")
 	}
 
 	log.Info("user logged in", "user_id", userID, "session_id", sessionID)
@@ -129,27 +139,31 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (acc
 
 // RefreshToken валидирует refresh token и выдаёт новую пару токенов.
 func (s *AuthService) RefreshToken(ctx context.Context, refreshTokenStr string) (string, string, error) {
+	const op = "AuthService.RefreshToken"
 	log := logger.FromContext(ctx)
 
 	// 1. Валидируем старый токен и получаем его Claims
 	oldClaims, err := s.validateToken(refreshTokenStr)
 	if err != nil {
-		return "", "", err
+		return "", "", errors.AsAppError(err).WithOp(op).
+			WithRemedy("Your session is no longer valid. Please log in again.")
 	}
 
 	if oldClaims.TokenType != domain.JwtTokenTypeRefresh {
-		return "", "", domainerr.ErrTokenInvalid
+		return "", "", errors.ErrTokenInvalid.WithOp(op).
+			WithMsg("Provided token is not a refresh token").
+			WithMeta("got_type", oldClaims.TokenType)
 	}
 
 	newAccess, err := s.generateToken(oldClaims.UserID, oldClaims.SessionID, domain.JwtTokenTypeAccess, s.cfg.JWTAccessTokenTTL, nil, "")
 	if err != nil {
-		return "", "", domainerr.Wrap(domainerr.ErrInternal, "failed to generate access token")
+		return "", "", errors.Wrap(err, errors.ErrInternal, op)
 	}
 
 	origIat := oldClaims.IssuedAt.Time
 	newRefresh, err := s.generateToken(oldClaims.UserID, oldClaims.SessionID, domain.JwtTokenTypeRefresh, s.cfg.JWTRefreshTokenTTL, &origIat, oldClaims.ID)
 	if err != nil {
-		return "", "", domainerr.Wrap(domainerr.ErrInternal, "failed to generate refresh token")
+		return "", "", errors.Wrap(err, errors.ErrInternal, op)
 	}
 
 	log.Info("token refreshed", "uid", oldClaims.UserID, "sid", oldClaims.SessionID)
@@ -209,16 +223,18 @@ func (s *AuthService) ValidateAccessToken(ctx context.Context, tokenStr string) 
 
 	// Middleware должен принимать ТОЛЬКО Access-токены
 	if claims.TokenType != domain.JwtTokenTypeAccess {
-		return nil, domainerr.ErrTokenInvalid
+		return nil, errors.ErrTokenInvalid
 	}
 
 	// Здесь в будущем можно добавить мгновенную проверку бана в Redis/L1 Cache
-	// if s.isBanned(claims.UserID) { return nil, domainerr.ErrUserBanned }
+	// if s.isBanned(claims.UserID) { return nil, errors.ErrUserBanned }
 
 	return claims, nil
 }
 
 func (s *AuthService) validateToken(tokenStr string) (*domain.AuthClaims, error) {
+	const op = "AuthService.validateToken"
+
 	parser := jwt.NewParser(
 		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
 		jwt.WithIssuer(domain.JwtTokenIssuer),
@@ -229,10 +245,15 @@ func (s *AuthService) validateToken(tokenStr string) (*domain.AuthClaims, error)
 	token, err := parser.ParseWithClaims(tokenStr, &domain.AuthClaims{}, func(t *jwt.Token) (any, error) {
 		// Проверка заголовков
 		if typ, ok := t.Header["typ"].(string); ok && typ != "JWT" {
-			return nil, domainerr.Wrap(domainerr.ErrTokenInvalid, "invalid token header typ")
+			return nil, errors.New(errors.CodeTokenMalformed, "Invalid token header type", codes.Unauthenticated).
+				WithOp(op).
+				WithMeta("expected", "JWT").
+				WithMeta("got", t.Header["typ"])
 		}
 		if kid, ok := t.Header["kid"].(string); ok && kid != s.cfg.JWTKeyID {
-			return nil, domainerr.Wrap(domainerr.ErrTokenInvalid, "invalid token header kid")
+			return nil, errors.New(errors.CodeTokenSignature, "Token signed with unknown key ID", codes.Unauthenticated).
+				WithOp(op).
+				WithRemedy("Your session might be from an older server version. Please log in again.")
 		}
 
 		return []byte(s.cfg.JWTSecret), nil
@@ -240,28 +261,36 @@ func (s *AuthService) validateToken(tokenStr string) (*domain.AuthClaims, error)
 
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return nil, domainerr.ErrTokenExpired
+			return nil, errors.ErrTokenExpired.WithOp(op)
 		}
-		return nil, domainerr.Wrap(domainerr.ErrTokenInvalid, "failed to parse token")
+		return nil, errors.Wrap(err, errors.ErrTokenInvalid, op).
+			WithMsg("Security token validation failed").
+			WithRemedy("The session token is malformed or tampered. Re-authentication is required.")
 	}
 
 	if !token.Valid {
-		return nil, domainerr.Wrap(domainerr.ErrTokenInvalid, "token not valid")
+		return nil, errors.ErrTokenInvalid.WithOp(op).WithMsg("Token is syntactically correct but not valid")
 	}
 
 	claims, ok := token.Claims.(*domain.AuthClaims)
 	if !ok {
-		return nil, domainerr.Wrap(domainerr.ErrTokenInvalid, "claims cast failed")
+		return nil, errors.ErrTokenInvalid.WithOp(op).
+			WithMsg("Failed to extract claims from token").
+			WithMeta("type", "AuthClaims")
 	}
 
 	if claims.Version != domain.JwtTokenVersion {
-		return nil, domainerr.Wrap(domainerr.ErrTokenInvalid, "invalid token version")
+		return nil, errors.ErrTokenInvalid.WithOp(op).
+			WithMsgf("Incompatible token version: expected %d, got %d", domain.JwtTokenVersion, claims.Version).
+			WithRemedy("Your application version might be outdated. Please update.")
 	}
 
 	switch claims.TokenType {
 	case domain.JwtTokenTypeAccess, domain.JwtTokenTypeRefresh, domain.JwtTokenTypeService:
 	default:
-		return nil, domainerr.Wrap(domainerr.ErrTokenInvalid, "invalid token type")
+		return nil, errors.ErrTokenInvalid.WithOp(op).
+			WithMsgf("Unauthorized token type: %s", claims.TokenType).
+			WithMeta("token_id", claims.ID)
 	}
 
 	// TODO: Отслеживать RefreshChain для защиты от украденных токенов
@@ -270,12 +299,15 @@ func (s *AuthService) validateToken(tokenStr string) (*domain.AuthClaims, error)
 }
 
 func (s *AuthService) signToken(claims domain.AuthClaims) (string, error) {
+	const op = "AuthService.signToken"
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token.Header["kid"] = s.cfg.JWTKeyID
 	token.Header["typ"] = "JWT"
 	signedToken, err := token.SignedString([]byte(s.cfg.JWTSecret))
 	if err != nil {
-		return "", domainerr.Wrap(domainerr.ErrInternal, "failed to sign jwt token")
+		return "", errors.Wrap(err, errors.ErrInternal, op).
+			WithMsg("Failed to sign security token").
+			WithRemedy("Verify that JWT_SECRET is a valid 32-byte hex string.")
 	}
 	return signedToken, nil
 }
@@ -283,13 +315,19 @@ func (s *AuthService) signToken(claims domain.AuthClaims) (string, error) {
 func validateCredentials(username, password string) error {
 	username = strings.TrimSpace(username)
 	if len(username) < 3 {
-		return domainerr.Wrap(domainerr.ErrInvalidArgument, "username must be at least 3 characters")
+		return errors.ValidationError("username", "Too short").
+			WithOp("AuthService.Register").
+			WithRemedy("Username must be at least 3 characters long.")
 	}
 	if len(username) > 32 {
-		return domainerr.Wrap(domainerr.ErrInvalidArgument, "username must be at most 32 characters")
+		return errors.ValidationError("username", "Too long").
+			WithOp("AuthService.Register").
+			WithRemedy("Username must be at most 32 characters long.")
 	}
 	if len(password) < 8 {
-		return domainerr.Wrap(domainerr.ErrInvalidArgument, "password must be at least 8 characters")
+		return errors.ValidationError("password", "Too weak").
+			WithOp("AuthService.Register").
+			WithRemedy("Password must be at least 8 characters long for security.")
 	}
 	return nil
 }

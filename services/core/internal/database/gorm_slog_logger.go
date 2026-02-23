@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
+	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 )
 
@@ -73,6 +75,13 @@ func (l *gormSlogLogger) Trace(
 	}
 
 	if err != nil {
+		// Если ошибка - это просто "запись не найдена", не пишем её как ERROR.
+		// Можно либо вообще не писать, либо писать как DEBUG.
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// l.log.DebugContext(ctx, "record not found", attrs...)
+			return
+		}
+
 		l.log.ErrorContext(ctx, "query error", append(attrs, "error", err)...)
 		return
 	}

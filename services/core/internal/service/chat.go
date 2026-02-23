@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	pb "github.com/KitsuLAN/KitsuLAN/services/core/gen/go/kitsulan/v1"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/hub"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/middleware"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
-	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
+	"github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -17,6 +17,7 @@ type ChatService struct {
 	messages repository.MessageRepository
 	channels repository.ChannelRepository
 	guilds   repository.GuildRepository
+	users    *UserService
 	hub      *hub.Hub
 }
 
@@ -24,39 +25,66 @@ func NewChatService(
 	messages repository.MessageRepository,
 	channels repository.ChannelRepository,
 	guilds repository.GuildRepository,
+	users *UserService,
 	hub *hub.Hub,
 ) *ChatService {
-	return &ChatService{messages: messages, channels: channels, guilds: guilds, hub: hub}
+	return &ChatService{messages: messages, channels: channels, guilds: guilds, users: users, hub: hub}
 }
 
 func (s *ChatService) SendMessage(ctx context.Context, channelID, authorID, content string) (*models.Message, error) {
-	if len(content) == 0 || len(content) > 4000 {
-		return nil, domainerr.Wrap(domainerr.ErrInvalidArgument, "message content must be 1–4000 characters")
+	const op = "ChatService.SendMessage"
+
+	if len(content) == 0 {
+		return nil, errors.ErrCannotSendEmpty.WithOp(op).
+			WithRemedy("Please type something before sending.")
+	}
+	if len(content) > 4000 {
+		return nil, errors.ErrMessageTooLong.WithOp(op).
+			WithMeta("limit", 4000).
+			WithMeta("current", len(content)).
+			WithRemedy("Try splitting your message into multiple parts.")
 	}
 
 	ch, err := s.channels.FindByID(ctx, channelID)
 	if err != nil {
-		return nil, err
+		return nil, errors.AsAppError(err).WithOp(op).
+			WithMsg("Target channel not found")
 	}
-	if ch.Type != models.ChannelTypeText {
-		return nil, domainerr.Wrap(domainerr.ErrInvalidArgument, "cannot send text message to voice channel")
+
+	if ch.Type != models.ChannelTypeText && ch.Type != models.ChannelTypeAnnouncement {
+		return nil, errors.New(errors.CodeChannelAccessDenied, "This channel does not support text messages.", 3).
+			WithOp(op).
+			WithMeta("channel_type", ch.Type)
 	}
 
 	// Проверяем что отправитель — член гильдии
 	isMember, err := s.guilds.IsMember(ctx, ch.GuildID.String(), authorID)
-	if err != nil || !isMember {
-		return nil, domainerr.ErrPermissionDenied
+	if err != nil {
+		return nil, errors.Wrap(err, errors.ErrDBQueryFailed, op)
+	}
+	if !isMember {
+		return nil, errors.PermissionError("SEND_MESSAGES", ch.GuildID.String()).
+			WithOp(op).
+			WithRemedy("You must join this guild before you can chat.")
 	}
 
-	chUUID, _ := uuid.Parse(channelID)
-	authorUUID, _ := uuid.Parse(authorID)
+	currentRealmID := middleware.MustRealmID(ctx)
 	msg := &models.Message{
-		ChannelID: chUUID,
-		AuthorID:  authorUUID,
+		BaseEntity: models.BaseEntity{
+			RealmID: currentRealmID,
+		},
+		ChannelID: uuid.MustParse(channelID),
+		AuthorID:  uuid.MustParse(authorID),
 		Content:   content,
 	}
 	if err := s.messages.Create(ctx, msg); err != nil {
-		return nil, fmt.Errorf("save message: %w", err)
+		return nil, errors.AsAppError(err).WithOp(op).
+			WithMsg("Failed to persist message in database")
+	}
+
+	authorProfile, err := s.users.GetProfile(ctx, authorID)
+	if err == nil {
+		msg.Author = *authorProfile
 	}
 
 	// Публикуем в хаб (не ждём — fire and forget)
@@ -70,23 +98,28 @@ func (s *ChatService) SendMessage(ctx context.Context, channelID, authorID, cont
 }
 
 func (s *ChatService) GetHistory(ctx context.Context, channelID, callerID string, limit int, beforeID string) ([]models.Message, bool, error) {
+	const op = "ChatService.GetHistory"
+
 	ch, err := s.channels.FindByID(ctx, channelID)
 	if err != nil {
-		return nil, false, err
+		return nil, false, errors.AsAppError(err).WithOp(op)
 	}
 
 	isMember, err := s.guilds.IsMember(ctx, ch.GuildID.String(), callerID)
 	if err != nil || !isMember {
-		return nil, false, domainerr.ErrPermissionDenied
+		return nil, false, errors.PermissionError("VIEW_CHANNEL", ch.GuildID.String()).WithOp(op)
 	}
 
-	if limit <= 0 || limit > 100 {
+	if limit <= 0 {
 		limit = 50
+	}
+	if limit > 100 {
+		return nil, false, errors.LimitReached("messages_per_request", 100).WithOp(op)
 	}
 
 	msgs, err := s.messages.GetHistory(ctx, channelID, limit+1, beforeID)
 	if err != nil {
-		return nil, false, err
+		return nil, false, errors.Wrap(err, errors.ErrDBQueryFailed, op)
 	}
 
 	hasMore := len(msgs) > limit
@@ -109,7 +142,7 @@ func (s *ChatService) CanSubscribe(ctx context.Context, channelID, userID string
 	}
 	isMember, err := s.guilds.IsMember(ctx, ch.GuildID.String(), userID)
 	if err != nil || !isMember {
-		return domainerr.ErrPermissionDenied
+		return errors.ErrForbidden
 	}
 	return nil
 }
@@ -124,7 +157,7 @@ func MessageToProto(m *models.Message) *pb.ChatMessage {
 		CreatedAt: timestamppb.New(m.CreatedAt),
 	}
 	// Автор может быть не загружен (lazy)
-	if m.Author.ID != uuid.Nil {
+	if m.Author.Username != "" {
 		msg.AuthorUsername = m.Author.Username
 		msg.AuthorAvatarUrl = m.Author.AvatarURL
 	}

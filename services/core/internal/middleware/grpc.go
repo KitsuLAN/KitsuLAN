@@ -7,6 +7,7 @@ package middleware
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/logger"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -25,8 +27,9 @@ import (
 type contextKey string
 
 const (
-	ContextKeyUserID contextKey = "user_id"
-	ContextKeyClaims contextKey = "claims"
+	ContextKeyUserID  contextKey = "user_id"
+	ContextKeyRealmID contextKey = "realm_id"
+	ContextKeyClaims  contextKey = "claims"
 )
 
 func mapAuthError(err error) error {
@@ -138,9 +141,11 @@ func UnaryLogging() grpc.UnaryServerInterceptor {
 // publicMethods — список методов, которые не требуют авторизации.
 // Используем map для O(1) поиска.
 var publicMethods = map[string]struct{}{
-	"/kitsulan.v1.AuthService/Register":     {},
-	"/kitsulan.v1.AuthService/Login":        {},
-	"/kitsulan.v1.AuthService/RefreshToken": {},
+	"/kitsulan.v1.AuthService/Register":        {},
+	"/kitsulan.v1.AuthService/Login":           {},
+	"/kitsulan.v1.AuthService/RefreshToken":    {},
+	"/kitsulan.v1.RealmService/GetRealmStatus": {},
+	"/kitsulan.v1.RealmService/SetupRealm":     {},
 }
 
 type tokenValidator interface {
@@ -174,6 +179,7 @@ func UnaryAuth(auth tokenValidator) grpc.UnaryServerInterceptor {
 		// Добавляем UserID в контекст для использования в обработчиках
 		ctx = context.WithValue(ctx, ContextKeyUserID, claims.UserID)
 		ctx = context.WithValue(ctx, ContextKeyClaims, claims)
+		ctx = context.WithValue(ctx, ContextKeyRealmID, claims.RealmID)
 		return handler(ctx, req)
 	}
 }
@@ -196,6 +202,8 @@ func StreamAuth(auth tokenValidator) grpc.StreamServerInterceptor {
 		}
 
 		newCtx := context.WithValue(ss.Context(), ContextKeyUserID, claims.UserID)
+		newCtx = context.WithValue(newCtx, ContextKeyRealmID, claims.RealmID)
+		newCtx = context.WithValue(newCtx, ContextKeyClaims, claims)
 		return handler(srv, &wrappedStream{ServerStream: ss, ctx: newCtx})
 	}
 }
@@ -245,4 +253,20 @@ func MustUserID(ctx context.Context) string {
 		panic("UserID missing in context: Auth interceptor is not applied")
 	}
 	return uid
+}
+
+// MustRealmID - Helper для извлечения (аналог MustUserID)
+func MustRealmID(ctx context.Context) uuid.UUID {
+	ridStr, ok := ctx.Value(ContextKeyRealmID).(string)
+	if !ok || ridStr == "" {
+		return uuid.Nil
+	}
+
+	rid, err := uuid.Parse(ridStr)
+	if err != nil {
+		// Если в токене невалидный UUID, логируем это
+		slog.Warn("Invalid RealmID in token", "value", ridStr)
+		return uuid.Nil
+	}
+	return rid
 }

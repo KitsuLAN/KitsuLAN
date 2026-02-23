@@ -431,3 +431,47 @@ func (a *App) PingServer(addr string) bool {
 
 	return resp.StatusCode == http.StatusOK
 }
+
+func (a *App) GetRealmStatus() (map[string]any, error) {
+	// Проверяем, готов ли gRPC клиент
+	if a.client == nil || !a.client.IsReady() {
+		return nil, fmt.Errorf("gRPC server not reachable")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	// Если здесь a.client.Realm == nil, значит Connect() еще не отработал полностью
+	if a.client.Realm == nil {
+		return nil, fmt.Errorf("realm client not initialized")
+	}
+
+	resp, err := a.client.Realm.GetRealmStatus(ctx, &pb.GetRealmStatusRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]any{
+		"is_initialized": resp.IsInitialized,
+		"version":        resp.Version,
+	}, nil
+}
+
+func (a *App) SetupRealm(domain, name string) (map[string]any, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	resp, err := a.client.Realm.SetupRealm(ctx, &pb.SetupRealmRequest{
+		Domain:      domain,
+		DisplayName: name,
+	})
+	if err != nil {
+		// ВАЖНО: Если это наша ошибка, мы можем отправить её в JS как JSON
+		// Но для простоты пока пробросим как есть, Wails покажет сообщение.
+		return nil, err
+	}
+	return map[string]any{
+		"realm_id":   resp.RealmId,
+		"public_key": resp.PublicKey,
+	}, nil
+}

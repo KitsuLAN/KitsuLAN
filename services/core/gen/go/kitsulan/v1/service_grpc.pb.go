@@ -1055,3 +1055,149 @@ var ChatService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Metadata: "kitsulan/v1/service.proto",
 }
+
+const (
+	RealmService_SetupRealm_FullMethodName     = "/kitsulan.v1.RealmService/SetupRealm"
+	RealmService_GetRealmStatus_FullMethodName = "/kitsulan.v1.RealmService/GetRealmStatus"
+)
+
+// RealmServiceClient is the client API for RealmService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type RealmServiceClient interface {
+	// SetupRealm вызывается один раз для инициализации узла.
+	// Если узел уже настроен, вернет ошибку CONFLICT.
+	SetupRealm(ctx context.Context, in *SetupRealmRequest, opts ...grpc.CallOption) (*SetupRealmResponse, error)
+	// GetRealmStatus возвращает состояние узла (нужен ли Setup).
+	GetRealmStatus(ctx context.Context, in *GetRealmStatusRequest, opts ...grpc.CallOption) (*GetRealmStatusResponse, error)
+}
+
+type realmServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewRealmServiceClient(cc grpc.ClientConnInterface) RealmServiceClient {
+	return &realmServiceClient{cc}
+}
+
+func (c *realmServiceClient) SetupRealm(ctx context.Context, in *SetupRealmRequest, opts ...grpc.CallOption) (*SetupRealmResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetupRealmResponse)
+	err := c.cc.Invoke(ctx, RealmService_SetupRealm_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *realmServiceClient) GetRealmStatus(ctx context.Context, in *GetRealmStatusRequest, opts ...grpc.CallOption) (*GetRealmStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRealmStatusResponse)
+	err := c.cc.Invoke(ctx, RealmService_GetRealmStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RealmServiceServer is the server API for RealmService service.
+// All implementations must embed UnimplementedRealmServiceServer
+// for forward compatibility.
+type RealmServiceServer interface {
+	// SetupRealm вызывается один раз для инициализации узла.
+	// Если узел уже настроен, вернет ошибку CONFLICT.
+	SetupRealm(context.Context, *SetupRealmRequest) (*SetupRealmResponse, error)
+	// GetRealmStatus возвращает состояние узла (нужен ли Setup).
+	GetRealmStatus(context.Context, *GetRealmStatusRequest) (*GetRealmStatusResponse, error)
+	mustEmbedUnimplementedRealmServiceServer()
+}
+
+// UnimplementedRealmServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedRealmServiceServer struct{}
+
+func (UnimplementedRealmServiceServer) SetupRealm(context.Context, *SetupRealmRequest) (*SetupRealmResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetupRealm not implemented")
+}
+func (UnimplementedRealmServiceServer) GetRealmStatus(context.Context, *GetRealmStatusRequest) (*GetRealmStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRealmStatus not implemented")
+}
+func (UnimplementedRealmServiceServer) mustEmbedUnimplementedRealmServiceServer() {}
+func (UnimplementedRealmServiceServer) testEmbeddedByValue()                      {}
+
+// UnsafeRealmServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to RealmServiceServer will
+// result in compilation errors.
+type UnsafeRealmServiceServer interface {
+	mustEmbedUnimplementedRealmServiceServer()
+}
+
+func RegisterRealmServiceServer(s grpc.ServiceRegistrar, srv RealmServiceServer) {
+	// If the following call panics, it indicates UnimplementedRealmServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&RealmService_ServiceDesc, srv)
+}
+
+func _RealmService_SetupRealm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetupRealmRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RealmServiceServer).SetupRealm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RealmService_SetupRealm_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RealmServiceServer).SetupRealm(ctx, req.(*SetupRealmRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RealmService_GetRealmStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRealmStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RealmServiceServer).GetRealmStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RealmService_GetRealmStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RealmServiceServer).GetRealmStatus(ctx, req.(*GetRealmStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// RealmService_ServiceDesc is the grpc.ServiceDesc for RealmService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var RealmService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "kitsulan.v1.RealmService",
+	HandlerType: (*RealmServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SetupRealm",
+			Handler:    _RealmService_SetupRealm_Handler,
+		},
+		{
+			MethodName: "GetRealmStatus",
+			Handler:    _RealmService_GetRealmStatus_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "kitsulan/v1/service.proto",
+}

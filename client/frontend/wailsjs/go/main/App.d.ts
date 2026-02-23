@@ -16,6 +16,8 @@ export function DeleteGuild(arg1:string):Promise<void>;
 
 export function GetHistory(arg1:string,arg2:number,arg3:string):Promise<Array<kitsulanv1.ChatMessage>>;
 
+export function GetRealmStatus():Promise<Record<string, any>>;
+
 export function JoinByInvite(arg1:string):Promise<kitsulanv1.Guild>;
 
 export function LeaveGuild(arg1:string):Promise<void>;
@@ -35,6 +37,8 @@ export function Register(arg1:string,arg2:string):Promise<string>;
 export function SendMessage(arg1:string,arg2:string):Promise<kitsulanv1.ChatMessage>;
 
 export function SetToken(arg1:string):Promise<void>;
+
+export function SetupRealm(arg1:string,arg2:string):Promise<Record<string, any>>;
 
 export function SubscribeChannel(arg1:string):Promise<void>;
 

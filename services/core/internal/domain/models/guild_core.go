@@ -24,7 +24,7 @@ type Guild struct {
 	// --- Discovery & Access ---
 	IsPublic          bool    `gorm:"not null;default:true"`
 	IsDiscoverable    bool    `gorm:"not null;default:false"`
-	InviteCode        string  `gorm:"uniqueIndex"`
+	InviteCode        *string `gorm:"uniqueIndex"`
 	VanityURLCode     *string `gorm:"uniqueIndex"` // Красивая ссылка
 	VerificationLevel int     `gorm:"not null;default:0"`
 
