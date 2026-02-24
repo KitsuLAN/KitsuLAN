@@ -3,24 +3,19 @@ package repository
 import (
 	"context"
 
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
+	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"gorm.io/gorm"
 )
 
-type messageGORMRepo struct{ db *gorm.DB }
-
-// Helper для получения правильного DB (транзакция или базовый)
-func (r *messageGORMRepo) getDB(ctx context.Context) *gorm.DB {
-	return database.ExtractDB(ctx, r.db).WithContext(ctx)
-}
+type messageGORMRepo struct{ BaseRepo[models.Message] }
 
 func NewMessageRepository(db *gorm.DB) MessageRepository {
-	return &messageGORMRepo{db: db}
+	return &messageGORMRepo{BaseRepo: NewBaseRepo[models.Message](db, domainerr.ErrMessageNotFound)}
 }
 
 func (r *messageGORMRepo) Create(ctx context.Context, msg *models.Message) error {
-	return r.getDB(ctx).Transaction(func(tx *gorm.DB) error {
+	return r.DB(ctx).Transaction(func(tx *gorm.DB) error {
 		// Атомарный инкремент и получение номера
 		var nextSeq int64
 		err := tx.Model(&models.Channel{}).
@@ -43,7 +38,7 @@ func (r *messageGORMRepo) GetHistory(ctx context.Context, channelID string, limi
 		limit = 50
 	}
 
-	q := r.getDB(ctx).
+	q := r.DB(ctx).
 		Preload("Author").
 		Where("channel_id = ?", channelID).
 		Order("created_at DESC").
@@ -60,13 +55,9 @@ func (r *messageGORMRepo) GetHistory(ctx context.Context, channelID string, limi
 		return nil, err
 	}
 
-	// Разворачиваем (DESC → ASC для отображения)
+	// Разворачиваем (DESC → ASC для отображения, старые сверху)
 	for i, j := 0, len(msgs)-1; i < j; i, j = i+1, j-1 {
 		msgs[i], msgs[j] = msgs[j], msgs[i]
 	}
 	return msgs, nil
-}
-
-func (r *messageGORMRepo) Delete(ctx context.Context, id string) error {
-	return r.getDB(ctx).Where("id = ?", id).Delete(&models.Message{}).Error
 }

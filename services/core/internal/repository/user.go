@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"gorm.io/gorm"
@@ -14,53 +13,31 @@ import (
 // Экспортируется через конструктор NewUserRepository, тип намеренно приватный:
 // снаружи работают только через интерфейс.
 type userGORMRepo struct {
-	db *gorm.DB
-}
-
-// Helper для получения правильного DB (транзакция или базовый)
-func (r *userGORMRepo) getDB(ctx context.Context) *gorm.DB {
-	return database.ExtractDB(ctx, r.db).WithContext(ctx)
+	BaseRepo[models.User]
 }
 
 // NewUserRepository создаёт GORM-реализацию UserRepository.
 func NewUserRepository(db *gorm.DB) UserRepository {
-	return &userGORMRepo{db: db}
+	return &userGORMRepo{BaseRepo: NewBaseRepo[models.User](db, domainerr.ErrUserNotFound)}
 }
 
 // Create сохраняет нового пользователя.
 // UUIDv7 генерируется в domain.User.BeforeCreate.
 func (r *userGORMRepo) Create(ctx context.Context, user *models.User) error {
-	result := r.getDB(ctx).Create(user)
-	if result.Error != nil {
-		if isUniqueViolation(result.Error) {
-			return classifyUniqueViolation(result.Error)
-		}
-		return result.Error
+	err := r.DB(ctx).Create(user).Error
+	if IsUniqueViolation(err) {
+		return classifyUniqueViolation(err)
 	}
-	return nil
-}
-
-// FindByID возвращает пользователя по строковому UUID.
-func (r *userGORMRepo) FindByID(ctx context.Context, id string) (*models.User, error) {
-	var user models.User
-	err := r.getDB(ctx).
-		Where("id = ?", id).
-		First(&user).Error
-	if err != nil {
-		return nil, mapGORMError(err)
-	}
-	return &user, nil
+	return r.MapError(err)
 }
 
 // FindByUsername ищет пользователя по точному совпадению username.
 // Username нечувствителен к регистру (LOWER).
 func (r *userGORMRepo) FindByUsername(ctx context.Context, username string) (*models.User, error) {
 	var user models.User
-	err := r.getDB(ctx).
-		Where("LOWER(username) = LOWER(?)", username).
-		First(&user).Error
+	err := r.DB(ctx).Where("LOWER(username) = LOWER(?)", username).First(&user).Error
 	if err != nil {
-		return nil, mapGORMError(err)
+		return nil, r.MapError(err)
 	}
 	return &user, nil
 }
@@ -68,11 +45,9 @@ func (r *userGORMRepo) FindByUsername(ctx context.Context, username string) (*mo
 // FindByEmail ищет пользователя по email (case-insensitive).
 func (r *userGORMRepo) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
-	err := r.getDB(ctx).
-		Where("LOWER(email) = LOWER(?)", email).
-		First(&user).Error
+	err := r.DB(ctx).Where("LOWER(email) = LOWER(?)", email).First(&user).Error
 	if err != nil {
-		return nil, mapGORMError(err)
+		return nil, r.MapError(err)
 	}
 	return &user, nil
 }
@@ -89,16 +64,13 @@ func (r *userGORMRepo) Update(ctx context.Context, id string, fields map[string]
 	delete(fields, "password_hash")
 	delete(fields, "created_at")
 
-	result := r.getDB(ctx).
-		Model(&models.User{}).
-		Where("id = ?", id).
-		Updates(fields)
+	result := r.DB(ctx).Model(&models.User{}).Where("id = ?", id).Updates(fields)
 
 	if result.Error != nil {
-		if isUniqueViolation(result.Error) {
+		if IsUniqueViolation(result.Error) {
 			return classifyUniqueViolation(result.Error)
 		}
-		return result.Error
+		return r.MapError(result.Error)
 	}
 
 	// Проверяем что запись существовала
@@ -106,22 +78,6 @@ func (r *userGORMRepo) Update(ctx context.Context, id string, fields map[string]
 		return domainerr.ErrUserNotFound
 	}
 
-	return nil
-}
-
-// Delete выполняет soft-delete (заполняет DeletedAt, запись остаётся в БД).
-// Это позволяет сохранить историю сообщений от удалённых пользователей.
-func (r *userGORMRepo) Delete(ctx context.Context, id string) error {
-	result := r.getDB(ctx).
-		Where("id = ?", id).
-		Delete(&models.User{})
-
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return domainerr.ErrUserNotFound
-	}
 	return nil
 }
 
@@ -134,50 +90,26 @@ func (r *userGORMRepo) Search(ctx context.Context, query string, limit int) ([]m
 	}
 
 	var users []models.User
-	err := r.getDB(ctx).
+	err := r.DB(ctx).
 		Where("LOWER(username) LIKE LOWER(?)", "%"+escapeLike(query)+"%").
 		Order("username ASC").
 		Limit(limit).
 		Find(&users).Error
 
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
+	return users, r.MapError(err)
 }
 
 // ExistsByUsername проверяет занятость username без загрузки всей записи.
 // Используется при регистрации для раннего возврата ошибки.
 func (r *userGORMRepo) ExistsByUsername(ctx context.Context, username string) (bool, error) {
 	var count int64
-	err := r.getDB(ctx).
-		Model(&models.User{}).
+	err := r.DB(ctx).Model(&models.User{}).
 		Where("LOWER(username) = LOWER(?)", username).
 		Count(&count).Error
-	if err != nil {
-		return false, err
-	}
-	return count > 0, nil
+	return count > 0, r.MapError(err)
 }
 
 // --- helpers ---
-
-// mapGORMError конвертирует GORM-ошибки в доменные.
-func mapGORMError(err error) error {
-	if domainerr.Is(err, gorm.ErrRecordNotFound) {
-		return domainerr.ErrUserNotFound
-	}
-	return err
-}
-
-// isUniqueViolation определяет ошибки нарушения уникальности
-// для Postgres и SQLite.
-func isUniqueViolation(err error) bool {
-	msg := err.Error()
-	return strings.Contains(msg, "duplicate key value") || // Postgres
-		strings.Contains(msg, "UNIQUE constraint failed") || // SQLite
-		strings.Contains(msg, "unique constraint")
-}
 
 // classifyUniqueViolation уточняет какое именно поле дублируется.
 func classifyUniqueViolation(err error) error {
