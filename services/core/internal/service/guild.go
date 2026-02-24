@@ -30,6 +30,28 @@ var guildColors = []string{
 	"#db2777",
 }
 
+func (s *GuildService) checkMember(ctx context.Context, guildID, userID string) error {
+	isMember, err := s.guilds.IsMember(ctx, guildID, userID)
+	if err != nil {
+		return errors.Wrap(err, errors.ErrDBQueryFailed, "GuildService.checkMember")
+	}
+	if !isMember {
+		return errors.ErrForbidden.WithMeta("guild_id", guildID).WithMsg("You are not a member of this guild")
+	}
+	return nil
+}
+
+func (s *GuildService) getOwnedGuild(ctx context.Context, guildID, userID string) (*models.Guild, error) {
+	guild, err := s.guilds.FindByID(ctx, guildID)
+	if err != nil {
+		return nil, errors.AsAppError(err).WithOp("GuildService.getOwnedGuild")
+	}
+	if !guild.IsOwner(uuid.MustParse(userID)) {
+		return nil, errors.ErrForbidden.WithMeta("guild_id", guildID).WithMsg("Only the owner can perform this action")
+	}
+	return guild, nil
+}
+
 func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, description string) (*models.Guild, error) {
 	const op = "GuildService.CreateGuild"
 
@@ -87,12 +109,8 @@ func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, descripti
 }
 
 func (s *GuildService) GetGuild(ctx context.Context, guildID, callerID string) (*models.Guild, error) {
-	isMember, err := s.guilds.IsMember(ctx, guildID, callerID)
-	if err != nil {
+	if err := s.checkMember(ctx, guildID, callerID); err != nil {
 		return nil, err
-	}
-	if !isMember {
-		return nil, errors.ErrForbidden
 	}
 	return s.guilds.FindByID(ctx, guildID)
 }
@@ -102,29 +120,21 @@ func (s *GuildService) ListMyGuilds(ctx context.Context, userID string) ([]model
 }
 
 func (s *GuildService) DeleteGuild(ctx context.Context, guildID, callerID string) error {
-	guild, err := s.guilds.FindByID(ctx, guildID)
-	if err != nil {
+	if _, err := s.getOwnedGuild(ctx, guildID, callerID); err != nil {
 		return err
-	}
-	if guild.OwnerID.String() != callerID {
-		return errors.ErrForbidden
 	}
 	return s.guilds.Delete(ctx, guildID)
 }
 
 func (s *GuildService) CreateInvite(ctx context.Context, guildID, callerID string, maxUses int, expiresInHours int) (*models.GuildInvite, error) {
-	isMember, err := s.guilds.IsMember(ctx, guildID, callerID)
-	if err != nil || !isMember {
-		return nil, errors.ErrForbidden
+	if err := s.checkMember(ctx, guildID, callerID); err != nil {
+		return nil, err
 	}
-
-	guildUUID, _ := uuid.Parse(guildID)
-	callerUUID, _ := uuid.Parse(callerID)
 
 	inv := &models.GuildInvite{
 		RealmID:   middleware.MustRealmID(ctx),
-		GuildID:   guildUUID,
-		CreatedBy: callerUUID,
+		GuildID:   uuid.MustParse(guildID),
+		CreatedBy: uuid.MustParse(callerID),
 		MaxUses:   maxUses,
 	}
 	if expiresInHours > 0 {
@@ -157,15 +167,12 @@ func (s *GuildService) JoinByInvite(ctx context.Context, code, userID string) (*
 		return nil, errors.InviteError(errors.CodeInviteMaxUses, code).WithOp(op)
 	}
 
-	userUUID := uuid.MustParse(userID)
 	err = s.tm.Do(ctx, func(txCtx context.Context) error {
-		member := &models.GuildMember{
+		if err := s.guilds.AddMember(txCtx, &models.GuildMember{
 			RealmID: inv.RealmID,
 			GuildID: inv.GuildID,
-			UserID:  userUUID,
-		}
-		if err := s.guilds.AddMember(txCtx, member); err != nil {
-			// FromDB преобразует "duplicate key" в CodeMemberAlreadyExists
+			UserID:  uuid.MustParse(userID),
+		}); err != nil {
 			return errors.AsAppError(err).WithOp(op)
 		}
 		return s.guilds.IncrementInviteUses(txCtx, code)
@@ -196,13 +203,9 @@ func (s *GuildService) LeaveGuild(ctx context.Context, guildID, userID string) e
 func (s *GuildService) CreateChannel(ctx context.Context, guildID, callerID, name string, chType models.ChannelType) (*models.Channel, error) {
 	const op = "GuildService.CreateChannel"
 
-	guild, err := s.guilds.FindByID(ctx, guildID)
+	guild, err := s.getOwnedGuild(ctx, guildID, callerID)
 	if err != nil {
-		return nil, errors.AsAppError(err).WithOp(op)
-	}
-	if !guild.IsOwner(uuid.MustParse(callerID)) {
-		// В будущем тут будет проверка через PermissionService
-		return nil, errors.PermissionError("MANAGE_CHANNELS", guildID).WithOp(op)
+		return nil, err
 	}
 	if len(name) < 1 || len(name) > 100 {
 		return nil, errors.ValidationError("name", "channel name must be 1–100 characters")
@@ -225,35 +228,22 @@ func (s *GuildService) DeleteChannel(ctx context.Context, channelID, callerID st
 	if err != nil {
 		return err
 	}
-	guild, err := s.guilds.FindByID(ctx, ch.GuildID.String())
-	if err != nil {
+	if _, err := s.getOwnedGuild(ctx, ch.GuildID.String(), callerID); err != nil {
 		return err
-	}
-	if guild.OwnerID.String() != callerID {
-		return errors.ErrForbidden
 	}
 	return s.channels.Delete(ctx, channelID)
 }
 
 func (s *GuildService) ListChannels(ctx context.Context, guildID, callerID string) ([]models.Channel, error) {
-	// BUG(client)
-	// NOTE: иногда клиенты присылают guildID="undefined".
-	// Это нарушение клиентского контракта API.
-	// Намеренно не валидируем guildID:
-	//   - чтобы не добавлять лишний overhead в hot path
-	//   - чтобы не раскрывать существование ресурсов через ErrNotFound
-	// Проверки прав доступа достаточно для безопасного отклонения запроса.
-	isMember, err := s.guilds.IsMember(ctx, guildID, callerID)
-	if err != nil || !isMember {
-		return nil, errors.ErrForbidden
+	if err := s.checkMember(ctx, guildID, callerID); err != nil {
+		return nil, err
 	}
 	return s.channels.ListByGuild(ctx, guildID)
 }
 
 func (s *GuildService) ListMembers(ctx context.Context, guildID, callerID string) ([]models.GuildMember, error) {
-	isMember, err := s.guilds.IsMember(ctx, guildID, callerID)
-	if err != nil || !isMember {
-		return nil, errors.ErrForbidden
+	if err := s.checkMember(ctx, guildID, callerID); err != nil {
+		return nil, err
 	}
 	return s.guilds.ListMembers(ctx, guildID)
 }

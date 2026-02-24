@@ -31,6 +31,24 @@ func NewChatService(
 	return &ChatService{messages: messages, channels: channels, guilds: guilds, users: users, hub: hub}
 }
 
+func (s *ChatService) getAccessibleChannel(ctx context.Context, channelID, userID, op string) (*models.Channel, error) {
+	ch, err := s.channels.FindByID(ctx, channelID)
+	if err != nil {
+		return nil, errors.AsAppError(err).WithOp(op).WithMsg("Channel not found")
+	}
+
+	isMember, err := s.guilds.IsMember(ctx, ch.GuildID.String(), userID)
+	if err != nil {
+		return nil, errors.Wrap(err, errors.ErrDBQueryFailed, op)
+	}
+	if !isMember {
+		// FIXME: Вариативная проверка на права VIEW_CHANNEL и SEND_MESSAGES
+		return nil, errors.PermissionError("VIEW_CHANNEL", ch.GuildID.String()).WithOp(op)
+	}
+
+	return ch, nil
+}
+
 func (s *ChatService) SendMessage(ctx context.Context, channelID, authorID, content string) (*models.Message, error) {
 	const op = "ChatService.SendMessage"
 
@@ -45,10 +63,9 @@ func (s *ChatService) SendMessage(ctx context.Context, channelID, authorID, cont
 			WithRemedy("Try splitting your message into multiple parts.")
 	}
 
-	ch, err := s.channels.FindByID(ctx, channelID)
+	ch, err := s.getAccessibleChannel(ctx, channelID, authorID, op)
 	if err != nil {
-		return nil, errors.AsAppError(err).WithOp(op).
-			WithMsg("Target channel not found")
+		return nil, err
 	}
 
 	if ch.Type != models.ChannelTypeText && ch.Type != models.ChannelTypeAnnouncement {
@@ -57,33 +74,18 @@ func (s *ChatService) SendMessage(ctx context.Context, channelID, authorID, cont
 			WithMeta("channel_type", ch.Type)
 	}
 
-	// Проверяем что отправитель — член гильдии
-	isMember, err := s.guilds.IsMember(ctx, ch.GuildID.String(), authorID)
-	if err != nil {
-		return nil, errors.Wrap(err, errors.ErrDBQueryFailed, op)
-	}
-	if !isMember {
-		return nil, errors.PermissionError("SEND_MESSAGES", ch.GuildID.String()).
-			WithOp(op).
-			WithRemedy("You must join this guild before you can chat.")
-	}
-
-	currentRealmID := middleware.MustRealmID(ctx)
 	msg := &models.Message{
-		BaseEntity: models.BaseEntity{
-			RealmID: currentRealmID,
-		},
-		ChannelID: uuid.MustParse(channelID),
-		AuthorID:  uuid.MustParse(authorID),
-		Content:   content,
+		BaseEntity: models.BaseEntity{RealmID: middleware.MustRealmID(ctx)},
+		ChannelID:  uuid.MustParse(channelID),
+		AuthorID:   uuid.MustParse(authorID),
+		Content:    content,
 	}
 	if err := s.messages.Create(ctx, msg); err != nil {
 		return nil, errors.AsAppError(err).WithOp(op).
 			WithMsg("Failed to persist message in database")
 	}
 
-	authorProfile, err := s.users.GetProfile(ctx, authorID)
-	if err == nil {
+	if authorProfile, err := s.users.GetProfile(ctx, authorID); err == nil {
 		msg.Author = *authorProfile
 	}
 
@@ -100,14 +102,8 @@ func (s *ChatService) SendMessage(ctx context.Context, channelID, authorID, cont
 func (s *ChatService) GetHistory(ctx context.Context, channelID, callerID string, limit int, beforeID string) ([]models.Message, bool, error) {
 	const op = "ChatService.GetHistory"
 
-	ch, err := s.channels.FindByID(ctx, channelID)
-	if err != nil {
-		return nil, false, errors.AsAppError(err).WithOp(op)
-	}
-
-	isMember, err := s.guilds.IsMember(ctx, ch.GuildID.String(), callerID)
-	if err != nil || !isMember {
-		return nil, false, errors.PermissionError("VIEW_CHANNEL", ch.GuildID.String()).WithOp(op)
+	if _, err := s.getAccessibleChannel(ctx, channelID, callerID, op); err != nil {
+		return nil, false, err
 	}
 
 	if limit <= 0 {
@@ -136,15 +132,8 @@ func (s *ChatService) Hub() *hub.Hub {
 
 // CanSubscribe проверяет права на подписку.
 func (s *ChatService) CanSubscribe(ctx context.Context, channelID, userID string) error {
-	ch, err := s.channels.FindByID(ctx, channelID)
-	if err != nil {
-		return err
-	}
-	isMember, err := s.guilds.IsMember(ctx, ch.GuildID.String(), userID)
-	if err != nil || !isMember {
-		return errors.ErrForbidden
-	}
-	return nil
+	_, err := s.getAccessibleChannel(ctx, channelID, userID, "ChatService.CanSubscribe")
+	return err
 }
 
 // MessageToProto конвертирует domain.Message в proto.

@@ -7,6 +7,7 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/middleware"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/service"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
+	util "github.com/KitsuLAN/KitsuLAN/services/core/pkg/utill"
 )
 
 type ChatServer struct {
@@ -33,11 +34,11 @@ func (s *ChatServer) GetHistory(ctx context.Context, req *pb.GetHistoryRequest) 
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
 	}
-	resp := &pb.GetHistoryResponse{HasMore: hasMore}
-	for i := range msgs {
-		resp.Messages = append(resp.Messages, service.MessageToProto(&msgs[i]))
-	}
-	return resp, nil
+
+	return &pb.GetHistoryResponse{
+		HasMore:  hasMore,
+		Messages: util.Map(msgs, service.MessageToProto),
+	}, nil
 }
 
 func (s *ChatServer) SubscribeChannel(req *pb.SubscribeChannelRequest, stream pb.ChatService_SubscribeChannelServer) error {

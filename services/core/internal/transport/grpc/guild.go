@@ -8,6 +8,7 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/middleware"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/service"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
+	util "github.com/KitsuLAN/KitsuLAN/services/core/pkg/utill"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -44,11 +45,9 @@ func (s *GuildServer) ListMyGuilds(ctx context.Context, _ *pb.ListMyGuildsReques
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
 	}
-	resp := &pb.ListMyGuildsResponse{}
-	for i := range guilds {
-		resp.Guilds = append(resp.Guilds, guildToProto(&guilds[i], 0))
-	}
-	return resp, nil
+	return &pb.ListMyGuildsResponse{
+		Guilds: util.Map(guilds, func(g *models.Guild) *pb.Guild { return guildToProto(g, 0) }),
+	}, nil
 }
 
 func (s *GuildServer) DeleteGuild(ctx context.Context, req *pb.DeleteGuildRequest) (*pb.DeleteGuildResponse, error) {
@@ -103,11 +102,9 @@ func (s *GuildServer) ListChannels(ctx context.Context, req *pb.ListChannelsRequ
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
 	}
-	resp := &pb.ListChannelsResponse{}
-	for i := range channels {
-		resp.Channels = append(resp.Channels, channelToProto(&channels[i]))
-	}
-	return resp, nil
+	return &pb.ListChannelsResponse{
+		Channels: util.Map(channels, channelToProto),
+	}, nil
 }
 
 func (s *GuildServer) ListMembers(ctx context.Context, req *pb.ListMembersRequest) (*pb.ListMembersResponse, error) {
@@ -116,17 +113,18 @@ func (s *GuildServer) ListMembers(ctx context.Context, req *pb.ListMembersReques
 	if err != nil {
 		return nil, domainerr.ToGRPC(err)
 	}
-	resp := &pb.ListMembersResponse{}
-	for _, m := range members {
-		resp.Members = append(resp.Members, &pb.Member{
+
+	pbMembers := util.Map(members, func(m *models.GuildMember) *pb.Member {
+		return &pb.Member{
 			UserId:    m.UserID.String(),
 			Username:  m.User.Username,
 			AvatarUrl: m.User.AvatarURL,
 			Nickname:  m.Nickname,
 			JoinedAt:  timestamppb.New(m.JoinedAt),
-		})
-	}
-	return resp, nil
+		}
+	})
+
+	return &pb.ListMembersResponse{Members: pbMembers}, nil
 }
 
 // --- converters ---
