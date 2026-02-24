@@ -10,6 +10,7 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/middleware"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
 	"github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
+	"github.com/KitsuLAN/KitsuLAN/services/core/pkg/validator"
 	"github.com/google/uuid"
 )
 
@@ -55,8 +56,8 @@ func (s *GuildService) getOwnedGuild(ctx context.Context, guildID, userID string
 func (s *GuildService) CreateGuild(ctx context.Context, ownerID, name, description string) (*models.Guild, error) {
 	const op = "GuildService.CreateGuild"
 
-	if len(name) < 2 || len(name) > 100 {
-		return nil, errors.ValidationError("name", "Must be 2-100 characters").WithOp(op)
+	if err := validator.ValidateGuildName(name); err != nil {
+		return nil, err.WithOp(op)
 	}
 
 	ownerUUID := uuid.MustParse(ownerID)
@@ -207,8 +208,8 @@ func (s *GuildService) CreateChannel(ctx context.Context, guildID, callerID, nam
 	if err != nil {
 		return nil, err
 	}
-	if len(name) < 1 || len(name) > 100 {
-		return nil, errors.ValidationError("name", "channel name must be 1–100 characters")
+	if err := validator.ValidateChannelName(name); err != nil {
+		return nil, err.WithOp(op)
 	}
 
 	ch := &models.Channel{

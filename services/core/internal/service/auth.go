@@ -10,6 +10,7 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/logger"
 	"github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
+	"github.com/KitsuLAN/KitsuLAN/services/core/pkg/validator"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -60,7 +61,7 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 			WithMsg("Invalid RealmID in server configuration. Check APP_REALM_ID in .env")
 	}
 
-	if err := validateCredentials(username, password); err != nil {
+	if err := validator.ValidateCredentials(username, password); err != nil {
 		return "", errors.AsAppError(err).WithOp(op)
 	}
 
@@ -314,24 +315,4 @@ func (s *AuthService) signToken(claims domain.AuthClaims) (string, error) {
 			WithRemedy("Verify that JWT_SECRET is a valid 32-byte hex string.")
 	}
 	return signedToken, nil
-}
-
-func validateCredentials(username, password string) error {
-	username = strings.TrimSpace(username)
-	if len(username) < 3 {
-		return errors.ValidationError("username", "Too short").
-			WithOp("AuthService.Register").
-			WithRemedy("Username must be at least 3 characters long.")
-	}
-	if len(username) > 32 {
-		return errors.ValidationError("username", "Too long").
-			WithOp("AuthService.Register").
-			WithRemedy("Username must be at most 32 characters long.")
-	}
-	if len(password) < 8 {
-		return errors.ValidationError("password", "Too weak").
-			WithOp("AuthService.Register").
-			WithRemedy("Password must be at least 8 characters long for security.")
-	}
-	return nil
 }
