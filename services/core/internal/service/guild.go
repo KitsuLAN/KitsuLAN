@@ -7,6 +7,7 @@ import (
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/database"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
+	"github.com/KitsuLAN/KitsuLAN/services/core/internal/hub"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/middleware"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
 	"github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
@@ -18,10 +19,11 @@ type GuildService struct {
 	guilds   repository.GuildRepository
 	channels repository.ChannelRepository
 	tm       database.TransactionManager
+	hub      *hub.Hub
 }
 
-func NewGuildService(guilds repository.GuildRepository, channels repository.ChannelRepository, tm database.TransactionManager) *GuildService {
-	return &GuildService{guilds: guilds, channels: channels, tm: tm}
+func NewGuildService(guilds repository.GuildRepository, channels repository.ChannelRepository, tm database.TransactionManager, hub *hub.Hub) *GuildService {
+	return &GuildService{guilds: guilds, channels: channels, tm: tm, hub: hub}
 }
 
 // Палитра (Tailwind Colors 600)
@@ -246,5 +248,15 @@ func (s *GuildService) ListMembers(ctx context.Context, guildID, callerID string
 	if err := s.checkMember(ctx, guildID, callerID); err != nil {
 		return nil, err
 	}
-	return s.guilds.ListMembers(ctx, guildID)
+
+	members, err := s.guilds.ListMembers(ctx, guildID)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range members {
+		members[i].IsOnline = s.hub.IsOnline(members[i].UserID.String())
+	}
+
+	return members, nil
 }

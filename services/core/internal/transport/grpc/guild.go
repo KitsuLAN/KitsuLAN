@@ -120,6 +120,7 @@ func (s *GuildServer) ListMembers(ctx context.Context, req *pb.ListMembersReques
 			Username:  m.User.Username,
 			AvatarUrl: m.User.AvatarURL,
 			Nickname:  m.Nickname,
+			IsOnline:  m.IsOnline,
 			JoinedAt:  timestamppb.New(m.JoinedAt),
 		}
 	})

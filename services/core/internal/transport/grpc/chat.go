@@ -47,7 +47,7 @@ func (s *ChatServer) SubscribeChannel(req *pb.SubscribeChannelRequest, stream pb
 		return domainerr.ToGRPC(err)
 	}
 
-	events, unsubscribe := s.svc.Hub().Subscribe(req.ChannelId)
+	events, unsubscribe := s.svc.Hub().Subscribe(req.ChannelId, callerID)
 	defer unsubscribe()
 
 	for {

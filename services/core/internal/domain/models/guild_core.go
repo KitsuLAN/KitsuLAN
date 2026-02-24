@@ -62,6 +62,7 @@ type GuildMember struct {
 
 	IsMuted    bool `gorm:"not null;default:false"`
 	IsDeafened bool `gorm:"not null;default:false"`
+	IsOnline   bool `gorm:"-" json:"is_online"`
 
 	// Ассоциации
 	User  User   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`

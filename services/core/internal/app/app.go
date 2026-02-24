@@ -185,7 +185,7 @@ func initServices(db *gorm.DB, cfg *config.Config, cp *cache.Provider) *serviceD
 		realm: service.NewRealmService(repos.Realms, cfg),
 		auth:  service.NewAuthService(repos.Users, cfg),
 		user:  usersService,
-		guild: service.NewGuildService(repos.Guilds, repos.Channels, tm),
+		guild: service.NewGuildService(repos.Guilds, repos.Channels, tm, chatHub),
 		chat:  service.NewChatService(repos.Messages, repos.Channels, repos.Guilds, usersService, chatHub),
 	}
 }

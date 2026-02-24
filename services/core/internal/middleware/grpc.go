@@ -6,7 +6,6 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"runtime/debug"
 	"strings"
@@ -15,7 +14,6 @@ import (
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/logger"
 	domainerr "github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -31,19 +29,6 @@ const (
 	ContextKeyRealmID contextKey = "realm_id"
 	ContextKeyClaims  contextKey = "claims"
 )
-
-func mapAuthError(err error) error {
-	switch {
-	case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, domainerr.ErrTokenExpired):
-		return status.Error(codes.Unauthenticated, "token expired")
-
-	case errors.Is(err, domainerr.ErrTokenInvalid):
-		return status.Error(codes.Unauthenticated, "invalid token")
-
-	default:
-		return status.Error(codes.Unauthenticated, "auth failed")
-	}
-}
 
 // --- Recovery Interceptor ---
 
@@ -173,7 +158,7 @@ func UnaryAuth(auth tokenValidator) grpc.UnaryServerInterceptor {
 
 		claims, err := auth.ValidateAccessToken(ctx, tokenStr)
 		if err != nil {
-			return nil, mapAuthError(err) // Конвертируем доменную ошибку в gRPC статус
+			return nil, domainerr.ToGRPC(err) // Конвертируем доменную ошибку в gRPC статус
 		}
 
 		// Добавляем UserID в контекст для использования в обработчиках
@@ -198,7 +183,7 @@ func StreamAuth(auth tokenValidator) grpc.StreamServerInterceptor {
 
 		claims, err := auth.ValidateAccessToken(ss.Context(), tokenStr)
 		if err != nil {
-			return mapAuthError(err)
+			return domainerr.ToGRPC(err)
 		}
 
 		newCtx := context.WithValue(ss.Context(), ContextKeyUserID, claims.UserID)
