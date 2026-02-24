@@ -16,6 +16,7 @@ type Config struct {
 	// --- Server ---
 	Env          string        // "development" | "production"
 	RealmID      string        // Идентификатор текущего узла/сервиса
+	MasterKey    string        // Мастер ключ симметричного шифрования узла
 	ReadTimeout  time.Duration // таймаут чтения gRPC запроса
 	WriteTimeout time.Duration // таймаут записи gRPC ответа
 
@@ -90,8 +91,9 @@ func Load() (*Config, error) {
 	_ = godotenv.Load()
 
 	cfg := &Config{
-		Env:     getEnv("APP_ENV", "development"),
-		RealmID: getEnv("APP_REALM_ID", ""),
+		Env:       getEnv("APP_ENV", "development"),
+		RealmID:   getEnv("APP_REALM_ID", ""),
+		MasterKey: getEnv("APP_MASTER_KEY", ""),
 
 		ReadTimeout:  getDurationEnv("READ_TIMEOUT", 30*time.Second),
 		WriteTimeout: getDurationEnv("WRITE_TIMEOUT", 30*time.Second),

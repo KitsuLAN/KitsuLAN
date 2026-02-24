@@ -2,14 +2,20 @@ package service
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/ed25519"
 	"crypto/rand"
+	"encoding/hex"
+	"io"
+	"os"
 
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/config"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/domain/models"
 	"github.com/KitsuLAN/KitsuLAN/services/core/internal/repository"
 	"github.com/KitsuLAN/KitsuLAN/services/core/pkg/errors"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 
 type RealmService struct {
@@ -45,20 +51,31 @@ func (s *RealmService) Setup(ctx context.Context, domain, displayName string) (*
 	}
 
 	// 2. Генерация ключей Ed25519 для Федерации
+	if s.cfg.MasterKey == "" {
+		keyBytes := make([]byte, 32)
+		if _, err := io.ReadFull(rand.Reader, keyBytes); err != nil {
+			return nil, errors.Wrap(err, errors.ErrInternal, op).WithMsg("Failed to generate master key")
+		}
+		s.cfg.MasterKey = hex.EncodeToString(keyBytes)
+	}
+
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, errors.Wrap(err, errors.ErrInternal, op).WithMsg("Failed to generate Ed25519 keys")
 	}
 
 	// 3. Шифрование приватного ключа
-	// ВАЖНО: Мы используем JWT_SECRET как временный мастер-ключ,
-	// но лучше завести отдельный KITSULAN_MASTER_KEY в .env
-	encryptedPriv, err := s.encryptKey(priv)
+	encryptedPriv, err := s.encryptKey(priv, s.cfg.MasterKey)
 	if err != nil {
 		return nil, errors.Wrap(err, errors.ErrInternal, op).WithMsg("Failed to encrypt private key")
 	}
 
 	newRealmID, _ := uuid.NewV7()
+	s.cfg.RealmID = newRealmID.String()
+
+	if err := s.saveEnvConfig(); err != nil {
+		return nil, errors.Wrap(err, errors.ErrInternal, op).WithMsg("Failed to persist config to .env file")
+	}
 
 	// 4. Создание конфига
 	realm := &models.RealmConfig{
@@ -69,7 +86,7 @@ func (s *RealmService) Setup(ctx context.Context, domain, displayName string) (*
 		Domain:           domain,
 		DisplayName:      displayName,
 		PubKeyEd25519:    pub,
-		PrivKeyEncrypted: encryptedPriv, // TODO: Зашифровать мастер-ключом из .env
+		PrivKeyEncrypted: encryptedPriv,
 		KeyVersion:       1,
 		FederationMode:   models.FederationModeOpen,
 	}
@@ -81,9 +98,46 @@ func (s *RealmService) Setup(ctx context.Context, domain, displayName string) (*
 	return realm, nil
 }
 
-// encryptKey — здесь должна быть логика AES-GCM шифрования.
-// Для примера оставим пока заглушку, но в TODO запишем реализацию.
-func (s *RealmService) encryptKey(key []byte) ([]byte, error) {
-	// TODO: Реализовать AES-GCM шифрование с использованием s.cfg.MasterKey
-	return key, nil
+// encryptKey реализует AES-GCM шифрование
+func (s *RealmService) encryptKey(key []byte, masterKeyHex string) ([]byte, error) {
+	masterKey, err := hex.DecodeString(masterKeyHex)
+	if err != nil {
+		return nil, err
+	}
+
+	block, err := aes.NewCipher(masterKey)
+	if err != nil {
+		return nil, err
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, aesGCM.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	// ciphertext = nonce + encrypted_data (склеиваем для удобства дешифровки)
+	ciphertext := aesGCM.Seal(nonce, nonce, key, nil)
+	return ciphertext, nil
+}
+
+// saveEnvConfig читает текущий .env и дописывает (или перезаписывает) в него RealmID и MasterKey
+func (s *RealmService) saveEnvConfig() error {
+	envMap, err := godotenv.Read(".env")
+	if err != nil {
+		if os.IsNotExist(err) {
+			envMap = make(map[string]string)
+		} else {
+			return err
+		}
+	}
+
+	envMap["APP_REALM_ID"] = s.cfg.RealmID
+	envMap["APP_MASTER_KEY"] = s.cfg.MasterKey
+
+	return godotenv.Write(envMap, ".env")
 }

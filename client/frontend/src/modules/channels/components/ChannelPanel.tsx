@@ -73,7 +73,7 @@ export function ChannelPanel() {
         {/* Guild header */}
         <div className="flex h-12 shrink-0 items-center border-b border-kitsu-s4 px-4">
           <span className="flex-1 truncate text-sm font-bold">
-            {activeGuild?.name ?? "Выберите сервер"}
+            {activeGuild?.name ?? "Выберите гильдию"}
           </span>
           {activeGuildID && (
             <button

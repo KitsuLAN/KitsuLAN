@@ -4,6 +4,7 @@ import { Input } from "@/uikit/input";
 import { Modal } from "@/components/modals/Modal";
 import { useState } from "react";
 import {GuildController} from "@/modules/guilds/GuildController";
+import {handleApiError} from "@/api/errors";
 
 // ── Диалог создания гильдии ───────────────────────────────────────────────
 
@@ -21,7 +22,7 @@ export function CreateGuildModal({ onClose }: { onClose: () => void }) {
       await GuildController.selectGuild(guild.id!);
       onClose();
     } catch (e) {
-      toast.error(String(e));
+      handleApiError(e);
     } finally {
       setLoading(false);
     }
@@ -81,7 +82,7 @@ export function JoinGuildModal({ onClose }: { onClose: () => void }) {
       await GuildController.selectGuild(guild.id!);
       onClose();
     } catch (e) {
-      toast.error(String(e));
+      handleApiError(e);
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Modal } from "@/components/modals/Modal";
 import {GuildController} from "@/modules/guilds/GuildController";
+import {handleApiError} from "@/api/errors";
 
 export function InviteModal({
   guildID,
@@ -17,7 +18,7 @@ export function InviteModal({
     GuildController.createInvite(guildID, 0, 0)
       .then(setCode)
       .catch((e) => {
-        toast.error(String(e));
+        handleApiError(e);
         onClose();
       })
       .finally(() => setLoading(false));

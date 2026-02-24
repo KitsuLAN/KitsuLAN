@@ -8,7 +8,7 @@ import Home from "@/pages/Home";
 import ChannelPage from "@/pages/ChannelPage";
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { useActiveChannelID } from "@/modules/guilds/guildStore";
-import {SetupGuard} from "@/components/SetupGuard";
+import {SetupPage} from "@/pages/SetupPage";
 
 // Показывает Home или Chat в зависимости от выбранного канала
 function AppContent() {
@@ -19,10 +19,12 @@ function AppContent() {
 export default function App() {
   return (
     <HashRouter>
-      <SetupGuard>
         <Routes>
           {/* 1. Выбор сервера */}
           <Route path="/" element={<ServerSelect />} />
+
+          {/* Страница первоначальной настройки узла */}
+          <Route path="/setup" element={<SetupPage />} />
 
           {/* 2. Авторизация (только если сервер выбран — проверяется внутри Login) */}
           <Route path="/auth" element={<Login />} />
@@ -47,7 +49,6 @@ export default function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </SetupGuard>
       <Toaster theme="dark" position="bottom-right" />
     </HashRouter>
   );

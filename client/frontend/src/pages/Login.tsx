@@ -27,6 +27,7 @@ import {
 import { useIsAuthenticated } from "@/modules/auth/authStore";
 import { useServerAddress } from "@/modules/server/serverStore";
 import {AuthController} from "@/modules/auth/AuthController";
+import {handleApiError} from "@/api/errors";
 
 const schema = z.object({
   username: z.string().min(1, "Введите никнейм"),
@@ -67,11 +68,7 @@ export default function Login() {
         // navigate произойдёт через useEffect выше
       }
     } catch (err) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : String(err) || "Неизвестная ошибка";
-      toast.error("Ошибка", { description: msg });
+      handleApiError(err);
     }
   };
 

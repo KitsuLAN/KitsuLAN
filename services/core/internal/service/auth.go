@@ -49,6 +49,17 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 	log := logger.FromContext(ctx)
 	log.Info("attempting registration", "username", username)
 
+	if s.cfg.RealmID == "" {
+		return "", errors.ErrRealmNotInitialized.WithOp(op).
+			WithRemedy("Please complete the initial server setup (SetupRealm) first.")
+	}
+
+	currentRealmUUID, err := uuid.Parse(s.cfg.RealmID)
+	if err != nil {
+		return "", errors.Wrap(err, errors.ErrInternal, op).
+			WithMsg("Invalid RealmID in server configuration. Check APP_REALM_ID in .env")
+	}
+
 	if err := validateCredentials(username, password); err != nil {
 		return "", errors.AsAppError(err).WithOp(op)
 	}
@@ -72,13 +83,6 @@ func (s *AuthService) Register(ctx context.Context, username, password string) (
 	}
 
 	passStr := string(hashedPass)
-	currentRealmUUID, _ := uuid.Parse(s.cfg.RealmID) // TODO: Временно, лучше валидировать при старте
-	if currentRealmUUID == uuid.Nil {
-		// Fallback если в конфиге не UUID (например "core-local")
-		// Для тестов генерируем новый, в проде RealmID должен быть строгим UUID
-		currentRealmUUID = uuid.New()
-	}
-
 	user := &models.User{
 		BaseEntity: models.BaseEntity{
 			RealmID: currentRealmUUID,

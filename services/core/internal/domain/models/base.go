@@ -41,7 +41,11 @@ type SoftDeletable struct {
 
 func (b *BaseEntity) BeforeCreate(tx *gorm.DB) (err error) {
 	if b.ID == uuid.Nil {
-		b.ID, err = uuid.NewV7()
+		if id, err := uuid.NewV7(); err == nil {
+			b.ID = id
+		} else {
+			return err // Возвращаем ошибку генерации UUID, если что-то пошло не так
+		}
 	}
-	return
+	return nil
 }

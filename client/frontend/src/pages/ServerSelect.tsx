@@ -5,6 +5,7 @@ import { Input } from "@/uikit/input";
 import { cn } from "@/uikit/lib/utils";
 import { ServerController, KNOWN_SERVERS } from "@/modules/server/ServerController";
 import { useServerAddress, useServerPings } from "@/modules/server/serverStore";
+import {toast} from "sonner";
 
 type PingStatus = "checking" | "online" | "offline";
 
@@ -32,16 +33,22 @@ export default function ServerSelect() {
       ? KNOWN_SERVERS.find((s) => s.id === selectedID)?.addr ?? ""
       : customAddr.trim();
 
-  const handleConnect = async () => {
-    if (!activeAddr) return;
-    setConnecting(true);
-    try {
-      const ok = await ServerController.connect(activeAddr);
-      if (ok) navigate("/auth");
-    } finally {
-      setConnecting(false);
-    }
-  };
+    const handleConnect = async () => {
+        if (!activeAddr) return;
+        setConnecting(true);
+        try {
+            const route = await ServerController.connect(activeAddr);
+            if (route === "auth") {
+                navigate("/auth");
+            } else if (route === "setup") {
+                navigate("/setup");
+            } else {
+                toast.error("Не удалось подключиться к серверу");
+            }
+        } finally {
+            setConnecting(false);
+        }
+    };
 
   return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-kitsu-bg p-6">

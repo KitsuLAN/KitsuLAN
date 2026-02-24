@@ -65,14 +65,19 @@ export const ServerController = {
         }
 
         // 2. Вызываем системный метод подключения в Go
-        const ok = await WailsAPI.ConnectToServer(newAddress);
+        const connected = await WailsAPI.ConnectToServer(newAddress);
+        if (!connected) return "error";
 
-        if (ok) {
-            // 3. Сохраняем адрес только при успешном коннекте
-            useServerStore.setState({ address: newAddress });
+        useServerStore.setState({address: newAddress})
+
+        try {
+            const status = await WailsAPI.GetRealmStatus();
+            useServerStore.setState({ isInitialized: status.is_initialized });
+            return status.is_initialized ? "auth" : "setup";
+        } catch (e) {
+            console.error("[Server] Failed to get realm status:", e);
+            return "error";
         }
-
-        return ok;
     },
 
     _updatePing(id: string, status: "online" | "offline") {

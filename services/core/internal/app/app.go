@@ -228,7 +228,7 @@ func initGRPCServer(cfg *config.Config, s *serviceDeps) (*grpc.Server, error) {
 
 func initHealthServer(cfg *config.Config) *http.Server {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
@@ -240,7 +240,7 @@ func initHealthServer(cfg *config.Config) *http.Server {
 
 func initMetricServer(cfg *config.Config) *http.Server {
 	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.Handler())
+	mux.Handle("GET /metrics", promhttp.Handler())
 	return &http.Server{
 		Addr:    cfg.ListenAddr + cfg.MetricsPort,
 		Handler: mux,

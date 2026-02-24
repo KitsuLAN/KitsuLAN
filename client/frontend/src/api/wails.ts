@@ -59,6 +59,14 @@ const MOCK_CHANNEL: Channel = {
 };
 
 const Mock = {
+  GetRealmStatus: async (): Promise<Record<string, any>> => {
+    await delay(300);
+    return { is_initialized: false, version: "0.1.0-mock" };
+  },
+  SetupRealm: async (_domain: string, _name: string): Promise<Record<string, any>> => {
+    await delay(1000);
+    return { realm_id: "mock-uuid", public_key: "mock-key" };
+  },
   PingServer: async (addr: string) => {
     await delay(500);
     // Для мока: считаем онлайн только localhost
