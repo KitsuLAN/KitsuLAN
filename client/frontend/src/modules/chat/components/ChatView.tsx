@@ -16,6 +16,7 @@ import { ChatController } from "@/modules/chat/ChatController";
 import { ChannelHeader } from "@/modules/channels/components/ChannelHeader";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
+import {ChannelStatusBar} from "@/modules/channels/components/ChannelStatusBar";
 
 interface ChatViewProps {
     channelId: string;
@@ -43,6 +44,7 @@ export function ChatView({ channelId }: ChatViewProps) {
         <div className="flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden bg-kitsu-bg">
             {/* Хедер канала */}
             <ChannelHeader channelId={channelId} />
+            <ChannelStatusBar channelId={channelId} />
 
             {/* Лента сообщений */}
             <MessageList

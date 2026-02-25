@@ -24,6 +24,7 @@ import { create } from "zustand";
 interface LayoutState {
     // ── Phase 1 (текущее) ─────────────────────────────────────────
     membersVisible: boolean;
+    channelsVisible: boolean;
 
     // ── Phase 2 (заглушки, подключить когда нужно) ────────────────
     searchOpen: boolean;
@@ -42,6 +43,9 @@ interface LayoutActions {
     toggleMembers: () => void;
     setMembersVisible: (v: boolean) => void;
 
+    toggleChannels: () => void;
+    setChannelsVisible: (v: boolean) => void;
+
     toggleSearch: () => void;
     setSearchOpen: (v: boolean) => void;
 
@@ -59,6 +63,7 @@ interface LayoutActions {
 export const useLayoutStore = create<LayoutState & LayoutActions>((set) => ({
     // Начальные значения
     membersVisible: true,
+    channelsVisible: true,
     searchOpen: false,
     dmSectionVisible: false,
     voicePanelOpen: false,
@@ -70,6 +75,11 @@ export const useLayoutStore = create<LayoutState & LayoutActions>((set) => ({
         set((s) => ({ membersVisible: !s.membersVisible })),
     setMembersVisible: (v) =>
         set({ membersVisible: v }),
+
+    toggleChannels: () =>
+        set((s) => ({ channelsVisible: !s.channelsVisible })),
+    setChannelsVisible: (v) =>
+        set({ channelsVisible: v}),
 
     toggleSearch: () =>
         set((s) => ({ searchOpen: !s.searchOpen })),
@@ -94,6 +104,7 @@ export const useLayoutStore = create<LayoutState & LayoutActions>((set) => ({
 // Атомарные — каждый подписывается только на своё поле.
 
 export const useMembersVisible    = () => useLayoutStore((s) => s.membersVisible);
+export const useChannelsVisible = () => useLayoutStore((s) => s.channelsVisible);
 export const useSearchOpen        = () => useLayoutStore((s) => s.searchOpen);
 export const useVoicePanelOpen    = () => useLayoutStore((s) => s.voicePanelOpen);
 export const useActiveVoiceChannel= () => useLayoutStore((s) => s.activeVoiceChannelId);

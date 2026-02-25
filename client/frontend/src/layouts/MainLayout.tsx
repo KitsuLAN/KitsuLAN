@@ -7,7 +7,7 @@ import { Outlet } from "react-router-dom";
 import { GuildRail } from "@/modules/guilds/components/GuildRail";
 import { MemberList } from "@/modules/guilds/components/MemberList";
 import { GuildController } from "@/modules/guilds/GuildController";
-import { useMembersVisible } from "@/modules/layout/layoutStore";
+import {useChannelsVisible, useMembersVisible} from "@/modules/layout/layoutStore";
 import { ChannelPanel } from "@/modules/channels/components/ChannelPanel";
 
 export default function MainLayout() {
@@ -16,6 +16,7 @@ export default function MainLayout() {
     }, []);
 
     const membersVisible = useMembersVisible();
+    const channelsVisible = useChannelsVisible();
 
     return (
         <div className="flex h-screen w-screen overflow-hidden bg-kitsu-bg text-foreground">
@@ -23,7 +24,7 @@ export default function MainLayout() {
             <GuildRail />
 
             {/* Панель каналов */}
-            <ChannelPanel />
+            {channelsVisible && <ChannelPanel />}
 
             {/* Основная область — хедер живёт внутри ChatView/ChannelHeader */}
             <main className="flex flex-1 flex-col overflow-hidden bg-kitsu-bg">
