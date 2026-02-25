@@ -5,10 +5,10 @@
 import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { GuildRail } from "@/modules/guilds/components/GuildRail";
-import { ChannelPanel } from "@/modules/channels/components/ChannelPanel";
 import { MemberList } from "@/modules/guilds/components/MemberList";
 import { GuildController } from "@/modules/guilds/GuildController";
 import { useMembersVisible } from "@/modules/layout/layoutStore";
+import { ChannelPanel } from "@/modules/channels/components/ChannelPanel";
 
 export default function MainLayout() {
     useEffect(() => {

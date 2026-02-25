@@ -1,118 +1,71 @@
 import { useState } from "react";
 import { Button } from "@/uikit/button";
-import { cn } from "@/uikit/lib/utils";
-import {
-  CreateGuildModal,
-  JoinGuildModal,
-} from "@/modules/guilds/components/modals/GuildModal";
-import {useGuilds} from "@/modules/guilds/guildStore";
-import {GuildController} from "@/modules/guilds/GuildController";
-
-// ── Главная страница ──────────────────────────────────────────────────────
+import { CreateGuildModal, JoinGuildModal } from "@/modules/guilds/components/modals/GuildModal";
+import { useGuilds } from "@/modules/guilds/guildStore";
+import { GuildController } from "@/modules/guilds/GuildController";
+import { Activity, Plus, Hash } from "lucide-react";
 
 type ModalType = "create" | "join" | null;
 
 export default function Home() {
-  const guilds = useGuilds();
-  const [modal, setModal] = useState<ModalType>(null);
+    const guilds = useGuilds();
+    const [modal, setModal] = useState<ModalType>(null);
 
-  return (
-    <>
-      <div className="flex h-full flex-col items-center justify-center gap-8 px-8">
-        {guilds.length === 0 ? (
-          // Первый запуск — нет гильдий
-          <div className="text-center">
-            <div className="mb-4 text-6xl">🦊</div>
-            <h1 className="mb-2 text-2xl font-bold">
-              Добро пожаловать в KitsuLAN
-            </h1>
-            <p className="mb-8 text-sm text-muted-foreground">
-              Создайте первую гильдию или вступите по инвайту
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button onClick={() => setModal("create")}>
-                + Создать гильдию
-              </Button>
-              <Button variant="outline" onClick={() => setModal("join")}>
-                Вступить по коду
-              </Button>
-            </div>
-          </div>
-        ) : (
-          // Есть гильдии — показываем список и действия
-          <div className="w-full max-w-md">
-            <div className="mb-6 text-center">
-              <div className="mb-2 text-4xl">🦊</div>
-              <h1 className="text-xl font-bold">Выберите канал слева</h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                или создайте новое пространство
-              </p>
-            </div>
+    return (
+        <>
+            <div className="flex h-full flex-col items-center justify-center p-8 text-center bg-kitsu-bg text-fg">
 
-            {/* Быстрые действия */}
-            <div className="mb-6 flex gap-2">
-              <Button className="flex-1" onClick={() => setModal("create")}>
-                + Создать гильдию
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setModal("join")}
-              >
-                Вступить по коду
-              </Button>
-            </div>
+                {/* Large Decorative Icon */}
+                <div className="mb-8 flex h-32 w-32 items-center justify-center rounded-[3px] border border-dashed border-kitsu-s4 bg-kitsu-s1 text-6xl opacity-50 grayscale transition-all hover:border-kitsu-orange/50 hover:grayscale-0 hover:opacity-100">
+                    🦊
+                </div>
 
-            {/* Список гильдий */}
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50">
-              Ваши гильдии
-            </p>
-            <div className="flex flex-col gap-1.5">
-              {guilds.map((g) => {
-                const bgColor = g.color ?? "#525252";
+                <h1 className="mb-2 font-mono text-2xl font-bold uppercase tracking-widest text-fg">
+                    System Standby
+                </h1>
 
-                return (
-                  <button
-                    key={g.id}
-                    onClick={() => GuildController.selectGuild(g.id!)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg border border-kitsu-s4",
-                      "bg-kitsu-s1 px-4 py-3 text-left transition-colors hover:bg-kitsu-s2"
-                    )}
-                  >
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold"
-                      style={{ backgroundColor: bgColor }}
-                    >
-                      {(g.name ?? "?").slice(0, 2).toUpperCase()}
+                {guilds.length === 0 ? (
+                    <p className="mb-8 max-w-sm font-sans text-sm text-fg-muted">
+                        Связь с гильдиями отсутствует. Инициируйте новое соединение или присоединитесь к существующему узлу.
+                    </p>
+                ) : (
+                    <p className="mb-8 max-w-sm font-sans text-sm text-fg-muted">
+                        Терминал готов к работе. Выберите активный канал в левой панели для начала передачи данных.
+                    </p>
+                )}
+
+                <div className="flex gap-4">
+                    <Button onClick={() => setModal("create")}>
+                        <Plus size={16} /> Создать гильдию
+                    </Button>
+                    <Button variant="outline" onClick={() => setModal("join")}>
+                        <Hash size={16} /> Вступить по коду
+                    </Button>
+                </div>
+
+                {/* Stats / Footer */}
+                <div className="mt-16 flex items-center gap-8 border-t border-kitsu-s4 pt-6 opacity-60">
+                    <div className="flex flex-col items-center gap-1">
+                        <span className="font-mono text-[10px] text-fg-dim uppercase tracking-widest">Guilds</span>
+                        <span className="font-mono text-xl font-bold text-fg">{guilds.length}</span>
                     </div>
-
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold">
-                        {g.name}
-                      </div>
-                      {g.description && (
-                        <div className="truncate text-xs text-muted-foreground">
-                          {g.description}
+                    <div className="h-8 w-px bg-kitsu-s4" />
+                    <div className="flex flex-col items-center gap-1">
+                        <span className="font-mono text-[10px] text-fg-dim uppercase tracking-widest">Status</span>
+                        <div className="flex items-center gap-1.5">
+                     <span className="relative flex h-2 w-2">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-kitsu-online opacity-75"></span>
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-kitsu-online"></span>
+                     </span>
+                            <span className="font-mono text-xs font-bold text-kitsu-online">ONLINE</span>
                         </div>
-                      )}
                     </div>
+                </div>
 
-                    <span className="ml-auto text-sm text-muted-foreground/40">
-                      →
-                    </span>
-                  </button>
-                );
-              })}
             </div>
-          </div>
-        )}
-      </div>
 
-      {modal === "create" && (
-        <CreateGuildModal onClose={() => setModal(null)} />
-      )}
-      {modal === "join" && <JoinGuildModal onClose={() => setModal(null)} />}
-    </>
-  );
+            {modal === "create" && <CreateGuildModal onClose={() => setModal(null)} />}
+            {modal === "join" && <JoinGuildModal onClose={() => setModal(null)} />}
+        </>
+    );
 }

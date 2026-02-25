@@ -1,18 +1,14 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/uikit/button";
 import { Modal } from "@/components/modals/Modal";
+import { Button } from "@/uikit/button";
+import { Input } from "@/uikit/input";
 import { CHANNEL_TYPE_TEXT, CHANNEL_TYPE_VOICE } from "@/api/wails";
 import { cn } from "@/uikit/lib/utils";
-import {GuildController} from "@/modules/guilds/GuildController";
+import { GuildController } from "@/modules/guilds/GuildController";
+import { Hash, Volume2 } from "lucide-react";
 
-export function CreateChannelModal({
-  guildID,
-  onClose,
-}: {
-  guildID: string;
-  onClose: () => void;
-}) {
+export function CreateChannelModal({ guildID, onClose }: { guildID: string; onClose: () => void; }) {
   const [name, setName] = useState("");
   const [type, setType] = useState<1 | 2>(CHANNEL_TYPE_TEXT);
   const [loading, setLoading] = useState(false);
@@ -22,11 +18,11 @@ export function CreateChannelModal({
     setLoading(true);
     try {
       const ch = await GuildController.createChannel(
-        guildID,
-        name.trim().toLowerCase().replace(/\s+/g, "-"),
-        type
+          guildID,
+          name.trim().toLowerCase().replace(/\s+/g, "-"),
+          type
       );
-      toast.success(`Канал #${ch.name} создан`);
+      toast.success(`CHANNEL INITIALIZED: #${ch.name}`);
       if (type === CHANNEL_TYPE_TEXT) await GuildController.selectChannel(ch.id!);
       onClose();
     } catch (e) {
@@ -37,53 +33,59 @@ export function CreateChannelModal({
   };
 
   return (
-    <Modal title="Создать канал" onClose={onClose}>
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-2">
-          {([CHANNEL_TYPE_TEXT, CHANNEL_TYPE_VOICE] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setType(t)}
-              className={cn(
-                "flex flex-1 flex-col items-center gap-1 rounded-lg border py-3 text-sm transition-colors",
-                type === t
-                  ? "border-primary bg-primary/10 text-foreground"
-                  : "border-kitsu-s4 bg-kitsu-bg text-muted-foreground hover:bg-kitsu-s2"
-              )}
-            >
-              <span className="text-xl">
-                {t === CHANNEL_TYPE_TEXT ? "#" : "🔊"}
-              </span>
-              <span className="text-xs font-semibold">
-                {t === CHANNEL_TYPE_TEXT ? "Текстовый" : "Голосовой"}
-              </span>
-            </button>
-          ))}
-        </div>
+      <Modal title="SYSTEM :: NEW_CHANNEL" onClose={onClose}>
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="mb-2 block font-mono text-[10px] font-bold uppercase tracking-widest text-fg-dim">Channel Type</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                  onClick={() => setType(CHANNEL_TYPE_TEXT)}
+                  className={cn(
+                      "flex flex-col items-center gap-2 rounded-[3px] border border-kitsu-s4 bg-kitsu-bg py-4 transition-all hover:bg-kitsu-s0",
+                      type === CHANNEL_TYPE_TEXT && "border-kitsu-orange bg-kitsu-orange-dim text-kitsu-orange ring-1 ring-kitsu-orange"
+                  )}
+              >
+                <Hash size={20} />
+                <span className="font-mono text-xs font-bold uppercase">Text</span>
+              </button>
+              <button
+                  onClick={() => setType(CHANNEL_TYPE_VOICE)}
+                  className={cn(
+                      "flex flex-col items-center gap-2 rounded-[3px] border border-kitsu-s4 bg-kitsu-bg py-4 transition-all hover:bg-kitsu-s0",
+                      type === CHANNEL_TYPE_VOICE && "border-kitsu-orange bg-kitsu-orange-dim text-kitsu-orange ring-1 ring-kitsu-orange"
+                  )}
+              >
+                <Volume2 size={20} />
+                <span className="font-mono text-xs font-bold uppercase">Voice</span>
+              </button>
+            </div>
+          </div>
 
-        <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Название
-          </label>
-          <div className="flex items-center rounded-md border border-kitsu-s4 bg-kitsu-bg px-3">
-            <span className="mr-1 text-muted-foreground">
-              {type === CHANNEL_TYPE_TEXT ? "#" : "🔊"}
-            </span>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-              placeholder="мой-канал"
-              autoFocus
-              className="flex-1 bg-transparent py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none"
-            />
+          <div>
+            <label className="mb-1.5 block font-mono text-[10px] font-bold uppercase tracking-widest text-fg-dim">
+              Frequency Name
+            </label>
+            <div className="relative">
+             <span className="absolute left-3 top-2.5 text-fg-dim font-mono text-sm">
+                 {type === CHANNEL_TYPE_TEXT ? <Hash size={14} /> : <Volume2 size={14} />}
+             </span>
+              <Input
+                  value={name}
+                  onChange={(e: any) => setName(e.target.value)}
+                  onKeyDown={(e: any) => e.key === "Enter" && handleCreate()}
+                  placeholder="general-chatter"
+                  className="pl-7"
+                  autoFocus
+              />
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Button disabled={!name.trim() || loading} onClick={handleCreate} loading={loading} className="w-full">
+              INITIALIZE
+            </Button>
           </div>
         </div>
-
-        <Button disabled={!name.trim() || loading} onClick={handleCreate}>
-          {loading ? "Создаём…" : "Создать канал"}
-        </Button>
-      </div>
-    </Modal>
+      </Modal>
   );
 }

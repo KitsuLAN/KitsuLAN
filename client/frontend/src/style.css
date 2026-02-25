@@ -1,20 +1,14 @@
-/* 1. Tailwind v4 core */
 @import "tailwindcss";
-
-/* 2. shadcn tokens + animations */
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* ──────────────────────────────────────────────────────
-   KITSULAN DESIGN TOKENS
-   Иерархия поверхностей: bg → s0 → s1 → s2 → s3 → s4(бордер)
-   Почему не просто zinc-*: чтобы одним местом менять тему,
-   не искать bg-zinc-950 по всем файлам.
-────────────────────────────────────────────────────── */
-:root,
-.dark {
-  /* shadcn neutral base */
-  --background: 0 0% 7%; /* #111 — основной фон */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+:root, .dark {
+  --background: 0 0% 7%;
   --foreground: 0 0% 90%;
   --card: 0 0% 10%;
   --card-foreground: 0 0% 90%;
@@ -30,37 +24,40 @@
   --accent-foreground: 0 0% 90%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 20%;
+  --border: 0 0% 18%;
   --input: 0 0% 17%;
   --ring: 20.5 90.2% 48.2%;
-  --radius: 0.5rem;
+  --radius: 3px;
 
-  /* ── KitsuLAN surfaces (тёмнее → светлее) ── */
-  --kitsu-bg: #0d0d0d; /* body background */
-  --kitsu-s0: #111111; /* server rail */
-  --kitsu-s1: #171717; /* channel panel, member list */
-  --kitsu-s2: #1d1d1d; /* channel header, user bar */
-  --kitsu-s3: #232323; /* hover state, active item */
-  --kitsu-s4: #2d2d2d; /* borders, dividers */
+  --kitsu-bg:  #0d0d0d;
+  --kitsu-s0:  #111111;
+  --kitsu-s1:  #171717;
+  --kitsu-s2:  #1d1d1d;
+  --kitsu-s3:  #232323;
+  --kitsu-s4:  #2d2d2d;
+  --kitsu-s5:  #3a3a3a;
 
-  /* ── Brand ── */
-  --kitsu-orange: #ea580c;
+  --kitsu-orange:       #ea580c;
   --kitsu-orange-hover: #c2410c;
-  --kitsu-orange-dim: rgba(234, 88, 12, 0.15);
-  --kitsu-orange-glow: rgba(234, 88, 12, 0.07);
+  --kitsu-orange-dim:   rgba(234,88,12,.15);
+  --kitsu-orange-glow:  rgba(234,88,12,.07);
 
-  /* ── Status ── */
-  --kitsu-online: #22c55e;
-  --kitsu-away: #eab308;
-  --kitsu-dnd: #ef4444;
+  --kitsu-online:  #22c55e;
+  --kitsu-away:    #eab308;
+  --kitsu-dnd:     #ef4444;
   --kitsu-offline: #525252;
+
+  /* Typography */
+  --font-sans: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --fg: #e5e5e5;
+  --fg-muted: #888888;
+  --fg-dim: #555555;
 }
 
-/* ── Tailwind v4: регистрируем кастомные цвета как утилиты ──
-   После этого можно писать bg-kitsu-s0, border-kitsu-s4, etc.
-────────────────────────────────────────────────────────────── */
 @theme inline {
-  /* shadcn стандарт */
+  /* Shadcn HSL */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -81,55 +78,41 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  /* KitsuLAN surfaces */
+  /* KitsuLAN HEX */
   --color-kitsu-bg: var(--kitsu-bg);
   --color-kitsu-s0: var(--kitsu-s0);
   --color-kitsu-s1: var(--kitsu-s1);
   --color-kitsu-s2: var(--kitsu-s2);
   --color-kitsu-s3: var(--kitsu-s3);
   --color-kitsu-s4: var(--kitsu-s4);
+  --color-kitsu-s5: var(--kitsu-s5);
   --color-kitsu-orange: var(--kitsu-orange);
   --color-kitsu-orange-hover: var(--kitsu-orange-hover);
+  --color-kitsu-orange-dim: var(--kitsu-orange-dim);
 
-  /* Status colors */
   --color-kitsu-online: var(--kitsu-online);
   --color-kitsu-away: var(--kitsu-away);
+  --color-kitsu-dnd: var(--kitsu-dnd);
   --color-kitsu-offline: var(--kitsu-offline);
 
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-dim: var(--fg-dim);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
   --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
 }
 
-/* ── Base ── */
 body {
-  @apply bg-kitsu-bg text-foreground antialiased;
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  color-scheme: dark;
+  @apply bg-kitsu-bg text-fg font-sans text-[13px] antialiased leading-[1.5];
+  margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
 }
 
-/* WebKit placeholder fix */
-input::placeholder {
-  color: hsl(var(--muted-foreground)) !important;
-  opacity: 1 !important;
-}
-
-/* Webkit scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--kitsu-s4);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--kitsu-s3);
-}
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--kitsu-s4); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--kitsu-s5); }

@@ -6,6 +6,7 @@ import { Input } from "@/uikit/input";
 import { handleApiError } from "@/api/errors";
 import { toast } from "sonner";
 import { useServerAddress } from "@/modules/server/serverStore";
+import { Terminal, Server, ArrowRight } from "lucide-react";
 
 export function SetupPage() {
     const navigate = useNavigate();
@@ -18,7 +19,7 @@ export function SetupPage() {
         setLoading(true);
         try {
             await WailsAPI.SetupRealm(domain, name);
-            toast.success("Сервер успешно инициализирован!");
+            toast.success("NODE INITIALIZED SUCCESSFULLY");
             navigate("/auth");
         } catch (e) {
             handleApiError(e);
@@ -28,47 +29,86 @@ export function SetupPage() {
     };
 
     return (
-        <div className="flex h-screen flex-col items-center justify-center bg-kitsu-bg p-6 text-center relative">
-            {/* Кнопка назад */}
+        <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-kitsu-bg p-6 text-fg overflow-hidden">
+            {/* Background Grid */}
+            <div
+                className="absolute inset-0 pointer-events-none opacity-[0.03]"
+                style={{
+                    backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+                    backgroundSize: "40px 40px"
+                }}
+            />
+
             <button
                 type="button"
                 onClick={() => navigate("/")}
-                className="absolute top-8 left-8 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute left-8 top-8 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-fg-dim transition-colors hover:text-kitsu-orange"
             >
-                ← Вернуться к выбору сервера
+                ← ABORT SETUP
             </button>
 
-            <div className="max-w-sm w-full space-y-6">
-                <div className="text-6xl">🦊</div>
-                <h1 className="text-2xl font-bold">Новый сервер найден!</h1>
-                <p className="text-sm text-muted-foreground">
-                    Узел <b>{serverAddress}</b> ещё не настроен. Задайте параметры для его инициализации.
-                </p>
-
-                <div className="space-y-4 text-left border border-kitsu-s4 bg-kitsu-s1 p-5 rounded-xl">
-                    <div className="space-y-1.5">
-                        <label className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground">Домен узла (или IP)</label>
-                        <Input
-                            value={domain}
-                            onChange={e => setDomain(e.target.value)}
-                            placeholder="kitsu.myhome.lan"
-                            className="bg-kitsu-bg"
-                        />
+            <div className="relative z-10 w-full max-w-[460px]">
+                <div className="mb-8 flex flex-col items-center text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[3px] border border-kitsu-s4 bg-kitsu-s1 text-kitsu-orange shadow-lg">
+                        <Terminal size={32} strokeWidth={1.5} />
                     </div>
-                    <div className="space-y-1.5">
-                        <label className="text-[11px] uppercase tracking-widest font-bold text-muted-foreground">Название сервера</label>
-                        <Input
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            placeholder="Моя Берлога"
-                            className="bg-kitsu-bg"
-                        />
-                    </div>
+                    <h1 className="font-mono text-xl font-bold uppercase tracking-widest text-white">
+                        Unconfigured Node Detected
+                    </h1>
+                    <p className="mt-2 font-mono text-xs text-fg-dim">
+                        Target <span className="text-kitsu-orange">{serverAddress}</span> requires initialization parameters.
+                    </p>
                 </div>
 
-                <Button className="w-full font-bold" size="lg" disabled={!name || loading} onClick={handleSetup}>
-                    {loading ? "Инициализация..." : "Запустить сервер →"}
-                </Button>
+                <div className="rounded-[3px] border border-kitsu-s4 bg-kitsu-s1 shadow-2xl">
+                    <div className="flex items-center gap-2 border-b border-kitsu-s4 bg-kitsu-s2 px-4 py-2">
+                        <Server size={14} className="text-fg-dim" />
+                        <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-fg-dim">
+                            Realm Configuration
+                        </span>
+                    </div>
+
+                    <div className="space-y-5 p-6">
+                        <div className="space-y-1.5">
+                            <label className="block font-mono text-[10px] font-bold uppercase tracking-widest text-fg-dim">
+                                Network Domain (or IP)
+                            </label>
+                            <Input
+                                value={domain}
+                                onChange={e => setDomain(e.target.value)}
+                                placeholder="kitsu.myhome.lan"
+                                className="font-mono"
+                            />
+                            <p className="font-mono text-[9px] text-fg-muted">
+                                Used for external routing and invite link generation.
+                            </p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="block font-mono text-[10px] font-bold uppercase tracking-widest text-fg-dim">
+                                Realm Display Name
+                            </label>
+                            <Input
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                placeholder="Motherbase Alpha"
+                                autoFocus
+                            />
+                        </div>
+                    </div>
+
+                    <div className="border-t border-kitsu-s4 bg-kitsu-s0 p-4">
+                        <Button
+                            className="w-full font-bold"
+                            size="lg"
+                            disabled={!name || loading}
+                            onClick={handleSetup}
+                            loading={loading}
+                        >
+                            INITIALIZE SERVER <ArrowRight size={16} />
+                        </Button>
+                    </div>
+                </div>
             </div>
         </div>
     );

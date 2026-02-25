@@ -1,258 +1,169 @@
-/**
- * src/modules/chat/components/MessageGroup.tsx
- *
- * Адаптация MessageGroup из Fluxer.
- * Рендерит группу сообщений от одного автора.
- * Первое сообщение в группе — с аватаром и именем.
- * Последующие — компактные (только текст + время при ховере).
- *
- * Изменения:
- * - Фикс: длинные слова/ссылки теперь переносятся через overflow-wrap + break-all
- * - Разделитель даты стал кликабельным — скрывает/показывает сообщения за этот день
- */
-
 import { memo, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/uikit/lib/utils";
 import { timestampPbToISO, type ChatMessage } from "@/api/wails";
+import { Avatar, AvatarFallback } from "@/uikit/avatar";
+import { MessageActions } from "./MessageActions";
 
-// ─── Вспомогательные функции ──────────────────────────────────────────────────
-
-function formatTime(iso?: string): string {
+// Форматирование времени: "14:05"
+function formatTime(iso?: string) {
     if (!iso) return "";
-    return new Date(iso).toLocaleTimeString("ru-RU", {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+    return new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
 }
 
-function getInitials(username?: string): string {
-    if (!username) return "??";
-    return username.slice(0, 2).toUpperCase();
-}
-
-/** Генерирует детерминированный цвет аватарки по имени пользователя */
-function avatarColor(username?: string): string {
-    if (!username) return "#525252";
-    const COLORS = [
-        "#5865F2", "#57F287", "#FEE75C", "#EB459E",
-        "#ED4245", "#3BA55D", "#FAA61A", "#4F545C",
-    ];
-    let hash = 0;
-    for (let i = 0; i < username.length; i++) {
-        hash = username.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return COLORS[Math.abs(hash) % COLORS.length];
-}
-
-// ─── Одно сообщение (компактное — без аватара) ───────────────────────────────
-
-interface CompactMessageProps {
-    msg: ChatMessage;
-    isOwn: boolean;
-}
-
-const CompactMessage = memo(function CompactMessage({ msg, isOwn }: CompactMessageProps) {
-    const iso = timestampPbToISO(msg.created_at);
-    return (
-        <div
-            className={cn(
-                "group relative flex min-h-[1.375rem] items-start gap-0 pl-[52px] pr-4 py-0.5",
-                "hover:bg-kitsu-s1/60 transition-colors duration-75",
-            )}
-        >
-            {/* Время появляется при ховере, слева на месте аватара */}
-            <span
-                className={cn(
-                    "absolute left-0 w-[52px] shrink-0 pl-4",
-                    "text-[10px] tabular-nums text-foreground/30 opacity-0",
-                    "group-hover:opacity-100 transition-opacity",
-                    "flex items-center justify-center pt-0.5",
-                )}
-            >
-        {formatTime(iso)}
-      </span>
-
-            <p
-                className={cn(
-                    // overflow-wrap: anywhere — переносит даже внутри длинного слова/ссылки
-                    // min-w-0 обязателен: без него flex-item игнорирует ограничение родителя
-                    "min-w-0 w-full whitespace-pre-wrap break-all text-[14px] leading-[1.375rem] text-foreground/90",
-                )}
-                style={{ overflowWrap: "anywhere" }}
-            >
-                {msg.content}
-            </p>
-        </div>
-    );
-});
-
-// ─── Первое сообщение группы (с аватаром и именем) ───────────────────────────
-
-interface GroupHeaderMessageProps {
-    msg: ChatMessage;
-    isOwn: boolean;
-}
-
-const GroupHeaderMessage = memo(function GroupHeaderMessage({
-                                                                msg,
-                                                                isOwn,
-                                                            }: GroupHeaderMessageProps) {
-    const iso = timestampPbToISO(msg.created_at);
-    const color = avatarColor(msg.author_username);
-
-    return (
-        <div
-            className={cn(
-                "group flex gap-3 px-4 pt-3 pb-0.5",
-                "hover:bg-kitsu-s1/60 transition-colors duration-75",
-            )}
-        >
-            {/* Аватар */}
-            <div
-                className="mt-0.5 flex h-9 w-9 shrink-0 select-none items-center justify-center rounded-full text-[11px] font-bold text-white"
-                style={{ backgroundColor: color }}
-            >
-                {getInitials(msg.author_username)}
-            </div>
-
-            {/* Контент */}
-            <div className="min-w-0 flex-1">
-                {/* Мета: имя + время */}
-                <div className="mb-0.5 flex items-baseline gap-2">
-          <span
-              className={cn(
-                  "max-w-[200px] truncate text-[14px] font-semibold leading-none",
-                  isOwn ? "text-primary" : "text-foreground",
-              )}
-          >
-            {msg.author_username}
-          </span>
-                    <span className="shrink-0 text-[11px] tabular-nums text-foreground/30">
-            {formatTime(iso)}
-          </span>
-                </div>
-
-                {/* Текст */}
-                <p
-                    className="whitespace-pre-wrap break-all text-[14px] leading-[1.375rem] text-foreground/90"
-                    style={{ overflowWrap: "anywhere" }}
-                >
-                    {msg.content}
-                </p>
-            </div>
-        </div>
-    );
-});
-
-// ─── Кликабельный разделитель даты (спойлер) ─────────────────────────────────
-
-interface DateDividerProps {
-    label: string;
-    collapsed: boolean;
-    count: number;
-    onToggle: () => void;
-}
-
-function DateDivider({ label, collapsed, count, onToggle }: DateDividerProps) {
+// Кнопка сворачивания (Шеврон)
+function CollapseButton({ collapsed, onClick }: { collapsed: boolean; onClick: () => void }) {
     return (
         <button
-            onClick={onToggle}
-            aria-expanded={!collapsed}
-            aria-label={collapsed ? `Показать сообщения за ${label}` : `Скрыть сообщения за ${label}`}
-            className={cn(
-                "group relative my-2 flex w-full items-center px-4",
-                "cursor-pointer select-none transition-opacity hover:opacity-100",
-                collapsed ? "opacity-80" : "opacity-60 hover:opacity-80",
-            )}
+            onClick={onClick}
+            className="absolute -left-6 top-2 flex h-4 w-4 items-center justify-center rounded-[2px] text-fg-dim opacity-0 transition-opacity hover:bg-kitsu-s3 hover:text-fg group-hover:opacity-100"
+            title={collapsed ? "Развернуть" : "Свернуть"}
         >
-            <div className="flex-1 border-t border-kitsu-s4 transition-colors group-hover:border-kitsu-s4/80" />
-
-            <span
-                className={cn(
-                    "mx-3 flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-0.5",
-                    "text-[11px] font-semibold transition-colors",
-                    collapsed
-                        ? "border-primary/30 bg-primary/10 text-primary/70 group-hover:border-primary/50 group-hover:text-primary"
-                        : "border-kitsu-s4 bg-kitsu-s1 text-foreground/50 group-hover:border-kitsu-s4/60 group-hover:text-foreground/70",
-                )}
-            >
-        {collapsed ? (
-            <ChevronRight className="h-3 w-3" />
-        ) : (
-            <ChevronDown className="h-3 w-3" />
-        )}
-                {label}
-                {collapsed && (
-                    <span className="ml-1 rounded bg-primary/20 px-1 text-[10px] text-primary/80">
-            {count}
-          </span>
-                )}
-      </span>
-
-            <div className="flex-1 border-t border-kitsu-s4 transition-colors group-hover:border-kitsu-s4/80" />
+            {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
         </button>
     );
 }
 
-// ─── Группа сообщений ─────────────────────────────────────────────────────────
-
-export interface MessageGroupProps {
-    groupId: string;
-    messages: ChatMessage[];
-    /** username текущего пользователя — для подсветки "своих" */
-    currentUsername: string;
-    /** Опциональный разделитель даты над группой. Если есть — включает спойлер */
-    dateDivider?: string;
-    /**
-     * Управление collapsed-состоянием снаружи (из MessageList).
-     * Если не передан — компонент управляет сам собой.
-     */
-    collapsed?: boolean;
-    onToggleCollapse?: () => void;
-}
-
-export const MessageGroup = memo(function MessageGroup({
-                                                           groupId,
-                                                           messages,
-                                                           currentUsername,
-                                                           dateDivider,
-                                                           collapsed: collapsedProp,
-                                                           onToggleCollapse,
-                                                       }: MessageGroupProps) {
-    // Локальный стейт — используется только если родитель не управляет
-    const [localCollapsed, setLocalCollapsed] = useState(false);
-
-    const isControlled = collapsedProp !== undefined;
-    const collapsed = isControlled ? collapsedProp : localCollapsed;
-    const handleToggle = isControlled
-        ? onToggleCollapse!
-        : () => setLocalCollapsed((v) => !v);
+// Заголовок группы (С аватаром, именем и кнопкой сворачивания)
+const GroupHeaderMessage = memo(function GroupHeaderMessage({
+                                                                msg,
+                                                                isOwn,
+                                                                collapsed,
+                                                                onToggle,
+                                                                count
+                                                            }: {
+    msg: ChatMessage;
+    isOwn: boolean;
+    collapsed: boolean;
+    onToggle: () => void;
+    count: number;
+}) {
+    const time = formatTime(timestampPbToISO(msg.created_at));
+    const initials = msg.author_username?.slice(0, 2).toUpperCase() || "??";
 
     return (
-        <div role="group" data-group-id={groupId}>
-            {/* Разделитель даты — только если есть метка */}
+        <div className="group relative grid grid-cols-[56px_1fr_auto] py-1 pl-2 pr-4 hover:bg-white/[0.02]">
+
+            {/* Кнопка сворачивания (абсолютно позиционирована слева) */}
+            <div className="absolute left-1 top-2">
+                <button
+                    onClick={onToggle}
+                    className="flex h-4 w-4 items-center justify-center rounded-[2px] text-fg-dim opacity-0 transition-opacity hover:bg-kitsu-s3 hover:text-fg group-hover:opacity-100"
+                >
+                    {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                </button>
+            </div>
+
+            {/* Аватар (слева) */}
+            <div className="flex shrink-0 justify-center pt-1 pl-2">
+                <Avatar size="md" className="cursor-pointer hover:ring-2 hover:ring-kitsu-s4" onClick={onToggle}>
+                    <AvatarFallback className={isOwn ? "text-kitsu-orange bg-kitsu-orange-dim" : "text-fg-muted bg-kitsu-s3"}>
+                        {initials}
+                    </AvatarFallback>
+                </Avatar>
+            </div>
+
+            {/* Контент (центр) */}
+            <div className="min-w-0 px-2">
+                <div className="flex items-baseline gap-2">
+                    <span
+                        className={cn(
+                            "cursor-pointer font-sans text-sm font-bold hover:underline",
+                            isOwn ? "text-kitsu-orange" : "text-fg"
+                        )}
+                        onClick={onToggle}
+                    >
+                        {msg.author_username}
+                    </span>
+                    <span className="font-mono text-xs text-fg-dim select-none">{time}</span>
+
+                    {/* Если свернуто — показываем кол-во сообщений и превью текста */}
+                    {collapsed && (
+                        <span className="ml-2 rounded-[2px] bg-kitsu-s3 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted">
+                            {count} сообщений
+                        </span>
+                    )}
+                </div>
+
+                {/* Текст сообщения (скрывается если collapsed, но первое сообщение показываем как превью одной строкой) */}
+                <div className={cn(
+                    "mt-0.5 whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-fg-muted group-hover:text-fg",
+                    collapsed && "truncate text-fg-dim italic"
+                )}>
+                    {collapsed ? "Группа свернута..." : msg.content}
+                </div>
+            </div>
+
+            {/* Действия (справа) — Всегда видны, но прозрачность 20% */}
+            <div className={cn("transition-opacity", collapsed ? "opacity-0" : "opacity-20 group-hover:opacity-100")}>
+                <MessageActions isOwn={isOwn} />
+            </div>
+        </div>
+    );
+});
+
+// Последующие сообщения
+const CompactMessage = memo(function CompactMessage({ msg, isOwn }: { msg: ChatMessage; isOwn: boolean }) {
+    const time = formatTime(timestampPbToISO(msg.created_at));
+
+    return (
+        <div className="group relative grid grid-cols-[56px_1fr_auto] py-0.5 pl-2 pr-4 hover:bg-white/[0.02]">
+            {/* Время */}
+            <div className="flex shrink-0 justify-end pr-3 pt-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                <span className="font-mono text-[10px] text-fg-dim select-none">{time}</span>
+            </div>
+
+            {/* Текст */}
+            <div className="min-w-0 px-2">
+                <div className="whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-fg-muted group-hover:text-fg">
+                    {msg.content}
+                </div>
+            </div>
+
+            {/* Действия — Всегда видны (opacity-20 -> opacity-100) */}
+            <div className="opacity-20 transition-opacity group-hover:opacity-100">
+                <MessageActions isOwn={isOwn} />
+            </div>
+        </div>
+    );
+});
+
+// Основной компонент группы
+export const MessageGroup = memo(function MessageGroup({ groupId, messages, currentUsername, dateDivider }: any) {
+    const [collapsed, setCollapsed] = useState(false);
+    const count = messages.length;
+
+    return (
+        <div role="group" data-group-id={groupId} className="mb-2 transition-all">
+
+            {/* Разделитель даты */}
             {dateDivider && (
-                <DateDivider
-                    label={dateDivider}
+                <div className="sticky top-0 z-10 flex items-center gap-4 bg-kitsu-bg/95 py-2 pl-4 pr-4 backdrop-blur-sm">
+                    <div className="h-px flex-1 bg-kitsu-s4" />
+                    <span className="font-mono text-xs font-bold uppercase tracking-widest text-fg-dim">
+                        {dateDivider}
+                    </span>
+                    <div className="h-px flex-1 bg-kitsu-s4" />
+                </div>
+            )}
+
+            {/* Первое сообщение (Хедер) */}
+            {messages.length > 0 && (
+                <GroupHeaderMessage
+                    key={messages[0].id}
+                    msg={messages[0]}
+                    isOwn={messages[0].author_username === currentUsername}
                     collapsed={collapsed}
-                    count={messages.length}
-                    onToggle={handleToggle}
+                    onToggle={() => setCollapsed(!collapsed)}
+                    count={count}
                 />
             )}
 
-            {/* Сообщения — скрыты если collapsed */}
-            {!collapsed &&
-                messages.map((msg, index) => {
-                    const isOwn = msg.author_username === currentUsername;
-                    const isFirst = index === 0;
-
-                    return isFirst ? (
-                        <GroupHeaderMessage key={msg.id} msg={msg} isOwn={isOwn} />
-                    ) : (
-                        <CompactMessage key={msg.id} msg={msg} isOwn={isOwn} />
-                    );
-                })}
+            {/* Остальные сообщения (Рендерим только если не свернуто) */}
+            {!collapsed && messages.slice(1).map((msg: ChatMessage) => {
+                const isOwn = msg.author_username === currentUsername;
+                return <CompactMessage key={msg.id} msg={msg} isOwn={isOwn} />;
+            })}
         </div>
     );
 });

@@ -9,6 +9,7 @@ import ChannelPage from "@/pages/ChannelPage";
 import { PrivateRoute } from "@/components/PrivateRoute";
 import { useActiveChannelID } from "@/modules/guilds/guildStore";
 import {SetupPage} from "@/pages/SetupPage";
+import {TooltipProvider} from "@/uikit/tooltip";
 
 // Показывает Home или Chat в зависимости от выбранного канала
 function AppContent() {
@@ -18,6 +19,7 @@ function AppContent() {
 
 export default function App() {
   return (
+    <TooltipProvider delayDuration={100}>
     <HashRouter>
         <Routes>
           {/* 1. Выбор сервера */}
@@ -51,5 +53,6 @@ export default function App() {
         </Routes>
       <Toaster theme="dark" position="bottom-right" />
     </HashRouter>
+    </TooltipProvider>
   );
 }

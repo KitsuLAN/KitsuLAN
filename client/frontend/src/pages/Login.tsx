@@ -1,37 +1,21 @@
-/**
- * src/pages/Login.tsx
- * Изменения от оригинала:
- * - Убран framer-motion (лишняя зависимость для простой анимации)
- * - Таб-переключатель вместо ссылки внизу
- * - Используется WailsAPI shim
- * - ServerGuard теперь перенаправляет сюда, а не сюда (роут /auth)
- */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn, UserPlus, Server } from "lucide-react";
 
 import { Button } from "@/uikit/button";
 import { Input } from "@/uikit/input";
-import { Label } from "@/uikit/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/uikit/card";
 import { useIsAuthenticated } from "@/modules/auth/authStore";
 import { useServerAddress } from "@/modules/server/serverStore";
-import {AuthController} from "@/modules/auth/AuthController";
-import {handleApiError} from "@/api/errors";
+import { AuthController } from "@/modules/auth/AuthController";
+import { handleApiError } from "@/api/errors";
 
 const schema = z.object({
-  username: z.string().min(1, "Введите никнейм"),
-  password: z.string().min(1, "Введите пароль"),
+  username: z.string().min(1, "REQ_USERNAME"),
+  password: z.string().min(1, "REQ_PASSWORD"),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -48,10 +32,10 @@ export default function Login() {
     reset,
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
-  // Редиректы
   useEffect(() => {
     if (isAuthenticated) navigate("/app");
   }, [isAuthenticated, navigate]);
+
   useEffect(() => {
     if (!serverAddress) navigate("/");
   }, [serverAddress, navigate]);
@@ -60,12 +44,11 @@ export default function Login() {
     try {
       if (mode === "register") {
         await AuthController.register(data.username, data.password);
-        toast.success("Аккаунт создан", { description: "Теперь войдите" });
+        toast.success("ACCOUNT CREATED :: READY FOR LOGIN");
         setMode("login");
         reset({ username: data.username, password: "" });
       } else {
         await AuthController.login(data.username, data.password);
-        // navigate произойдёт через useEffect выше
       }
     } catch (err) {
       handleApiError(err);
@@ -73,136 +56,110 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-kitsu-bg p-6">
-      {/* Сетка */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--kitsu-orange) 1px, transparent 1px), linear-gradient(90deg, var(--kitsu-orange) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
+      <div className="relative flex min-h-screen w-full items-center justify-center bg-kitsu-bg p-6 text-fg overflow-hidden">
+        {/* Background Grid */}
+        <div
+            className="absolute inset-0 pointer-events-none opacity-[0.03]"
+            style={{
+              backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+              backgroundSize: "40px 40px"
+            }}
+        />
 
-      <div className="relative z-10 w-full max-w-sm animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
-        {/* Back */}
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          ← {serverAddress}
-        </button>
+        <div className="relative z-10 w-full max-w-[360px] animate-in fade-in slide-in-from-bottom-4 duration-500">
 
-        <Card className="border-kitsu-s4 bg-kitsu-s1">
-          <CardHeader className="pb-3 text-center">
-            <div className="mb-2 text-4xl">🦊</div>
-            <CardTitle className="text-xl">
-              {mode === "login" ? "Добро пожаловать" : "Регистрация"}
-            </CardTitle>
-            <CardDescription>
-              {mode === "login"
-                ? "Войдите в KitsuLAN"
-                : "Создайте аккаунт на сервере"}
-            </CardDescription>
-          </CardHeader>
+          {/* Header */}
+          <div className="mb-6 flex flex-col items-center text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[3px] border border-kitsu-orange bg-kitsu-orange-dim text-4xl shadow-[0_0_20px_-5px_var(--kitsu-orange)]">
+              🦊
+            </div>
+            <h1 className="font-sans text-2xl font-bold tracking-tight text-white">
+              KitsuLAN <span className="text-kitsu-orange">LINK</span>
+            </h1>
+            <div className="mt-2 flex items-center gap-2 rounded-[3px] border border-kitsu-s4 bg-kitsu-s1 px-3 py-1 font-mono text-xs text-fg-dim">
+              <Server size={12} />
+              <span>NODE: {serverAddress}</span>
+            </div>
+          </div>
 
-          <CardContent className="space-y-4">
-            {/* Переключатель режима */}
-            <div className="flex rounded-md bg-kitsu-bg p-1 gap-1">
-              {(["login", "register"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => {
-                    setMode(m);
-                    reset();
-                  }}
-                  className={`flex-1 rounded py-1.5 text-sm font-semibold transition-all ${
-                    mode === m
-                      ? "bg-kitsu-s3 text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
+          {/* Card */}
+          <div className="overflow-hidden rounded-[3px] border border-kitsu-s4 bg-kitsu-s1 shadow-2xl">
+            {/* Tabs */}
+            <div className="grid grid-cols-2 border-b border-kitsu-s4">
+              <button
+                  onClick={() => { setMode("login"); reset(); }}
+                  className={`h-10 font-mono text-xs font-bold uppercase tracking-widest transition-colors ${
+                      mode === "login"
+                          ? "bg-kitsu-s2 text-kitsu-orange border-b-2 border-kitsu-orange"
+                          : "bg-kitsu-s0 text-fg-dim hover:text-fg hover:bg-kitsu-s2"
                   }`}
-                >
-                  {m === "login" ? "Войти" : "Создать"}
-                </button>
-              ))}
+              >
+                Login
+              </button>
+              <button
+                  onClick={() => { setMode("register"); reset(); }}
+                  className={`h-10 font-mono text-xs font-bold uppercase tracking-widest transition-colors ${
+                      mode === "register"
+                          ? "bg-kitsu-s2 text-kitsu-orange border-b-2 border-kitsu-orange"
+                          : "bg-kitsu-s0 text-fg-dim hover:text-fg hover:bg-kitsu-s2"
+                  }`}
+              >
+                Register
+              </button>
             </div>
 
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              noValidate
-              className="space-y-4"
-            >
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="username"
-                  className="text-xs uppercase tracking-wider text-muted-foreground"
-                >
-                  Никнейм
-                </Label>
-                <Input
-                  id="username"
-                  placeholder="KitsuFan"
-                  className="bg-kitsu-bg"
-                  autoComplete="username"
-                  disabled={isSubmitting}
-                  {...register("username")}
-                />
-                {errors.username && (
-                  <p className="text-xs text-destructive">
-                    {errors.username.message}
-                  </p>
-                )}
-              </div>
+            <div className="p-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block font-mono text-[10px] font-bold uppercase tracking-widest text-fg-dim">
+                    Identity
+                  </label>
+                  <Input
+                      placeholder="username"
+                      autoComplete="username"
+                      disabled={isSubmitting}
+                      {...register("username")}
+                  />
+                  {errors.username && <p className="text-xs text-kitsu-dnd">{errors.username.message}</p>}
+                </div>
 
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="password"
-                  className="text-xs uppercase tracking-wider text-muted-foreground"
-                >
-                  Пароль
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  className="bg-kitsu-bg"
-                  autoComplete={
-                    mode === "register" ? "new-password" : "current-password"
-                  }
-                  disabled={isSubmitting}
-                  {...register("password")}
-                />
-                {errors.password && (
-                  <p className="text-xs text-destructive">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
+                <div className="space-y-1.5">
+                  <label className="block font-mono text-[10px] font-bold uppercase tracking-widest text-fg-dim">
+                    Access Key
+                  </label>
+                  <Input
+                      type="password"
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      disabled={isSubmitting}
+                      {...register("password")}
+                  />
+                  {errors.password && <p className="text-xs text-kitsu-dnd">{errors.password.message}</p>}
+                </div>
 
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full font-semibold"
-                disabled={isSubmitting}
+                <div className="pt-2">
+                  <Button type="submit" className="w-full" loading={isSubmitting}>
+                    {mode === "login" ? (
+                        <>AUTHENTICATE <LogIn size={14} /></>
+                    ) : (
+                        <>INITIALIZE <UserPlus size={14} /></>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+
+            <div className="border-t border-kitsu-s4 bg-kitsu-s0 px-6 py-3 text-center">
+              <button
+                  type="button"
+                  onClick={() => navigate("/")}
+                  className="font-mono text-[10px] text-fg-dim hover:text-kitsu-orange hover:underline transition-colors"
               >
-                {isSubmitting ? (
-                  "Загрузка…"
-                ) : mode === "login" ? (
-                  <>
-                    <LogIn className="size-4" /> Войти
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="size-4" /> Создать аккаунт
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                ← DISCONNECT FROM NODE
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
   );
 }
