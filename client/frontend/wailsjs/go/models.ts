@@ -148,26 +148,6 @@ export namespace kitsulanv1 {
 		    return a;
 		}
 	}
-	export class User {
-	    id?: string;
-	    username?: string;
-	    avatar_url?: string;
-	    bio?: string;
-	    is_online?: boolean;
-	
-	    static createFrom(source: any = {}) {
-	        return new User(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
-	        this.username = source["username"];
-	        this.avatar_url = source["avatar_url"];
-	        this.bio = source["bio"];
-	        this.is_online = source["is_online"];
-	    }
-	}
 
 }
 

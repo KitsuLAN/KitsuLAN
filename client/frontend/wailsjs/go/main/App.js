@@ -85,7 +85,3 @@ export function SubscribeChannel(arg1) {
 export function UnsubscribeChannel() {
   return window['go']['main']['App']['UnsubscribeChannel']();
 }
-
-export function UpdateProfile(arg1, arg2, arg3) {
-  return window['go']['main']['App']['UpdateProfile'](arg1, arg2, arg3);
-}

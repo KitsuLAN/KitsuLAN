@@ -43,5 +43,3 @@ export function SetupRealm(arg1:string,arg2:string):Promise<Record<string, any>>
 export function SubscribeChannel(arg1:string):Promise<void>;
 
 export function UnsubscribeChannel():Promise<void>;
-
-export function UpdateProfile(arg1:any,arg2:any,arg3:any):Promise<kitsulanv1.User>;
