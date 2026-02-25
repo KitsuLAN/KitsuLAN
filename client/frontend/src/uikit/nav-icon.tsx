@@ -1,5 +1,6 @@
 // src/uikit/nav-icon.tsx
 import { cn } from "@/uikit/lib/utils"
+import React from "react";
 
 interface NavIconProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     active?: boolean

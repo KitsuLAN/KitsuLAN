@@ -12,6 +12,7 @@ import { cn } from "@/uikit/lib/utils";
 import type { ChatMessage } from "@/api/wails";
 import { groupMessages } from "../utils/messageGrouping";
 import { MessageGroup } from "./MessageGroup";
+import {Terminal} from "lucide-react";
 // ─── LoadMore Button ──────────────────────────────────────────────────────────
 
 interface LoadMoreButtonProps {
@@ -42,18 +43,25 @@ function LoadMoreButton({ onClick, loading }: LoadMoreButtonProps) {
 
 function EmptyState({ channelName }: { channelName?: string }) {
     return (
-        <div className="flex flex-col gap-3 px-4 py-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-kitsu-s2 text-3xl font-bold text-muted-foreground">
-                #
+        <div className="flex flex-col items-center justify-center py-20 opacity-60">
+            {/* Анимированный сканер / Радар */}
+            <div className="relative mb-6 flex h-24 w-24 items-center justify-center rounded-full border border-dashed border-kitsu-s4 bg-kitsu-s1">
+                <div className="absolute h-full w-full animate-[spin_4s_linear_infinite] rounded-full border-t border-kitsu-orange/30"></div>
+                <div className="absolute h-16 w-16 animate-[spin_3s_linear_infinite_reverse] rounded-full border-b border-kitsu-s5"></div>
+                <Terminal size={32} className="text-kitsu-s5" strokeWidth={1} />
             </div>
-            <div>
-                <h2 className="text-xl font-bold">
-                    {channelName ? `Добро пожаловать в #${channelName}` : "Пустой канал"}
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Напишите первое сообщение в этом канале.
-                </p>
+
+            <h2 className="mb-2 font-mono text-lg font-bold uppercase tracking-widest text-fg">
+                CONNECTION ESTABLISHED
+            </h2>
+            <div className="flex items-center gap-2 rounded-[3px] border border-kitsu-s4 bg-kitsu-s2 px-3 py-1 font-mono text-xs text-fg-dim">
+                <span className="h-1.5 w-1.5 rounded-full bg-kitsu-online animate-pulse" />
+                UPLINK SECURE :: #{channelName?.toUpperCase()}
             </div>
+
+            <p className="mt-6 max-w-md text-center font-sans text-sm text-fg-muted">
+                Вы находитесь в начале истории этого канала. Начните передачу данных, используя консоль ниже.
+            </p>
         </div>
     );
 }
